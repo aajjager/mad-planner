@@ -10,9 +10,16 @@
 - [x] Add Dockerfiles and Compose configuration
 - [x] Verify the complete stack with `docker compose up`
 
+## Phase 2 — Recipe database and CRUD
+
+- [x] Add recipe, ingredient, unit, and instruction models
+- [x] Add the initial Alembic migration
+- [ ] Add recipe API schemas and CRUD endpoints
+- [ ] Add recipe list and details pages
+- [ ] Add manual recipe creation
+
 ## Later phases
 
-- [ ] Phase 2 — Recipe database and CRUD
 - [ ] Phase 3 — Recipe importer
 - [ ] Phase 4 — Tags and filtering
 - [ ] Phase 5 — Weekly planner

@@ -34,6 +34,23 @@ docker compose down
 
 The `.env` file is ignored by Git. Change its password before deploying outside local development.
 
+## Database migrations
+
+Run schema migrations from `apps/api` with:
+
+```powershell
+alembic upgrade head
+```
+
+Inside the Compose stack, use:
+
+```powershell
+docker compose exec api alembic upgrade head
+```
+
+Every database schema change must be represented by an Alembic migration.
+The API container applies pending migrations automatically before it starts serving requests.
+
 ## Current status
 
 Phase 1 is complete. The React frontend, FastAPI backend, and PostgreSQL database run together through Docker Compose with container health checks and persistent database storage.
