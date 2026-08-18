@@ -5,7 +5,7 @@
 - [x] Initialize the repository structure
 - [x] Add a minimal FastAPI application
 - [x] Add an API health endpoint and test
-- [ ] Add PostgreSQL connectivity and database health checking
+- [x] Add PostgreSQL connectivity and database health checking
 - [ ] Add the React frontend and basic homepage
 - [ ] Add Dockerfiles and Compose configuration
 - [ ] Verify the complete stack with `docker compose up`
@@ -19,4 +19,3 @@
 - [ ] Phase 6 — Grocery lists
 - [ ] Phase 7 — Smart meal generation
 - [ ] Phase 8 — TrueNAS deployment
-

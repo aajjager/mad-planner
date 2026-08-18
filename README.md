@@ -11,7 +11,7 @@ The project is being built incrementally as a modular monolith:
 
 ## Current status
 
-Phase 1 is in progress. The first checkpoint provides a minimal API and automated health-check test. It does not yet include the frontend, database connection, or Compose services.
+Phase 1 is in progress. The API provides separate liveness and database-readiness health checks. The frontend and Compose services are not yet included.
 
 ## Backend development
 
@@ -32,8 +32,10 @@ uvicorn madplanner.main:app --reload
 Open <http://127.0.0.1:8000/api/v1/health>. A healthy API returns:
 
 ```json
-{"status":"ok","service":"madplanner-api"}
+{"status":"ok","service":"madplanner-api","database":"not_checked"}
 ```
+
+The database-aware readiness check is available at <http://127.0.0.1:8000/api/v1/health/ready>. It returns HTTP `200` when PostgreSQL is reachable and HTTP `503` otherwise.
 
 Run the tests:
 
@@ -44,4 +46,3 @@ pytest
 ## Roadmap
 
 See [TODO.md](TODO.md) for phase boundaries and progress.
-
