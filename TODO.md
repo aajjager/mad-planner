@@ -6,7 +6,7 @@
 - [x] Add a minimal FastAPI application
 - [x] Add an API health endpoint and test
 - [x] Add PostgreSQL connectivity and database health checking
-- [ ] Add the React frontend and basic homepage
+- [x] Add the React frontend and basic homepage
 - [ ] Add Dockerfiles and Compose configuration
 - [ ] Verify the complete stack with `docker compose up`
 

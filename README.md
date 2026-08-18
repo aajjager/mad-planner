@@ -11,7 +11,7 @@ The project is being built incrementally as a modular monolith:
 
 ## Current status
 
-Phase 1 is in progress. The API provides separate liveness and database-readiness health checks. The frontend and Compose services are not yet included.
+Phase 1 is in progress. The API provides separate liveness and database-readiness health checks, and the React frontend provides the initial responsive homepage. Compose services are not yet included.
 
 ## Backend development
 
@@ -42,6 +42,17 @@ Run the tests:
 ```powershell
 pytest
 ```
+
+## Frontend development
+
+From `apps/web`, install dependencies and run the development server:
+
+```powershell
+npm install
+npm run dev
+```
+
+Vite opens the frontend at <http://127.0.0.1:5173> and proxies `/api` requests to the locally running backend. Use `npm test`, `npm run lint`, and `npm run build` to verify frontend changes.
 
 ## Roadmap
 
