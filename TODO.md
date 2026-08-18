@@ -7,8 +7,8 @@
 - [x] Add an API health endpoint and test
 - [x] Add PostgreSQL connectivity and database health checking
 - [x] Add the React frontend and basic homepage
-- [ ] Add Dockerfiles and Compose configuration
-- [ ] Verify the complete stack with `docker compose up`
+- [x] Add Dockerfiles and Compose configuration
+- [x] Verify the complete stack with `docker compose up`
 
 ## Later phases
 

@@ -9,9 +9,34 @@ The project is being built incrementally as a modular monolith:
 - PostgreSQL database
 - Docker Compose deployment
 
+## Run the complete application
+
+Copy the example environment file, then build and start all three services:
+
+```powershell
+Copy-Item .env.example .env
+docker compose up --build -d
+```
+
+Open <http://localhost:8080>. The web container serves the React application and proxies `/api` requests internally to FastAPI. PostgreSQL data is retained in the named `postgres_data` volume.
+
+Check container health with:
+
+```powershell
+docker compose ps
+```
+
+Stop the application without deleting its database data:
+
+```powershell
+docker compose down
+```
+
+The `.env` file is ignored by Git. Change its password before deploying outside local development.
+
 ## Current status
 
-Phase 1 is in progress. The API provides separate liveness and database-readiness health checks, and the React frontend provides the initial responsive homepage. Compose services are not yet included.
+Phase 1 is complete. The React frontend, FastAPI backend, and PostgreSQL database run together through Docker Compose with container health checks and persistent database storage.
 
 ## Backend development
 
