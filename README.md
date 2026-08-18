@@ -51,6 +51,20 @@ docker compose exec api alembic upgrade head
 Every database schema change must be represented by an Alembic migration.
 The API container applies pending migrations automatically before it starts serving requests.
 
+## Recipe API
+
+The initial recipe API is available under `/api/v1/recipes`:
+
+```text
+GET    /api/v1/recipes
+POST   /api/v1/recipes
+GET    /api/v1/recipes/{recipe_id}
+PUT    /api/v1/recipes/{recipe_id}
+DELETE /api/v1/recipes/{recipe_id}
+```
+
+Interactive API documentation is available at <http://localhost:8080/api/docs> when the Compose stack is running.
+
 ## Current status
 
 Phase 1 is complete. The React frontend, FastAPI backend, and PostgreSQL database run together through Docker Compose with container health checks and persistent database storage.

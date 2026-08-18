@@ -1,4 +1,7 @@
+from collections.abc import Iterator
+
 from sqlalchemy import Engine, create_engine, text
+from sqlalchemy.orm import Session, sessionmaker
 
 from madplanner.core.config import get_settings
 
@@ -9,6 +12,12 @@ def create_database_engine(database_url: str | None = None) -> Engine:
 
 
 engine = create_database_engine()
+SessionLocal = sessionmaker(bind=engine, expire_on_commit=False)
+
+
+def get_session() -> Iterator[Session]:
+    with SessionLocal() as session:
+        yield session
 
 
 def check_database_connection() -> bool:
@@ -19,4 +28,3 @@ def check_database_connection() -> bool:
         return False
 
     return True
-
