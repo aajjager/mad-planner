@@ -52,7 +52,12 @@
 - [x] Classify recipes for breakfast, lunch, and/or dinner
 
 ## Later phases
-- [ ] Phase 8 — TrueNAS deployment
+- [ ] Phase 8 — Accounts and shared families
+  - [x] Add family, user, membership, invitation, and session models
+  - [ ] Add owner setup, login, logout, and invitation APIs
+  - [ ] Scope recipes, plans, and grocery lists to a family
+  - [ ] Add login and family management interfaces
+- [ ] Phase 9 — TrueNAS deployment
   - [x] Add a TrueNAS Compose override and environment template
   - [x] Add published container images and a TrueNAS Apps YAML configuration
   - [x] Document installation, backup, restore, and update procedures
