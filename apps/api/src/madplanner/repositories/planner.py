@@ -3,7 +3,7 @@ from datetime import date
 from sqlalchemy import select
 from sqlalchemy.orm import Session, selectinload
 
-from madplanner.models import MealPlanEntry, MealType, Recipe
+from madplanner.models import MealPlanEntry, MealType, Recipe, RecipeIngredient
 
 
 class MealPlanRepository:
@@ -14,7 +14,10 @@ class MealPlanRepository:
         statement = (
             select(MealPlanEntry)
             .where(MealPlanEntry.meal_date.between(start, end))
-            .options(selectinload(MealPlanEntry.recipe))
+            .options(
+                selectinload(MealPlanEntry.recipe).selectinload(Recipe.ingredients).selectinload(RecipeIngredient.ingredient),
+                selectinload(MealPlanEntry.recipe).selectinload(Recipe.ingredients).selectinload(RecipeIngredient.unit),
+            )
             .order_by(MealPlanEntry.meal_date, MealPlanEntry.meal_type)
         )
         return list(self.session.scalars(statement).all())

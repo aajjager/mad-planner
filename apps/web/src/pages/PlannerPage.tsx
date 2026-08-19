@@ -38,7 +38,7 @@ export function PlannerPage() {
 
   return <section className="page planner-page">
     <div className="page-heading"><div><p className="eyebrow">Weekly meal planner</p><h1>Plan your week</h1><p>Choose recipes for every meal and adjust the week whenever plans change.</p></div></div>
-    <div className="week-toolbar"><button className="button" onClick={() => changeWeek(addDays(weekStart, -7))}>← Previous</button><div><strong>{prettyDate(days[0])} – {prettyDate(days[6])}</strong><button className="text-button" onClick={() => changeWeek(mondayOf(new Date()))}>This week</button></div><button className="button" onClick={() => changeWeek(addDays(weekStart, 7))}>Next →</button></div>
+    <div className="week-toolbar"><button className="button" onClick={() => changeWeek(addDays(weekStart, -7))}>← Previous</button><div><strong>{prettyDate(days[0])} – {prettyDate(days[6])}</strong><button className="text-button" onClick={() => changeWeek(mondayOf(new Date()))}>This week</button><Link className="text-button" to={`/grocery-list?week=${dateKey(weekStart)}`}>Grocery list</Link></div><button className="button" onClick={() => changeWeek(addDays(weekStart, 7))}>Next →</button></div>
     {state === 'loading' && <p className="notice" role="status">Loading meal plan…</p>}
     {state === 'error' && <p className="notice notice--error" role="alert">The meal plan could not be loaded or updated.</p>}
     {state === 'ready' && recipes.length === 0 && <div className="empty-state"><h2>Add recipes before planning</h2><p>Your saved recipes will appear as choices for each meal.</p><Link className="button button--primary" to="/recipes/import">Import a recipe</Link></div>}

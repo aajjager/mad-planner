@@ -63,6 +63,17 @@ describe('App', () => {
     expect(screen.getByLabelText('Sunday breakfast')).toBeInTheDocument()
     expect(screen.getAllByRole('combobox')).toHaveLength(21)
   })
+
+  it('shows a generated weekly grocery checklist', async () => {
+    window.history.pushState({}, '', '/grocery-list?week=2026-08-17')
+    vi.spyOn(globalThis, 'fetch').mockImplementation((input) => Promise.resolve(String(input).includes('/health') ? jsonResponse({ status: 'ok' }) : jsonResponse({ week_start: '2026-08-17', week_end: '2026-08-23', planned_meals: 2, items: [{ key: '1:1', name: 'pasta', category: 'Other', quantity: '600', quantity_max: null, unit: { name: 'gram', symbol: 'g', dimension: 'mass' }, recipe_names: ['Simple pasta'], raw_texts: ['200 g pasta'] }] })))
+    render(<App />)
+
+    expect(await screen.findByRole('heading', { name: /Shop once/ })).toBeInTheDocument()
+    expect(screen.getByText('600 g')).toBeInTheDocument()
+    expect(screen.getByText('pasta')).toBeInTheDocument()
+    expect(screen.getByRole('checkbox')).toBeInTheDocument()
+  })
 })
 
 describe('import normalization', () => {

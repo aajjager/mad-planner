@@ -38,7 +38,12 @@
 - [x] Add weekly planner API
 - [x] Add seven-day planner interface and week navigation
 
+## Phase 6 — Grocery lists
+
+- [x] Generate grocery lists from a planned week
+- [x] Combine matching ingredients and scale planned servings
+- [x] Add a weekly grocery checklist interface
+
 ## Later phases
-- [ ] Phase 6 — Grocery lists
 - [ ] Phase 7 — Smart meal generation
 - [ ] Phase 8 — TrueNAS deployment

@@ -43,7 +43,8 @@ class RecipeRepository:
 
     def get_or_create_ingredient(self, name: str) -> Ingredient:
         normalized_name = " ".join(name.casefold().split())
-        ingredient = self.session.scalar(select(Ingredient).where(Ingredient.normalized_name == normalized_name))
+        with self.session.no_autoflush:
+            ingredient = self.session.scalar(select(Ingredient).where(Ingredient.normalized_name == normalized_name))
         if ingredient is None:
             ingredient = Ingredient(name=name.strip(), normalized_name=normalized_name)
             self.session.add(ingredient)
@@ -51,7 +52,8 @@ class RecipeRepository:
 
     def get_or_create_unit(self, name: str, symbol: str, dimension: UnitDimension) -> Unit:
         normalized_name = " ".join(name.casefold().split())
-        unit = self.session.scalar(select(Unit).where(Unit.name == normalized_name))
+        with self.session.no_autoflush:
+            unit = self.session.scalar(select(Unit).where(Unit.name == normalized_name))
         if unit is None:
             unit = Unit(name=normalized_name, symbol=symbol.strip(), dimension=dimension)
             self.session.add(unit)
