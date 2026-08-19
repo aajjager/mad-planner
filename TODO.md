@@ -53,3 +53,6 @@
 
 ## Later phases
 - [ ] Phase 8 — TrueNAS deployment
+  - [x] Add a TrueNAS Compose override and environment template
+  - [x] Document installation, backup, restore, and update procedures
+  - [ ] Deploy and verify the stack on the user's TrueNAS SCALE system

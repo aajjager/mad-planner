@@ -1,4 +1,6 @@
 .env
+.env.truenas
+backups/
 .venv/
 __pycache__/
 *.py[cod]

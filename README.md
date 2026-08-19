@@ -34,6 +34,10 @@ docker compose down
 
 The `.env` file is ignored by Git. Change its password before deploying outside local development.
 
+## TrueNAS SCALE deployment
+
+The production override stores PostgreSQL in a TrueNAS dataset and makes the network bind address configurable. Follow the complete [TrueNAS deployment guide](docs/truenas-deployment.md) for setup, backups, restores, and updates.
+
 ## Database migrations
 
 Run schema migrations from `apps/api` with:
@@ -67,7 +71,7 @@ Interactive API documentation is available at <http://localhost:8080/api/docs> w
 
 ## Current status
 
-Phase 1 is complete. The React frontend, FastAPI backend, and PostgreSQL database run together through Docker Compose with container health checks and persistent database storage.
+Phases 1–7 are complete. Mad Planner includes recipe management and importing, tags, weekly meal planning, smart suggestions, leftovers, and grocery-list generation. Phase 8 prepares the Compose stack for TrueNAS SCALE deployment.
 
 ## Backend development
 
