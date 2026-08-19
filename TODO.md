@@ -24,7 +24,7 @@
 - [x] Add importer preview and confirmation UI
 - [x] Parse and normalize ingredient quantities
 - [x] Add generic HTML fallback
-- [ ] Add Mummum and Arla fixtures/adapters as needed
+- [x] Add Mummum and Arla fixtures/adapters as needed
 
 ## Later phases
 - [ ] Phase 4 — Tags and filtering

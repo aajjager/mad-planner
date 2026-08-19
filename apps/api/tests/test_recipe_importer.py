@@ -1,4 +1,5 @@
 import pytest
+from pathlib import Path
 from fastapi.testclient import TestClient
 
 from madplanner.api.routes.recipe_imports import get_recipe_importer
@@ -32,6 +33,7 @@ SAMPLE_HTML = """
 }
 </script></head></html>
 """
+FIXTURES = Path(__file__).parent / "fixtures"
 
 
 def test_json_ld_recipe_is_normalized_to_preview() -> None:
@@ -41,6 +43,32 @@ def test_json_ld_recipe_is_normalized_to_preview() -> None:
     assert preview.total_time_minutes == 30
     assert preview.ingredients == ["200 g flour", "3 eggs"]
     assert preview.instructions == ["Whisk the batter.", "Cook until golden."]
+    assert preview.parser == "json-ld"
+
+
+@pytest.mark.parametrize(
+    ("fixture", "source_url", "name", "ingredient_count", "instruction_count"),
+    [
+        ("mummum_recipe.html", "https://mummum.dk/example/", "Mummum fixture recipe", 2, 1),
+        ("arla_recipe.html", "https://www.arla.dk/opskrifter/example/", "Arla fixture recipe", 2, 2),
+    ],
+)
+def test_supported_site_json_ld_fixtures(
+    fixture: str,
+    source_url: str,
+    name: str,
+    ingredient_count: int,
+    instruction_count: int,
+) -> None:
+    html = (FIXTURES / fixture).read_text(encoding="utf-8")
+
+    preview = parse_json_ld_recipe(html, source_url)
+
+    assert preview.name == name
+    assert preview.image_url is not None
+    assert preview.servings == "4 personer"
+    assert len(preview.ingredients) == ingredient_count
+    assert len(preview.instructions) == instruction_count
     assert preview.parser == "json-ld"
 
 
