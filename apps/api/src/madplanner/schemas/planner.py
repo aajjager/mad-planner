@@ -24,6 +24,8 @@ class MealPlanEntryResponse(BaseModel):
     meal_type: MealType
     servings: Decimal | None
     notes: str | None
+    is_leftover: bool
+    source_entry_id: int | None
     recipe: PlannedRecipe
 
 

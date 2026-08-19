@@ -32,6 +32,7 @@ def test_weekly_grocery_list_combines_and_scales_ingredients() -> None:
             pasta.quantity = None
             session.commit()
         client.put("/api/v1/meal-plans/2026-08-17/dinner", json={"recipe_id": recipe["id"], "servings": "4"})
+        client.post("/api/v1/meal-plans/2026-08-17/dinner/leftovers")
         client.put("/api/v1/meal-plans/2026-08-19/dinner", json={"recipe_id": recipe["id"], "servings": "2"})
 
         response = client.get("/api/v1/grocery-lists/week", params={"week_start": "2026-08-19"})

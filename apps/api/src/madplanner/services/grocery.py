@@ -18,6 +18,8 @@ class GroceryListService:
         grouped: dict[str, GroceryListItem] = {}
 
         for entry in entries:
+            if entry.is_leftover:
+                continue
             recipe = entry.recipe
             factor = entry.servings / recipe.servings if entry.servings and recipe.servings else Decimal(1)
             for item in recipe.ingredients:
@@ -53,4 +55,5 @@ class GroceryListService:
                     stored.raw_texts.append(item.raw_text)
 
         items = sorted(grouped.values(), key=lambda item: (item.category.casefold(), item.name.casefold()))
-        return WeeklyGroceryListResponse(week_start=week_start, week_end=week_end, planned_meals=len(entries), items=items)
+        cooked_meals = sum(not entry.is_leftover for entry in entries)
+        return WeeklyGroceryListResponse(week_start=week_start, week_end=week_end, planned_meals=cooked_meals, items=items)

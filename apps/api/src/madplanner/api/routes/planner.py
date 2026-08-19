@@ -35,3 +35,11 @@ def remove_meal(meal_date: date, meal_type: MealType, service: Annotated[MealPla
     if not service.remove(meal_date, meal_type):
         raise HTTPException(status_code=404, detail="Planned meal not found")
     return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
+@router.post("/{meal_date}/{meal_type}/leftovers", response_model=MealPlanEntryResponse)
+def plan_leftovers(meal_date: date, meal_type: MealType, service: Annotated[MealPlanService, Depends(get_meal_plan_service)]):
+    entry = service.plan_leftovers(meal_date, meal_type)
+    if entry is None:
+        raise HTTPException(status_code=404, detail="Source meal not found")
+    return entry

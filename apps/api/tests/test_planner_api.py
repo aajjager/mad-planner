@@ -70,3 +70,17 @@ def test_assign_rejects_unknown_recipe(client: TestClient) -> None:
     response = client.put("/api/v1/meal-plans/2026-08-19/dinner", json={"recipe_id": 999})
 
     assert response.status_code == 404
+
+
+def test_plan_next_day_lunch_as_leftovers(client: TestClient) -> None:
+    recipe_id = client.get("/api/v1/recipes").json()[0]["id"]
+    source = client.put("/api/v1/meal-plans/2026-08-19/dinner", json={"recipe_id": recipe_id}).json()
+
+    response = client.post("/api/v1/meal-plans/2026-08-19/dinner/leftovers")
+
+    assert response.status_code == 200
+    assert response.json()["meal_date"] == "2026-08-20"
+    assert response.json()["meal_type"] == "lunch"
+    assert response.json()["is_leftover"] is True
+    assert response.json()["source_entry_id"] == source["id"]
+    assert response.json()["recipe"]["id"] == recipe_id

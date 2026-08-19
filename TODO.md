@@ -44,6 +44,11 @@
 - [x] Combine matching ingredients and scale planned servings
 - [x] Add a weekly grocery checklist interface
 
+## Phase 7 — Smart meal generation
+
+- [x] Allow a cooked meal to become next-day lunch leftovers
+- [ ] Generate a varied week from recipe tags and meal types
+- [ ] Add generation preferences and review before applying
+
 ## Later phases
-- [ ] Phase 7 — Smart meal generation
 - [ ] Phase 8 — TrueNAS deployment
