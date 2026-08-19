@@ -7,8 +7,10 @@ from sqlalchemy.orm import Session
 from madplanner.db.session import get_session
 from madplanner.models import MealType
 from madplanner.repositories.planner import MealPlanRepository
-from madplanner.schemas.planner import MealPlanEntryResponse, MealPlanEntryWrite, WeeklyMealPlanResponse
+from madplanner.repositories.recipes import RecipeRepository
+from madplanner.schemas.planner import MealPlanEntryResponse, MealPlanEntryWrite, MealSuggestionPreferences, WeeklyMealPlanResponse, WeeklyMealSuggestionsResponse
 from madplanner.services.planner import MealPlanService
+from madplanner.services.suggestions import MealSuggestionService
 
 router = APIRouter(prefix="/meal-plans", tags=["meal plans"])
 
@@ -17,9 +19,18 @@ def get_meal_plan_service(session: Annotated[Session, Depends(get_session)]) -> 
     return MealPlanService(MealPlanRepository(session))
 
 
+def get_suggestion_service(session: Annotated[Session, Depends(get_session)]) -> MealSuggestionService:
+    return MealSuggestionService(MealPlanRepository(session), RecipeRepository(session))
+
+
 @router.get("/week", response_model=WeeklyMealPlanResponse)
 def get_week(week_start: date, service: Annotated[MealPlanService, Depends(get_meal_plan_service)]):
     return service.get_week(week_start)
+
+
+@router.post("/week/suggestions", response_model=WeeklyMealSuggestionsResponse)
+def suggest_week(week_start: date, preferences: MealSuggestionPreferences, service: Annotated[MealSuggestionService, Depends(get_suggestion_service)]):
+    return service.suggest_week(week_start, preferences)
 
 
 @router.put("/{meal_date}/{meal_type}", response_model=MealPlanEntryResponse)

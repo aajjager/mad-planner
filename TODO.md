@@ -47,8 +47,8 @@
 ## Phase 7 — Smart meal generation
 
 - [x] Allow a cooked meal to become next-day lunch leftovers
-- [ ] Generate a varied week from recipe tags and meal types
-- [ ] Add generation preferences and review before applying
+- [x] Generate a varied week from recipe tags and meal types
+- [x] Add generation preferences and review before applying
 
 ## Later phases
 - [ ] Phase 8 — TrueNAS deployment

@@ -61,7 +61,8 @@ describe('App', () => {
     expect(await screen.findByRole('heading', { name: 'Plan your week' })).toBeInTheDocument()
     expect(screen.getByLabelText('Monday dinner')).toBeInTheDocument()
     expect(screen.getByLabelText('Sunday breakfast')).toBeInTheDocument()
-    expect(screen.getAllByRole('combobox')).toHaveLength(21)
+    expect(screen.getAllByRole('combobox')).toHaveLength(22)
+    expect(screen.getByRole('button', { name: 'Suggest my week' })).toBeInTheDocument()
   })
 
   it('shows a generated weekly grocery checklist', async () => {

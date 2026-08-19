@@ -84,3 +84,24 @@ def test_plan_next_day_lunch_as_leftovers(client: TestClient) -> None:
     assert response.json()["is_leftover"] is True
     assert response.json()["source_entry_id"] == source["id"]
     assert response.json()["recipe"]["id"] == recipe_id
+
+
+def test_suggest_week_returns_reviewable_varied_dinners_and_leftovers(client: TestClient) -> None:
+    client.post("/api/v1/recipes", json={"name": "Quick curry", "category": "Aftensmad", "tags": ["Quick"], "total_time_minutes": 25, "ingredients": [{"raw_text": "1 stk. løg"}]})
+    client.post("/api/v1/recipes", json={"name": "Slow stew", "category": "Aftensmad", "total_time_minutes": 120, "ingredients": [{"raw_text": "1 stk. løg"}]})
+
+    response = client.post(
+        "/api/v1/meal-plans/week/suggestions",
+        params={"week_start": "2026-08-17"},
+        json={"meal_types": ["dinner"], "preferred_tags": ["Quick"], "max_cooking_time_minutes": 30, "include_leftover_lunches": True},
+    )
+
+    assert response.status_code == 200
+    payload = response.json()
+    dinners = [item for item in payload["suggestions"] if item["meal_type"] == "dinner"]
+    leftovers = [item for item in payload["suggestions"] if item["is_leftover"]]
+    assert len(dinners) == 7
+    assert len(leftovers) == 6
+    assert {item["recipe"]["name"] for item in dinners} == {"Quick curry"}
+    assert all("quick" in " ".join(item["reasons"]).lower() for item in dinners)
+    assert client.get("/api/v1/meal-plans/week", params={"week_start": "2026-08-17"}).json()["entries"] == []

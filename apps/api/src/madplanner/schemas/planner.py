@@ -33,3 +33,26 @@ class WeeklyMealPlanResponse(BaseModel):
     week_start: date
     week_end: date
     entries: list[MealPlanEntryResponse]
+
+
+class MealSuggestionPreferences(BaseModel):
+    meal_types: list[MealType] = Field(default_factory=lambda: [MealType.DINNER], min_length=1)
+    preferred_tags: list[str] = Field(default_factory=list, max_length=10)
+    max_cooking_time_minutes: int | None = Field(default=None, ge=5, le=1440)
+    include_leftover_lunches: bool = True
+
+
+class MealSuggestion(BaseModel):
+    meal_date: date
+    meal_type: MealType
+    recipe: PlannedRecipe
+    score: int
+    reasons: list[str]
+    is_leftover: bool = False
+    source_date: date | None = None
+
+
+class WeeklyMealSuggestionsResponse(BaseModel):
+    week_start: date
+    week_end: date
+    suggestions: list[MealSuggestion]
