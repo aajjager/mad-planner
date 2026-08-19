@@ -44,7 +44,7 @@ class RecipeService:
         if recipe.id is not None:
             self.repository.clear_contents(recipe)
 
-        values = data.model_dump(exclude={"ingredients", "instructions"})
+        values = data.model_dump(exclude={"ingredients", "instructions", "tags"})
         for url_field in ("image_url", "source_url"):
             if values[url_field] is not None:
                 values[url_field] = str(values[url_field])
@@ -74,6 +74,7 @@ class RecipeService:
             for position, item in enumerate(data.instructions, start=1)
             ]
         )
+        recipe.tags.extend(self.repository.get_or_create_tag(tag) for tag in data.tags)
 
     @staticmethod
     def _to_response(recipe: Recipe) -> RecipeResponse:
@@ -83,6 +84,7 @@ class RecipeService:
             servings=recipe.servings, preparation_time_minutes=recipe.preparation_time_minutes,
             cooking_time_minutes=recipe.cooking_time_minutes, total_time_minutes=recipe.total_time_minutes,
             cuisine=recipe.cuisine, category=recipe.category, nutrition=recipe.nutrition,
+            tags=sorted((tag.name for tag in recipe.tags), key=str.casefold),
             ingredients=[RecipeIngredientResponse(
                 id=item.id, position=item.position, raw_text=item.raw_text,
                 ingredient_name=item.ingredient.name if item.ingredient else None,

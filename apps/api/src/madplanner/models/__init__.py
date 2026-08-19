@@ -1,5 +1,5 @@
 from madplanner.models.ingredient import Ingredient, IngredientAlias, Unit
-from madplanner.models.recipe import Recipe, RecipeIngredient, RecipeInstruction
+from madplanner.models.recipe import Recipe, RecipeIngredient, RecipeInstruction, Tag
 
 __all__ = [
     "Ingredient",
@@ -7,6 +7,6 @@ __all__ = [
     "Recipe",
     "RecipeIngredient",
     "RecipeInstruction",
+    "Tag",
     "Unit",
 ]
-

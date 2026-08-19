@@ -1,11 +1,27 @@
 from datetime import datetime
 from decimal import Decimal
 
-from sqlalchemy import DateTime, ForeignKey, Integer, JSON, Numeric, String, Text, UniqueConstraint, func
+from sqlalchemy import Column, DateTime, ForeignKey, Integer, JSON, Numeric, String, Table, Text, UniqueConstraint, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from madplanner.db.base import Base
 from madplanner.models.ingredient import Ingredient, Unit
+
+
+recipe_tags = Table(
+    "recipe_tags", Base.metadata,
+    Column("recipe_id", ForeignKey("recipes.id", ondelete="CASCADE"), primary_key=True),
+    Column("tag_id", ForeignKey("tags.id", ondelete="CASCADE"), primary_key=True),
+)
+
+
+class Tag(Base):
+    __tablename__ = "tags"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    name: Mapped[str] = mapped_column(String(60))
+    normalized_name: Mapped[str] = mapped_column(String(60), unique=True, index=True)
+    recipes: Mapped[list["Recipe"]] = relationship(secondary=recipe_tags, back_populates="tags")
 
 
 class Recipe(Base):
@@ -40,6 +56,9 @@ class Recipe(Base):
         back_populates="recipe",
         cascade="all, delete-orphan",
         order_by="RecipeInstruction.position",
+    )
+    tags: Mapped[list[Tag]] = relationship(
+        secondary=recipe_tags, back_populates="recipes", order_by="Tag.name"
     )
 
 
@@ -95,4 +114,3 @@ class RecipeInstruction(Base):
     text: Mapped[str] = mapped_column(Text)
 
     recipe: Mapped[Recipe] = relationship(back_populates="instructions")
-

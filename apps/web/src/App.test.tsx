@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import App from './App'
 import { parseServingCount } from './api/recipes'
@@ -6,7 +6,7 @@ import { parseServingCount } from './api/recipes'
 const jsonResponse = (value: unknown) => new Response(JSON.stringify(value), { status: 200, headers: { 'Content-Type': 'application/json' } })
 
 describe('App', () => {
-  afterEach(() => { vi.restoreAllMocks(); window.history.pushState({}, '', '/') })
+  afterEach(() => { cleanup(); vi.restoreAllMocks(); window.history.pushState({}, '', '/') })
 
   it('shows the empty recipe collection and API status', async () => {
     vi.spyOn(globalThis, 'fetch').mockImplementation((input) => Promise.resolve(String(input).includes('/health') ? jsonResponse({ status: 'ok' }) : jsonResponse([])))
@@ -17,10 +17,26 @@ describe('App', () => {
   })
 
   it('renders recipes returned by the API', async () => {
-    vi.spyOn(globalThis, 'fetch').mockImplementation((input) => Promise.resolve(String(input).includes('/health') ? jsonResponse({ status: 'ok' }) : jsonResponse([{ id: 4, name: 'Onion soup', description: 'A warming soup.', image_url: null, source_url: null, author: null, servings: '4', preparation_time_minutes: 10, cooking_time_minutes: 30, total_time_minutes: 40, cuisine: 'French', category: 'Dinner', ingredients: [], instructions: [], created_at: '', updated_at: '' }])))
+    vi.spyOn(globalThis, 'fetch').mockImplementation((input) => Promise.resolve(String(input).includes('/health') ? jsonResponse({ status: 'ok' }) : jsonResponse([{ id: 4, name: 'Onion soup', description: 'A warming soup.', image_url: null, source_url: null, author: null, servings: '4', preparation_time_minutes: 10, cooking_time_minutes: 30, total_time_minutes: 40, cuisine: 'French', category: 'Dinner', tags: ['Comfort food'], ingredients: [], instructions: [], created_at: '', updated_at: '' }])))
     render(<App />)
     expect(await screen.findByRole('heading', { name: 'Onion soup' })).toBeInTheDocument()
     expect(screen.getByText('40 min')).toBeInTheDocument()
+  })
+
+  it('filters the recipe library by search text', async () => {
+    const recipes = [
+      { id: 1, name: 'Onion soup', description: 'Warm', image_url: null, source_url: null, author: null, servings: '4', preparation_time_minutes: null, cooking_time_minutes: null, total_time_minutes: 40, cuisine: 'French', category: 'Dinner', tags: ['Comfort food'], ingredients: [], instructions: [], created_at: '', updated_at: '' },
+      { id: 2, name: 'Berry bowl', description: 'Fresh', image_url: null, source_url: null, author: null, servings: '2', preparation_time_minutes: null, cooking_time_minutes: null, total_time_minutes: 5, cuisine: null, category: 'Breakfast', tags: ['Quick'], ingredients: [], instructions: [], created_at: '', updated_at: '' },
+    ]
+    vi.spyOn(globalThis, 'fetch').mockImplementation((input) => Promise.resolve(String(input).includes('/health') ? jsonResponse({ status: 'ok' }) : jsonResponse(recipes)))
+    render(<App />)
+    await screen.findByRole('heading', { name: 'Onion soup' })
+
+    fireEvent.change(screen.getByLabelText('Search recipes'), { target: { value: 'berry' } })
+
+    expect(screen.queryByRole('heading', { name: 'Onion soup' })).not.toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Berry bowl' })).toBeInTheDocument()
+    expect(screen.getByText('1 recipe')).toBeInTheDocument()
   })
 
   it('shows the manual recipe form', async () => {

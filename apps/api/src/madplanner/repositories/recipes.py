@@ -1,7 +1,7 @@
 from sqlalchemy import select
 from sqlalchemy.orm import Session, selectinload
 
-from madplanner.models import Ingredient, Recipe, RecipeIngredient, Unit
+from madplanner.models import Ingredient, Recipe, RecipeIngredient, Tag, Unit
 from madplanner.models.ingredient import UnitDimension
 
 
@@ -38,6 +38,7 @@ class RecipeRepository:
     def clear_contents(self, recipe: Recipe) -> None:
         recipe.ingredients.clear()
         recipe.instructions.clear()
+        recipe.tags.clear()
         self.session.flush()
 
     def get_or_create_ingredient(self, name: str) -> Ingredient:
@@ -56,10 +57,21 @@ class RecipeRepository:
             self.session.add(unit)
         return unit
 
+    def get_or_create_tag(self, name: str) -> Tag:
+        cleaned_name = " ".join(name.strip().split())
+        normalized_name = cleaned_name.casefold()
+        with self.session.no_autoflush:
+            tag = self.session.scalar(select(Tag).where(Tag.normalized_name == normalized_name))
+        if tag is None:
+            tag = Tag(name=cleaned_name, normalized_name=normalized_name)
+            self.session.add(tag)
+        return tag
+
     @staticmethod
     def _load_options() -> tuple:
         return (
             selectinload(Recipe.ingredients).selectinload(RecipeIngredient.ingredient),
             selectinload(Recipe.ingredients).selectinload(RecipeIngredient.unit),
             selectinload(Recipe.instructions),
+            selectinload(Recipe.tags),
         )

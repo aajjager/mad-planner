@@ -45,8 +45,22 @@ class RecipeWrite(BaseModel):
     cuisine: str | None = Field(default=None, max_length=100)
     category: str | None = Field(default=None, max_length=100)
     nutrition: dict | None = None
+    tags: list[str] = Field(default_factory=list, max_length=20)
     ingredients: list[RecipeIngredientInput] = Field(default_factory=list)
     instructions: list[RecipeInstructionInput] = Field(default_factory=list)
+
+    @model_validator(mode="after")
+    def normalize_tags(self) -> "RecipeWrite":
+        unique: dict[str, str] = {}
+        for tag in self.tags:
+            cleaned = " ".join(tag.strip().split())
+            if not cleaned:
+                continue
+            if len(cleaned) > 60:
+                raise ValueError("tags must be 60 characters or fewer")
+            unique.setdefault(cleaned.casefold(), cleaned)
+        self.tags = list(unique.values())
+        return self
 
 
 class RecipeIngredientResponse(BaseModel):
@@ -81,6 +95,7 @@ class RecipeResponse(BaseModel):
     cuisine: str | None
     category: str | None
     nutrition: dict | None
+    tags: list[str]
     ingredients: list[RecipeIngredientResponse]
     instructions: list[RecipeInstructionResponse]
     created_at: datetime

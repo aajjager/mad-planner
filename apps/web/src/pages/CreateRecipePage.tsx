@@ -17,7 +17,8 @@ export function CreateRecipePage() {
     const text = (name: string) => String(form.get(name) || '').trim() || undefined
     const minutes = (name: string) => { const value = String(form.get(name) || ''); return value ? Number(value) : undefined }
     const items: RecipeIngredientInput[] = ingredients.filter((item) => item.raw.trim()).map((item) => ({ raw_text: item.raw.trim(), ingredient_name: item.name.trim() || undefined, quantity: item.quantity || undefined, unit: item.unit.trim() && item.symbol.trim() ? { name: item.unit.trim(), symbol: item.symbol.trim(), dimension: item.dimension } : undefined }))
-    const payload: RecipeWrite = { name: String(form.get('name')).trim(), description: text('description'), source_url: text('source_url'), author: text('author'), servings: text('servings'), cuisine: text('cuisine'), category: text('category'), preparation_time_minutes: minutes('preparation'), cooking_time_minutes: minutes('cooking'), total_time_minutes: minutes('total'), ingredients: items, instructions: instructions.filter((step) => step.trim()).map((step) => ({ text: step.trim() })) }
+    const tags = String(form.get('tags') || '').split(',').map((tag) => tag.trim()).filter(Boolean)
+    const payload: RecipeWrite = { name: String(form.get('name')).trim(), description: text('description'), source_url: text('source_url'), author: text('author'), servings: text('servings'), cuisine: text('cuisine'), category: text('category'), tags, preparation_time_minutes: minutes('preparation'), cooking_time_minutes: minutes('cooking'), total_time_minutes: minutes('total'), ingredients: items, instructions: instructions.filter((step) => step.trim()).map((step) => ({ text: step.trim() })) }
     setSaving(true); setError('')
     try { const recipe = await createRecipe(payload); navigate(`/recipes/${recipe.id}`) }
     catch (reason) { setError(reason instanceof Error ? reason.message : 'The recipe could not be saved.'); setSaving(false) }
@@ -32,6 +33,7 @@ export function CreateRecipePage() {
         <label className="field field--wide"><span>Description</span><textarea name="description" rows={3} /></label>
         <label className="field"><span>Servings</span><input name="servings" type="number" min="0.01" step="0.01" /></label><label className="field"><span>Cuisine</span><input name="cuisine" /></label><label className="field"><span>Category</span><input name="category" placeholder="Dinner" /></label><label className="field"><span>Author</span><input name="author" /></label>
         <label className="field"><span>Preparation minutes</span><input name="preparation" type="number" min="0" /></label><label className="field"><span>Cooking minutes</span><input name="cooking" type="number" min="0" /></label><label className="field"><span>Total minutes</span><input name="total" type="number" min="0" /></label>
+        <label className="field field--wide"><span>Tags</span><input name="tags" placeholder="Quick, Vegetarian, Family favorite" /><small>Separate tags with commas.</small></label>
         <label className="field field--wide"><span>Source URL</span><input name="source_url" type="url" /></label>
       </div></fieldset>
       <fieldset><div className="fieldset-heading"><legend>Ingredients</legend><button className="text-button" type="button" onClick={() => setIngredients((rows) => [...rows, emptyIngredient()])}>+ Add ingredient</button></div><div className="repeat-list">

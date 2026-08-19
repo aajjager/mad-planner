@@ -26,8 +26,13 @@
 - [x] Add generic HTML fallback
 - [x] Add Mummum and Arla fixtures/adapters as needed
 
+## Phase 4 — Tags and filtering
+
+- [x] Add persistent recipe tags
+- [x] Add tags to recipe creation and imported categories
+- [x] Add recipe search and tag filtering
+
 ## Later phases
-- [ ] Phase 4 — Tags and filtering
 - [ ] Phase 5 — Weekly planner
 - [ ] Phase 6 — Grocery lists
 - [ ] Phase 7 — Smart meal generation

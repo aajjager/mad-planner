@@ -4,7 +4,7 @@ from sqlalchemy import create_engine, select
 from sqlalchemy.orm import Session
 
 from madplanner.db.base import Base
-from madplanner.models import Ingredient, IngredientAlias, Recipe, RecipeIngredient, RecipeInstruction, Unit
+from madplanner.models import Ingredient, IngredientAlias, Recipe, RecipeIngredient, RecipeInstruction, Tag, Unit
 from madplanner.models.ingredient import UnitDimension
 
 
@@ -33,6 +33,7 @@ def test_recipe_relationships_preserve_structured_and_raw_ingredient_data() -> N
             )
         ],
         instructions=[RecipeInstruction(position=1, text="Slice the onions.")],
+        tags=[Tag(name="Dinner", normalized_name="dinner")],
     )
 
     with Session(engine) as session:
@@ -45,3 +46,4 @@ def test_recipe_relationships_preserve_structured_and_raw_ingredient_data() -> N
         assert stored_recipe.ingredients[0].ingredient.normalized_name == "onion"
         assert stored_recipe.ingredients[0].unit.dimension is UnitDimension.COUNT
         assert stored_recipe.instructions[0].text == "Slice the onions."
+        assert stored_recipe.tags[0].normalized_name == "dinner"

@@ -27,7 +27,7 @@ def client() -> TestClient:
 
 def test_recipe_crud(client: TestClient) -> None:
     payload = {
-        "name": "Onion soup", "servings": "4", "cuisine": "French",
+        "name": "Onion soup", "servings": "4", "cuisine": "French", "tags": ["Dinner", "Comfort food", "dinner"],
         "ingredients": [{"raw_text": "2 large onions, sliced", "ingredient_name": "Onion", "quantity": "2", "unit": {"name": "piece", "symbol": "pc", "dimension": "count"}, "preparation": "sliced"}],
         "instructions": [{"text": "Slice the onions."}],
     }
@@ -35,6 +35,7 @@ def test_recipe_crud(client: TestClient) -> None:
     assert created.status_code == 201
     recipe_id = created.json()["id"]
     assert created.json()["ingredients"][0]["ingredient_name"] == "Onion"
+    assert created.json()["tags"] == ["Comfort food", "Dinner"]
 
     assert [item["name"] for item in client.get("/api/v1/recipes").json()] == ["Onion soup"]
     assert client.get(f"/api/v1/recipes/{recipe_id}").status_code == 200
