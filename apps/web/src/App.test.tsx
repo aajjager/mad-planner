@@ -1,6 +1,7 @@
 import { render, screen } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import App from './App'
+import { parseServingCount } from './api/recipes'
 
 const jsonResponse = (value: unknown) => new Response(JSON.stringify(value), { status: 200, headers: { 'Content-Type': 'application/json' } })
 
@@ -29,5 +30,13 @@ describe('App', () => {
     expect(await screen.findByRole('heading', { name: 'Add a recipe' })).toBeInTheDocument()
     expect(screen.getByLabelText('Name *')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Save recipe' })).toBeInTheDocument()
+  })
+})
+
+describe('import normalization', () => {
+  it('extracts numeric servings from localized recipe text', () => {
+    expect(parseServingCount('4 personer')).toBe('4')
+    expect(parseServingCount('2,5 portioner')).toBe('2.5')
+    expect(parseServingCount(null)).toBeUndefined()
   })
 })
