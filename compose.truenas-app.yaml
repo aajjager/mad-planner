@@ -1,0 +1,56 @@
+# Standalone configuration for TrueNAS SCALE 24.10+ "Install via YAML".
+# Before installing, replace both CHANGE_THIS_PASSWORD values and the dataset path.
+name: madplanner
+
+services:
+  db:
+    image: postgres:18-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: madplanner
+      POSTGRES_USER: madplanner
+      POSTGRES_PASSWORD: "CHANGE_THIS_PASSWORD"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U madplanner -d madplanner"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    volumes:
+      - type: bind
+        source: /mnt/tank/apps/mad-planner/postgres
+        target: /var/lib/postgresql
+
+  api:
+    image: ghcr.io/aajjager/mad-planner-api:latest
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: "postgresql+psycopg://madplanner:CHANGE_THIS_PASSWORD@db:5432/madplanner"
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/v1/health/ready')"
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  web:
+    image: ghcr.io/aajjager/mad-planner-web:latest
+    restart: unless-stopped
+    depends_on:
+      api:
+        condition: service_healthy
+    ports:
+      - "8080:80"
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://127.0.0.1/"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s

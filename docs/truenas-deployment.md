@@ -1,8 +1,17 @@
 # Deploy Mad Planner on TrueNAS SCALE
 
-This guide deploys Mad Planner with Docker Compose and stores PostgreSQL data in a TrueNAS dataset. Commands are run from the cloned `mad-planner` repository.
+This guide deploys Mad Planner through the TrueNAS SCALE 24.10+ Apps interface and stores PostgreSQL data in a TrueNAS dataset.
 
-## 1. Create persistent storage
+## 1. Publish the container images
+
+Mad Planner's GitHub workflow publishes the API and web images whenever relevant code reaches `main`. Push the latest commit, then open the repository's **Actions** tab and wait for **Publish container images** to finish successfully.
+
+The first published packages must be publicly readable so TrueNAS can download them without GitHub credentials. On GitHub, open each package, choose **Package settings**, and change its visibility to **Public**:
+
+- `mad-planner-api`
+- `mad-planner-web`
+
+## 2. Create persistent storage
 
 In the TrueNAS web interface, create a dataset for PostgreSQL, for example:
 
@@ -12,67 +21,36 @@ In the TrueNAS web interface, create a dataset for PostgreSQL, for example:
 
 Replace `tank` with the name of your storage pool. The account running Docker must be able to write to this dataset.
 
-## 2. Configure Mad Planner
+## 3. Prepare the app configuration
 
-Copy `.env.truenas.example` to `.env`:
+Open `compose.truenas-app.yaml` in GitHub or VS Code and copy its contents. Before using it, change:
 
-```sh
-cp .env.truenas.example .env
-```
+- both `CHANGE_THIS_PASSWORD` values to the same long alphanumeric password
+- `/mnt/tank/apps/mad-planner/postgres` to the dataset created above
+- `8080:80` if port 8080 is already used on TrueNAS
 
-Edit `.env` and set a new long `POSTGRES_PASSWORD`, the dataset's `MADPLANNER_DATA_PATH`, and an available `MADPLANNER_PORT`.
+Avoid punctuation in the database password because it is also included in a connection URL.
 
-The `.env` file is ignored by Git and must never be committed.
+Do not save your real password back into Git.
 
-## 3. Start the application
+## 4. Install through TrueNAS Apps
 
-```sh
-docker compose -f compose.yaml -f compose.truenas.yaml up --build -d
-docker compose -f compose.yaml -f compose.truenas.yaml ps
-```
+1. Open **Apps**, then **Discover Apps**.
+2. Open the three-dot menu and select **Install via YAML**.
+3. Enter `mad-planner` as the application name.
+4. Paste the edited contents of `compose.truenas-app.yaml` into **Custom Config**.
+5. Click **Save** and wait for the application to report **Running**.
 
-Wait until all three services report healthy. Open `http://TRUENAS-IP:8080`, replacing the address and port when necessary.
+Open `http://TRUENAS-IP:8080`, replacing the address and port when necessary.
 
 ## Back up the database
 
-```sh
-mkdir -p backups
-docker compose -f compose.yaml -f compose.truenas.yaml exec -T db pg_dump -U madplanner -d madplanner -Fc > backups/madplanner.dump
-```
-
-Copy the dump to storage covered by your TrueNAS snapshots or backup jobs. Take a backup before every update.
-
-## Restore a database backup
-
-Restoring replaces the current database contents. Stop the web and API first:
-
-```sh
-docker compose -f compose.yaml -f compose.truenas.yaml stop web api
-docker compose -f compose.yaml -f compose.truenas.yaml exec -T db pg_restore -U madplanner -d madplanner --clean --if-exists < backups/madplanner.dump
-docker compose -f compose.yaml -f compose.truenas.yaml start api web
-```
-
-Use the database name and user from `.env` if you changed their defaults.
+Use TrueNAS dataset snapshots as the first layer of protection. A portable `pg_dump` backup can also be created from the TrueNAS shell after identifying the app's database container.
+Take a snapshot or portable backup before every update.
 
 ## Update Mad Planner
 
-Commit or stash local work and take a database backup first. Then:
-
-```sh
-git pull --ff-only
-docker compose -f compose.yaml -f compose.truenas.yaml up --build -d
-docker compose -f compose.yaml -f compose.truenas.yaml ps
-```
-
-The API applies database migrations during startup. For an unhealthy service, run `docker compose -f compose.yaml -f compose.truenas.yaml logs --tail 100`.
-
-## Stop the application
-
-```sh
-docker compose -f compose.yaml -f compose.truenas.yaml down
-```
-
-This retains the database. Do not delete its dataset unless you intentionally want to remove the data.
+After GitHub publishes new `latest` images, open the installed app in TrueNAS and use its update or redeploy action. Take a dataset snapshot first. The API applies pending database migrations automatically during startup.
 
 ## Home-network security
 
