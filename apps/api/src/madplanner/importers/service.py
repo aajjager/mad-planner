@@ -1,4 +1,5 @@
-from madplanner.importers.json_ld import parse_json_ld_recipe
+from madplanner.importers.html import parse_html_recipe
+from madplanner.importers.json_ld import RecipeParseError, parse_json_ld_recipe
 from madplanner.importers.safe_http import SafeHttpClient
 from madplanner.schemas.imported_recipe import ImportedRecipePreview
 
@@ -9,4 +10,7 @@ class RecipeImporter:
 
     def preview(self, url: str) -> ImportedRecipePreview:
         html = self.http_client.fetch(url)
-        return parse_json_ld_recipe(html, url)
+        try:
+            return parse_json_ld_recipe(html, url)
+        except RecipeParseError:
+            return parse_html_recipe(html, url)

@@ -23,7 +23,7 @@
 - [x] Add safe URL fetching and JSON-LD preview endpoint
 - [x] Add importer preview and confirmation UI
 - [x] Parse and normalize ingredient quantities
-- [ ] Add generic HTML fallback
+- [x] Add generic HTML fallback
 - [ ] Add Mummum and Arla fixtures/adapters as needed
 
 ## Later phases

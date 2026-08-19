@@ -3,6 +3,8 @@ from fastapi.testclient import TestClient
 
 from madplanner.api.routes.recipe_imports import get_recipe_importer
 from madplanner.importers.json_ld import RecipeParseError, parse_json_ld_recipe
+from madplanner.importers.html import parse_html_recipe
+from madplanner.importers.service import RecipeImporter
 from madplanner.importers.safe_http import SafeHttpClient, UnsafeUrlError
 from madplanner.main import app
 from madplanner.schemas.imported_recipe import ImportedRecipePreview
@@ -45,6 +47,42 @@ def test_json_ld_recipe_is_normalized_to_preview() -> None:
 def test_parser_rejects_pages_without_recipe_data() -> None:
     with pytest.raises(RecipeParseError):
         parse_json_ld_recipe("<html><body>No recipe</body></html>", "https://example.com")
+
+
+def test_html_microdata_is_normalized_to_preview() -> None:
+    html = """
+    <html><head>
+      <meta property="og:title" content="Simple soup">
+      <meta property="og:image" content="https://example.com/soup.jpg">
+    </head><body>
+      <span itemprop="recipeYield">4 personer</span>
+      <meta itemprop="prepTime" content="PT15M">
+      <ul><li itemprop="recipeIngredient">2 stk. løg</li></ul>
+      <ol itemprop="recipeInstructions"><li>Hak løgene.</li><li>Kog suppen.</li></ol>
+    </body></html>
+    """
+
+    preview = parse_html_recipe(html, "https://example.com/soup")
+
+    assert preview.name == "Simple soup"
+    assert preview.image_url == "https://example.com/soup.jpg"
+    assert preview.servings == "4 personer"
+    assert preview.preparation_time_minutes == 15
+    assert preview.ingredients == ["2 stk. løg"]
+    assert preview.instructions == ["Hak løgene.", "Kog suppen."]
+    assert preview.parser == "html"
+
+
+def test_importer_falls_back_to_html_when_json_ld_is_missing() -> None:
+    class StubHttpClient:
+        def fetch(self, url: str) -> str:
+            return '<h1>Toast</h1><ul class="ingredients"><li>2 slices bread</li></ul>'
+
+    preview = RecipeImporter(http_client=StubHttpClient()).preview("https://example.com/toast")
+
+    assert preview.name == "Toast"
+    assert preview.ingredients == ["2 slices bread"]
+    assert preview.parser == "html"
 
 
 @pytest.mark.parametrize("url", ["file:///etc/passwd", "http://127.0.0.1/", "http://localhost/"])
