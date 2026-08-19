@@ -102,6 +102,8 @@ class FamilyInvitation(Base):
         DateTime(timezone=True), server_default=func.now()
     )
 
+    family: Mapped[Family] = relationship()
+
 
 class UserSession(Base):
     __tablename__ = "user_sessions"

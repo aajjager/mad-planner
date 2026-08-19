@@ -8,6 +8,8 @@ class Settings(BaseSettings):
     database_url: SecretStr = SecretStr(
         "postgresql+psycopg://madplanner:madplanner@localhost:5432/madplanner"
     )
+    session_cookie_name: str = "madplanner_session"
+    session_cookie_secure: bool = False
 
     model_config = SettingsConfigDict(
         env_file=".env",
@@ -19,4 +21,3 @@ class Settings(BaseSettings):
 @lru_cache
 def get_settings() -> Settings:
     return Settings()
-
