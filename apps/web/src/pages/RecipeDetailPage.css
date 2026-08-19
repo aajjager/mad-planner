@@ -1,2 +1,4 @@
 .detail-image { margin:32px 0 0; overflow:hidden; border-radius:20px; aspect-ratio:16/7; background:var(--green); }
 .detail-image img { width:100%; height:100%; object-fit:cover; }
+.meal-classification { display:flex; align-items:center; justify-content:space-between; gap:24px; margin:20px 0 36px; padding:18px 20px; border:1px solid var(--border); border-radius:14px; background:var(--paper); }.meal-classification h2 { margin:0 0 4px; font-size:1.1rem; }.meal-classification p { margin:0; color:var(--muted); font-size:.82rem; }
+@media (max-width:600px) { .meal-classification { align-items:flex-start; flex-direction:column; } }

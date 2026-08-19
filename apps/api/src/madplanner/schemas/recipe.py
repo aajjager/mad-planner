@@ -1,9 +1,12 @@
 from datetime import datetime
 from decimal import Decimal
+from typing import Literal
 
 from pydantic import BaseModel, Field, HttpUrl, model_validator
 
 from madplanner.models.ingredient import UnitDimension
+
+RecipeMealType = Literal["breakfast", "lunch", "dinner"]
 
 
 class UnitInput(BaseModel):
@@ -46,6 +49,7 @@ class RecipeWrite(BaseModel):
     category: str | None = Field(default=None, max_length=100)
     nutrition: dict | None = None
     tags: list[str] = Field(default_factory=list, max_length=20)
+    meal_types: list[RecipeMealType] = Field(default_factory=list, max_length=3)
     ingredients: list[RecipeIngredientInput] = Field(default_factory=list)
     instructions: list[RecipeInstructionInput] = Field(default_factory=list)
 
@@ -96,7 +100,17 @@ class RecipeResponse(BaseModel):
     category: str | None
     nutrition: dict | None
     tags: list[str]
+    meal_types: list[RecipeMealType]
     ingredients: list[RecipeIngredientResponse]
     instructions: list[RecipeInstructionResponse]
     created_at: datetime
     updated_at: datetime
+
+
+class RecipeMealTypesUpdate(BaseModel):
+    meal_types: list[RecipeMealType] = Field(max_length=3)
+
+    @model_validator(mode="after")
+    def remove_duplicates(self) -> "RecipeMealTypesUpdate":
+        self.meal_types = list(dict.fromkeys(self.meal_types))
+        return self

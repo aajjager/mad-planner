@@ -4,6 +4,7 @@ from madplanner.repositories.recipes import RecipeRepository
 from madplanner.schemas.recipe import (
     RecipeIngredientResponse,
     RecipeInstructionResponse,
+    RecipeMealTypesUpdate,
     RecipeResponse,
     RecipeWrite,
     UnitInput,
@@ -39,6 +40,13 @@ class RecipeService:
             return False
         self.repository.delete(recipe)
         return True
+
+    def update_meal_types(self, recipe_id: int, data: RecipeMealTypesUpdate) -> RecipeResponse | None:
+        recipe = self.repository.get(recipe_id)
+        if recipe is None:
+            return None
+        recipe.meal_types = data.meal_types
+        return self._to_response(self.repository.save(recipe))
 
     def _apply(self, recipe: Recipe, data: RecipeWrite) -> None:
         if recipe.id is not None:
@@ -85,6 +93,7 @@ class RecipeService:
             cooking_time_minutes=recipe.cooking_time_minutes, total_time_minutes=recipe.total_time_minutes,
             cuisine=recipe.cuisine, category=recipe.category, nutrition=recipe.nutrition,
             tags=sorted((tag.name for tag in recipe.tags), key=str.casefold),
+            meal_types=recipe.meal_types or [],
             ingredients=[RecipeIngredientResponse(
                 id=item.id, position=item.position, raw_text=item.raw_text,
                 ingredient_name=item.ingredient.name if item.ingredient else None,

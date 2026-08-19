@@ -49,6 +49,7 @@
 - [x] Allow a cooked meal to become next-day lunch leftovers
 - [x] Generate a varied week from recipe tags and meal types
 - [x] Add generation preferences and review before applying
+- [x] Classify recipes for breakfast, lunch, and/or dinner
 
 ## Later phases
 - [ ] Phase 8 — TrueNAS deployment

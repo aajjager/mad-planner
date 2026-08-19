@@ -40,6 +40,7 @@ class Recipe(Base):
     cuisine: Mapped[str | None] = mapped_column(String(100), index=True)
     category: Mapped[str | None] = mapped_column(String(100), index=True)
     nutrition: Mapped[dict | None] = mapped_column(JSON)
+    meal_types: Mapped[list[str]] = mapped_column(JSON, default=list, server_default="[]")
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now()
     )

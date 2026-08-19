@@ -38,7 +38,10 @@ class MealSuggestionService:
             for meal_type in preferences.meal_types:
                 if (meal_date, meal_type) in existing or not recipes:
                     continue
-                ranked = [self._rank(recipe, meal_type, preferred, usage[recipe.id], selected_ingredients) for recipe in recipes]
+                eligible = [recipe for recipe in recipes if self._allows_meal_type(recipe, meal_type)]
+                if not eligible:
+                    continue
+                ranked = [self._rank(recipe, meal_type, preferred, usage[recipe.id], selected_ingredients) for recipe in eligible]
                 score, _, recipe, reasons = max(ranked, key=lambda value: (value[0], value[1]))
                 suggestion = MealSuggestion(meal_date=meal_date, meal_type=meal_type, recipe=PlannedRecipe(id=recipe.id, name=recipe.name, image_url=recipe.image_url), score=score, reasons=reasons)
                 suggestions.append(suggestion)
@@ -80,3 +83,12 @@ class MealSuggestionService:
     @staticmethod
     def _ingredients(recipe: Recipe) -> set[str]:
         return {item.ingredient.normalized_name if item.ingredient else item.raw_text.casefold() for item in recipe.ingredients}
+
+    @staticmethod
+    def _allows_meal_type(recipe: Recipe, meal_type: MealType) -> bool:
+        if recipe.meal_types:
+            return meal_type.value in recipe.meal_types
+        labels = {tag.name.casefold() for tag in recipe.tags}
+        labels.update(part.strip().casefold() for part in (recipe.category or "").split(",") if part.strip())
+        recognized = {candidate for candidate, words in _MEAL_WORDS.items() if labels & words}
+        return not recognized or meal_type in recognized

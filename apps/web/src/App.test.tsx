@@ -1,7 +1,7 @@
 import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import App from './App'
-import { parseServingCount } from './api/recipes'
+import { inferMealTypes, parseServingCount } from './api/recipes'
 
 const jsonResponse = (value: unknown) => new Response(JSON.stringify(value), { status: 200, headers: { 'Content-Type': 'application/json' } })
 
@@ -46,6 +46,8 @@ describe('App', () => {
     expect(await screen.findByRole('heading', { name: 'Add a recipe' })).toBeInTheDocument()
     expect(screen.getByLabelText('Name *')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Save recipe' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'dinner' })).toHaveAttribute('aria-pressed', 'true')
+    expect(screen.getByRole('button', { name: 'breakfast' })).toHaveAttribute('aria-pressed', 'false')
   })
 
   it('shows seven days of meal planning slots', async () => {
@@ -91,5 +93,11 @@ describe('import normalization', () => {
     expect(parseServingCount('4 personer')).toBe('4')
     expect(parseServingCount('2,5 portioner')).toBe('2.5')
     expect(parseServingCount(null)).toBeUndefined()
+  })
+
+  it('infers allowed meal types from imported categories', () => {
+    expect(inferMealTypes('Morgenmad, Brunch')).toEqual(['breakfast'])
+    expect(inferMealTypes('Frokost, Aftensmad')).toEqual(['lunch', 'dinner'])
+    expect(inferMealTypes(null)).toEqual([])
   })
 })

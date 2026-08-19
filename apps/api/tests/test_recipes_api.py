@@ -27,7 +27,7 @@ def client() -> TestClient:
 
 def test_recipe_crud(client: TestClient) -> None:
     payload = {
-        "name": "Onion soup", "servings": "4", "cuisine": "French", "tags": ["Dinner", "Comfort food", "dinner"],
+        "name": "Onion soup", "servings": "4", "cuisine": "French", "tags": ["Dinner", "Comfort food", "dinner"], "meal_types": ["lunch", "dinner"],
         "ingredients": [{"raw_text": "2 large onions, sliced", "ingredient_name": "Onion", "quantity": "2", "unit": {"name": "piece", "symbol": "pc", "dimension": "count"}, "preparation": "sliced"}],
         "instructions": [{"text": "Slice the onions."}],
     }
@@ -36,6 +36,7 @@ def test_recipe_crud(client: TestClient) -> None:
     recipe_id = created.json()["id"]
     assert created.json()["ingredients"][0]["ingredient_name"] == "Onion"
     assert created.json()["tags"] == ["Comfort food", "Dinner"]
+    assert created.json()["meal_types"] == ["lunch", "dinner"]
 
     assert [item["name"] for item in client.get("/api/v1/recipes").json()] == ["Onion soup"]
     assert client.get(f"/api/v1/recipes/{recipe_id}").status_code == 200
@@ -45,6 +46,10 @@ def test_recipe_crud(client: TestClient) -> None:
     replaced = client.put(f"/api/v1/recipes/{recipe_id}", json=payload)
     assert replaced.status_code == 200
     assert [step["position"] for step in replaced.json()["instructions"]] == [1, 2]
+
+    classified = client.patch(f"/api/v1/recipes/{recipe_id}/meal-types", json={"meal_types": ["breakfast", "lunch"]})
+    assert classified.status_code == 200
+    assert classified.json()["meal_types"] == ["breakfast", "lunch"]
 
     assert client.delete(f"/api/v1/recipes/{recipe_id}").status_code == 204
     assert client.get(f"/api/v1/recipes/{recipe_id}").status_code == 404
