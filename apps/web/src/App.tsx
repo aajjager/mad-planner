@@ -1,76 +1,30 @@
-import { useEffect, useState } from 'react'
+import { BrowserRouter, Link, Navigate, Route, Routes } from 'react-router-dom'
 import './App.css'
-
-type ApiState = 'checking' | 'online' | 'offline'
+import { HealthIndicator } from './components/HealthIndicator'
+import { CreateRecipePage } from './pages/CreateRecipePage'
+import { RecipeDetailPage } from './pages/RecipeDetailPage'
+import { RecipeListPage } from './pages/RecipeListPage'
 
 function App() {
-  const [apiState, setApiState] = useState<ApiState>('checking')
-
-  useEffect(() => {
-    const controller = new AbortController()
-
-    async function checkApi() {
-      try {
-        const response = await fetch('/api/v1/health', {
-          signal: controller.signal,
-        })
-        setApiState(response.ok ? 'online' : 'offline')
-      } catch (error) {
-        if (error instanceof Error && error.name === 'AbortError') return
-        setApiState('offline')
-      }
-    }
-
-    void checkApi()
-    return () => controller.abort()
-  }, [])
-
   return (
-    <main>
-      <header className="site-header">
-        <a className="brand" href="/" aria-label="Mad Planner home">
-          <span className="brand-mark" aria-hidden="true">M</span>
-          Mad Planner
-        </a>
-        <div className={`api-status api-status--${apiState}`} role="status">
-          <span className="status-dot" aria-hidden="true" />
-          {apiState === 'checking' && 'Checking API'}
-          {apiState === 'online' && 'API online'}
-          {apiState === 'offline' && 'API unavailable'}
-        </div>
-      </header>
-
-      <section className="hero" aria-labelledby="hero-title">
-        <p className="eyebrow">Plan well. Waste less. Eat better.</p>
-        <h1 id="hero-title">Your week of meals, made simple.</h1>
-        <p className="hero-copy">
-          Mad Planner will bring recipes, weekly planning, and organized grocery
-          lists together in one private, self-hosted home.
-        </p>
-        <div className="phase-card">
-          <span>Currently building</span>
-          <strong>Phase 1 · Application foundation</strong>
-        </div>
-      </section>
-
-      <section className="feature-grid" aria-label="Planned features">
-        <article>
-          <span aria-hidden="true">01</span>
-          <h2>Collect recipes</h2>
-          <p>Save favorites from the web or add your own recipes manually.</p>
-        </article>
-        <article>
-          <span aria-hidden="true">02</span>
-          <h2>Plan the week</h2>
-          <p>Arrange meals across the week in a clear, flexible planner.</p>
-        </article>
-        <article>
-          <span aria-hidden="true">03</span>
-          <h2>Shop smarter</h2>
-          <p>Combine ingredients into one practical, organized grocery list.</p>
-        </article>
-      </section>
-    </main>
+    <BrowserRouter>
+      <div className="app-shell">
+        <header className="site-header">
+          <Link className="brand" to="/recipes"><span className="brand-mark">M</span>Mad Planner</Link>
+          <nav aria-label="Main navigation"><Link to="/recipes">Recipes</Link><Link className="primary-link" to="/recipes/new">Add recipe</Link></nav>
+          <HealthIndicator />
+        </header>
+        <main>
+          <Routes>
+            <Route path="/" element={<Navigate to="/recipes" replace />} />
+            <Route path="/recipes" element={<RecipeListPage />} />
+            <Route path="/recipes/new" element={<CreateRecipePage />} />
+            <Route path="/recipes/:recipeId" element={<RecipeDetailPage />} />
+            <Route path="*" element={<Navigate to="/recipes" replace />} />
+          </Routes>
+        </main>
+      </div>
+    </BrowserRouter>
   )
 }
 

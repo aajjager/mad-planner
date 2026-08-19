@@ -15,8 +15,8 @@
 - [x] Add recipe, ingredient, unit, and instruction models
 - [x] Add the initial Alembic migration
 - [x] Add recipe API schemas and CRUD endpoints
-- [ ] Add recipe list and details pages
-- [ ] Add manual recipe creation
+- [x] Add recipe list and details pages
+- [x] Add manual recipe creation
 
 ## Later phases
 
