@@ -18,9 +18,15 @@
 - [x] Add recipe list and details pages
 - [x] Add manual recipe creation
 
-## Later phases
+## Phase 3 — Recipe importer
 
-- [ ] Phase 3 — Recipe importer
+- [x] Add safe URL fetching and JSON-LD preview endpoint
+- [ ] Add importer preview and confirmation UI
+- [ ] Parse and normalize ingredient quantities
+- [ ] Add generic HTML fallback
+- [ ] Add Mummum and Arla fixtures/adapters as needed
+
+## Later phases
 - [ ] Phase 4 — Tags and filtering
 - [ ] Phase 5 — Weekly planner
 - [ ] Phase 6 — Grocery lists
