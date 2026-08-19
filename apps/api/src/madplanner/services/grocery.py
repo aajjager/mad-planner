@@ -1,6 +1,7 @@
 from datetime import date, timedelta
 from decimal import Decimal
 
+from madplanner.ingredients import parse_ingredient
 from madplanner.repositories.planner import MealPlanRepository
 from madplanner.schemas.grocery import GroceryListItem, WeeklyGroceryListResponse
 from madplanner.schemas.recipe import UnitInput
@@ -20,12 +21,17 @@ class GroceryListService:
             recipe = entry.recipe
             factor = entry.servings / recipe.servings if entry.servings and recipe.servings else Decimal(1)
             for item in recipe.ingredients:
-                ingredient_name = item.ingredient.name if item.ingredient else item.raw_text
-                ingredient_key = str(item.ingredient_id) if item.ingredient_id else f"raw:{item.raw_text.casefold()}"
-                unit_key = str(item.unit_id) if item.unit_id else "none"
+                legacy = parse_ingredient(item.raw_text) if item.ingredient is None else None
+                ingredient_name = item.ingredient.name if item.ingredient else legacy.ingredient_name
+                normalized_name = item.ingredient.normalized_name if item.ingredient else ingredient_name.casefold()
+                source_unit = item.unit or (legacy.unit if legacy else None)
+                source_quantity = item.quantity if item.quantity is not None else legacy.quantity if legacy else None
+                source_quantity_max = item.quantity_max if item.quantity_max is not None else legacy.quantity_max if legacy else None
+                unit_key = source_unit.name.casefold() if source_unit else "none"
+                ingredient_key = " ".join(normalized_name.split())
                 key = f"{ingredient_key}:{unit_key}"
-                quantity = item.quantity * factor if item.quantity is not None else None
-                quantity_max = item.quantity_max * factor if item.quantity_max is not None else None
+                quantity = source_quantity * factor if source_quantity is not None else None
+                quantity_max = source_quantity_max * factor if source_quantity_max is not None else None
                 if key not in grouped:
                     grouped[key] = GroceryListItem(
                         key=key,
@@ -33,7 +39,7 @@ class GroceryListService:
                         category=item.ingredient.grocery_category if item.ingredient and item.ingredient.grocery_category else "Other",
                         quantity=quantity,
                         quantity_max=quantity_max,
-                        unit=UnitInput(name=item.unit.name, symbol=item.unit.symbol, dimension=item.unit.dimension) if item.unit else None,
+                        unit=UnitInput(name=source_unit.name, symbol=source_unit.symbol, dimension=source_unit.dimension) if source_unit else None,
                         recipe_names=[recipe.name],
                         raw_texts=[item.raw_text],
                     )

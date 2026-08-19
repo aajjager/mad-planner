@@ -6,6 +6,7 @@ from sqlalchemy.pool import StaticPool
 from madplanner.db.base import Base
 from madplanner.db.session import get_session
 from madplanner.main import app
+from madplanner.models import RecipeIngredient
 
 
 def test_weekly_grocery_list_combines_and_scales_ingredients() -> None:
@@ -23,6 +24,13 @@ def test_weekly_grocery_list_combines_and_scales_ingredients() -> None:
             "name": "Simple pasta", "servings": "2",
             "ingredients": [{"raw_text": "200 g pasta"}, {"raw_text": "salt"}],
         }).json()
+        # Simulate an ingredient saved before automatic parsing was introduced.
+        with Session(engine) as session:
+            pasta = session.query(RecipeIngredient).filter_by(raw_text="200 g pasta").one()
+            pasta.ingredient_id = None
+            pasta.unit_id = None
+            pasta.quantity = None
+            session.commit()
         client.put("/api/v1/meal-plans/2026-08-17/dinner", json={"recipe_id": recipe["id"], "servings": "4"})
         client.put("/api/v1/meal-plans/2026-08-19/dinner", json={"recipe_id": recipe["id"], "servings": "2"})
 
@@ -35,7 +43,7 @@ def test_weekly_grocery_list_combines_and_scales_ingredients() -> None:
     assert payload["week_start"] == "2026-08-17"
     assert payload["planned_meals"] == 2
     pasta = next(item for item in payload["items"] if item["name"] == "pasta")
-    assert pasta["quantity"] == "600.0000"
+    assert pasta["quantity"] == "600"
     assert pasta["unit"]["symbol"] == "g"
     assert pasta["recipe_names"] == ["Simple pasta"]
     salt = next(item for item in payload["items"] if item["name"] == "salt")
