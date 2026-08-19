@@ -54,7 +54,7 @@ describe('App', () => {
       const url = String(input)
       if (url.includes('/health')) return Promise.resolve(jsonResponse({ status: 'ok' }))
       if (url.includes('/meal-plans/week')) return Promise.resolve(jsonResponse({ week_start: '2026-08-17', week_end: '2026-08-23', entries: [] }))
-      return Promise.resolve(jsonResponse([{ id: 1, name: 'Pasta', image_url: null, tags: [], ingredients: [], instructions: [] }]))
+      return Promise.resolve(jsonResponse([{ id: 1, name: 'Pasta', image_url: null, tags: ['Quick', 'Vegetarian'], ingredients: [], instructions: [] }]))
     })
     render(<App />)
 
@@ -63,6 +63,15 @@ describe('App', () => {
     expect(screen.getByLabelText('Sunday breakfast')).toBeInTheDocument()
     expect(screen.getAllByRole('combobox')).toHaveLength(22)
     expect(screen.getByRole('button', { name: 'Suggest my week' })).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'breakfast' }))
+    fireEvent.click(screen.getByRole('button', { name: 'lunch' }))
+    expect(screen.queryByLabelText('Monday breakfast')).not.toBeInTheDocument()
+    expect(screen.getByLabelText('Monday dinner')).toBeInTheDocument()
+    expect(screen.getAllByRole('combobox')).toHaveLength(8)
+    fireEvent.click(screen.getByRole('button', { name: 'Quick' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Vegetarian' }))
+    expect(screen.getByRole('button', { name: 'Quick' })).toHaveAttribute('aria-pressed', 'true')
+    expect(screen.getByRole('button', { name: 'Vegetarian' })).toHaveAttribute('aria-pressed', 'true')
   })
 
   it('shows a generated weekly grocery checklist', async () => {
