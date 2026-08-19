@@ -62,3 +62,17 @@ def test_openapi_includes_recipe_endpoints(client: TestClient) -> None:
 
     assert response.status_code == 200
     assert "/api/v1/recipes" in response.json()["paths"]
+
+
+def test_recipe_create_parses_raw_ingredient_text(client: TestClient) -> None:
+    response = client.post(
+        "/api/v1/recipes",
+        json={"name": "Imported recipe", "ingredients": [{"raw_text": "2 stk. æg"}]},
+    )
+
+    assert response.status_code == 201
+    ingredient = response.json()["ingredients"][0]
+    assert ingredient["raw_text"] == "2 stk. æg"
+    assert ingredient["ingredient_name"] == "æg"
+    assert ingredient["quantity"] == "2"
+    assert ingredient["unit"] == {"name": "piece", "symbol": "stk", "dimension": "count"}

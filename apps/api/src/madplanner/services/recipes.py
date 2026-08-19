@@ -1,4 +1,5 @@
 from madplanner.models import Recipe, RecipeIngredient, RecipeInstruction
+from madplanner.ingredients import parse_ingredient
 from madplanner.repositories.recipes import RecipeRepository
 from madplanner.schemas.recipe import (
     RecipeIngredientResponse,
@@ -51,9 +52,21 @@ class RecipeService:
             setattr(recipe, field, value)
 
         for position, item in enumerate(data.ingredients, start=1):
-            ingredient = self.repository.get_or_create_ingredient(item.ingredient_name) if item.ingredient_name else None
-            unit = self.repository.get_or_create_unit(item.unit.name, item.unit.symbol, item.unit.dimension) if item.unit else None
-            recipe.ingredients.append(RecipeIngredient(position=position, raw_text=item.raw_text, quantity=item.quantity, quantity_max=item.quantity_max, preparation=item.preparation, notes=item.notes, ingredient=ingredient, unit=unit))
+            parsed = parse_ingredient(item.raw_text) if item.ingredient_name is None else None
+            ingredient_name = item.ingredient_name or (parsed.ingredient_name if parsed else None)
+            quantity = item.quantity if item.quantity is not None else (parsed.quantity if parsed else None)
+            quantity_max = item.quantity_max if item.quantity_max is not None else (parsed.quantity_max if parsed else None)
+            parsed_unit = parsed.unit if parsed else None
+            unit_input = item.unit
+            ingredient = self.repository.get_or_create_ingredient(ingredient_name) if ingredient_name else None
+            unit = (
+                self.repository.get_or_create_unit(unit_input.name, unit_input.symbol, unit_input.dimension)
+                if unit_input
+                else self.repository.get_or_create_unit(parsed_unit.name, parsed_unit.symbol, parsed_unit.dimension)
+                if parsed_unit
+                else None
+            )
+            recipe.ingredients.append(RecipeIngredient(position=position, raw_text=item.raw_text, quantity=quantity, quantity_max=quantity_max, preparation=item.preparation, notes=item.notes, ingredient=ingredient, unit=unit))
 
         recipe.instructions.extend(
             [
