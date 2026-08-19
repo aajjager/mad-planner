@@ -14,6 +14,7 @@ export interface Recipe {
   cuisine: string | null; category: string | null; image_url: string | null;
   ingredients: RecipeIngredient[]; instructions: RecipeInstruction[]; created_at: string; updated_at: string
 }
+export interface ImportedRecipePreview { name: string; description: string | null; source_url: string; author: string | null; servings: string | null; preparation_time_minutes: number | null; cooking_time_minutes: number | null; total_time_minutes: number | null; cuisine: string | null; category: string | null; ingredients: string[]; instructions: string[]; parser: string; warnings: string[] }
 
 async function request<T>(url: string, options?: RequestInit): Promise<T> {
   const response = await fetch(url, options)
@@ -27,3 +28,4 @@ export const listRecipes = () => request<Recipe[]>('/api/v1/recipes')
 export const getRecipe = (id: number) => request<Recipe>(`/api/v1/recipes/${id}`)
 export const createRecipe = (recipe: RecipeWrite) => request<Recipe>('/api/v1/recipes', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(recipe) })
 export const deleteRecipe = (id: number) => request<void>(`/api/v1/recipes/${id}`, { method: 'DELETE' })
+export const previewRecipeImport = (url: string) => request<ImportedRecipePreview>('/api/v1/recipe-imports/preview', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ url }) })

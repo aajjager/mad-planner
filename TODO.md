@@ -21,7 +21,7 @@
 ## Phase 3 — Recipe importer
 
 - [x] Add safe URL fetching and JSON-LD preview endpoint
-- [ ] Add importer preview and confirmation UI
+- [x] Add importer preview and confirmation UI
 - [ ] Parse and normalize ingredient quantities
 - [ ] Add generic HTML fallback
 - [ ] Add Mummum and Arla fixtures/adapters as needed
