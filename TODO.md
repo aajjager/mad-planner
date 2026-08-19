@@ -32,8 +32,13 @@
 - [x] Add tags to recipe creation and imported categories
 - [x] Add recipe search and tag filtering
 
+## Phase 5 — Weekly planner
+
+- [x] Add persistent breakfast, lunch, and dinner assignments
+- [x] Add weekly planner API
+- [x] Add seven-day planner interface and week navigation
+
 ## Later phases
-- [ ] Phase 5 — Weekly planner
 - [ ] Phase 6 — Grocery lists
 - [ ] Phase 7 — Smart meal generation
 - [ ] Phase 8 — TrueNAS deployment

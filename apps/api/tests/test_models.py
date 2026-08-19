@@ -47,3 +47,4 @@ def test_recipe_relationships_preserve_structured_and_raw_ingredient_data() -> N
         assert stored_recipe.ingredients[0].unit.dimension is UnitDimension.COUNT
         assert stored_recipe.instructions[0].text == "Slice the onions."
         assert stored_recipe.tags[0].normalized_name == "dinner"
+        assert "meal_plan_entries" in Base.metadata.tables

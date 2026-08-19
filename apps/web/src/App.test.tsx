@@ -47,6 +47,22 @@ describe('App', () => {
     expect(screen.getByLabelText('Name *')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Save recipe' })).toBeInTheDocument()
   })
+
+  it('shows seven days of meal planning slots', async () => {
+    window.history.pushState({}, '', '/planner')
+    vi.spyOn(globalThis, 'fetch').mockImplementation((input) => {
+      const url = String(input)
+      if (url.includes('/health')) return Promise.resolve(jsonResponse({ status: 'ok' }))
+      if (url.includes('/meal-plans/week')) return Promise.resolve(jsonResponse({ week_start: '2026-08-17', week_end: '2026-08-23', entries: [] }))
+      return Promise.resolve(jsonResponse([{ id: 1, name: 'Pasta', image_url: null, tags: [], ingredients: [], instructions: [] }]))
+    })
+    render(<App />)
+
+    expect(await screen.findByRole('heading', { name: 'Plan your week' })).toBeInTheDocument()
+    expect(screen.getByLabelText('Monday dinner')).toBeInTheDocument()
+    expect(screen.getByLabelText('Sunday breakfast')).toBeInTheDocument()
+    expect(screen.getAllByRole('combobox')).toHaveLength(21)
+  })
 })
 
 describe('import normalization', () => {
