@@ -2,7 +2,7 @@ export type UnitDimension = 'mass' | 'volume' | 'count'
 export interface UnitInput { name: string; symbol: string; dimension: UnitDimension }
 export interface RecipeIngredientInput { raw_text: string; ingredient_name?: string; quantity?: string; unit?: UnitInput }
 export interface RecipeWrite {
-  name: string; description?: string; source_url?: string; author?: string; servings?: string;
+  name: string; description?: string; image_url?: string; source_url?: string; author?: string; servings?: string;
   preparation_time_minutes?: number; cooking_time_minutes?: number; total_time_minutes?: number;
   cuisine?: string; category?: string; ingredients: RecipeIngredientInput[]; instructions: { text: string }[]
 }
@@ -14,7 +14,7 @@ export interface Recipe {
   cuisine: string | null; category: string | null; image_url: string | null;
   ingredients: RecipeIngredient[]; instructions: RecipeInstruction[]; created_at: string; updated_at: string
 }
-export interface ImportedRecipePreview { name: string; description: string | null; source_url: string; author: string | null; servings: string | null; preparation_time_minutes: number | null; cooking_time_minutes: number | null; total_time_minutes: number | null; cuisine: string | null; category: string | null; ingredients: string[]; instructions: string[]; parser: string; warnings: string[] }
+export interface ImportedRecipePreview { name: string; description: string | null; image_url: string | null; source_url: string; author: string | null; servings: string | null; preparation_time_minutes: number | null; cooking_time_minutes: number | null; total_time_minutes: number | null; cuisine: string | null; category: string | null; ingredients: string[]; instructions: string[]; parser: string; warnings: string[] }
 
 async function request<T>(url: string, options?: RequestInit): Promise<T> {
   const response = await fetch(url, options)
