@@ -56,7 +56,7 @@
   - [x] Add family, user, membership, invitation, and session models
   - [x] Add owner setup, login, logout, and invitation APIs
   - [x] Scope recipes, plans, and grocery lists to a family
-  - [ ] Add login and family management interfaces
+  - [x] Add login and family management interfaces
 - [ ] Phase 9 — TrueNAS deployment
   - [x] Add a TrueNAS Compose override and environment template
   - [x] Add published container images and a TrueNAS Apps YAML configuration

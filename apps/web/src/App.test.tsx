@@ -4,20 +4,103 @@ import App from './App'
 import { inferMealTypes, parseServingCount } from './api/recipes'
 
 const jsonResponse = (value: unknown) => new Response(JSON.stringify(value), { status: 200, headers: { 'Content-Type': 'application/json' } })
+const account = { id: 1, email: 'owner@example.com', display_name: 'Owner', family_id: 1, family_name: 'Test family', role: 'owner' }
+const authResponse = (input: RequestInfo | URL) => {
+  const url = String(input)
+  if (url.includes('/auth/status')) return jsonResponse({ setup_required: false })
+  if (url.includes('/auth/me')) return jsonResponse(account)
+  return null
+}
 
 describe('App', () => {
   afterEach(() => { cleanup(); vi.restoreAllMocks(); window.history.pushState({}, '', '/') })
 
+  it('shows first-owner setup when no account exists', async () => {
+    vi.spyOn(globalThis, 'fetch').mockImplementation((input) => {
+      const url = String(input)
+      if (url.includes('/auth/status')) return Promise.resolve(jsonResponse({ setup_required: true }))
+      if (url.includes('/auth/setup')) return Promise.resolve(jsonResponse(account))
+      return Promise.resolve(jsonResponse([]))
+    })
+    render(<App />)
+
+    expect(await screen.findByRole('heading', { name: 'Create your family.' })).toBeInTheDocument()
+    fireEvent.change(screen.getByLabelText('Your name'), { target: { value: 'Owner' } })
+    fireEvent.change(screen.getByLabelText('Family name'), { target: { value: 'Test family' } })
+    fireEvent.change(screen.getByLabelText('Email'), { target: { value: 'owner@example.com' } })
+    fireEvent.change(screen.getByLabelText('Password'), { target: { value: 'test-password-123' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Create family' }))
+
+    expect(await screen.findByRole('heading', { name: 'Your recipes' })).toBeInTheDocument()
+  })
+
+  it('shows login when the browser has no active session', async () => {
+    vi.spyOn(globalThis, 'fetch').mockImplementation((input) => {
+      const url = String(input)
+      if (url.includes('/auth/status')) return Promise.resolve(jsonResponse({ setup_required: false }))
+      if (url.includes('/auth/me')) return Promise.resolve(new Response(JSON.stringify({ detail: 'Authentication required' }), { status: 401, headers: { 'Content-Type': 'application/json' } }))
+      if (url.includes('/auth/login')) return Promise.resolve(jsonResponse(account))
+      return Promise.resolve(jsonResponse([]))
+    })
+    render(<App />)
+
+    expect(await screen.findByRole('heading', { name: 'Welcome back.' })).toBeInTheDocument()
+    fireEvent.change(screen.getByLabelText('Email'), { target: { value: 'owner@example.com' } })
+    fireEvent.change(screen.getByLabelText('Password'), { target: { value: 'test-password-123' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Sign in' }))
+
+    expect(await screen.findByRole('heading', { name: 'Your recipes' })).toBeInTheDocument()
+  })
+
+  it('lets the owner create a family invitation link', async () => {
+    window.history.pushState({}, '', '/family')
+    vi.spyOn(globalThis, 'fetch').mockImplementation((input) => {
+      const url = String(input)
+      const auth = authResponse(input)
+      if (auth) return Promise.resolve(auth)
+      if (url.includes('/family/members')) return Promise.resolve(jsonResponse([{ id: 1, email: 'owner@example.com', display_name: 'Owner', role: 'owner' }]))
+      if (url.includes('/family/invitations')) return Promise.resolve(jsonResponse({ token: 'private-token', family_name: 'Test family', intended_email: 'member@example.com', expires_at: '' }))
+      return Promise.resolve(jsonResponse([]))
+    })
+    render(<App />)
+
+    expect(await screen.findByRole('heading', { name: 'Test family' })).toBeInTheDocument()
+    fireEvent.change(screen.getByLabelText('Email address'), { target: { value: 'member@example.com' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Create invitation' }))
+
+    expect(await screen.findByLabelText('Invitation link')).toHaveValue('http://localhost:3000/invite/private-token')
+  })
+
+  it('lets an invited person join the shared family', async () => {
+    window.history.pushState({}, '', '/invite/private-token')
+    vi.spyOn(globalThis, 'fetch').mockImplementation((input) => {
+      const url = String(input)
+      if (url.includes('/auth/status')) return Promise.resolve(jsonResponse({ setup_required: false }))
+      if (url.includes('/auth/me')) return Promise.resolve(new Response(JSON.stringify({ detail: 'Authentication required' }), { status: 401, headers: { 'Content-Type': 'application/json' } }))
+      if (url.endsWith('/invitations/private-token')) return Promise.resolve(jsonResponse({ family_name: 'Test family', intended_email: 'member@example.com', expires_at: '' }))
+      if (url.includes('/accept')) return Promise.resolve(jsonResponse({ ...account, id: 2, email: 'member@example.com', display_name: 'Member', role: 'member' }))
+      return Promise.resolve(jsonResponse([]))
+    })
+    render(<App />)
+
+    expect(await screen.findByRole('heading', { name: 'Join Test family.' })).toBeInTheDocument()
+    fireEvent.change(screen.getByLabelText('Your name'), { target: { value: 'Member' } })
+    fireEvent.change(screen.getByLabelText('Password'), { target: { value: 'member-password-123' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Join family' }))
+
+    expect(await screen.findByRole('heading', { name: 'Your recipes' })).toBeInTheDocument()
+  })
+
   it('shows the empty recipe collection and API status', async () => {
-    vi.spyOn(globalThis, 'fetch').mockImplementation((input) => Promise.resolve(String(input).includes('/health') ? jsonResponse({ status: 'ok' }) : jsonResponse([])))
+    vi.spyOn(globalThis, 'fetch').mockImplementation((input) => Promise.resolve(authResponse(input) ?? jsonResponse([])))
     render(<App />)
     expect(await screen.findByRole('heading', { name: 'Your recipes' })).toBeInTheDocument()
     expect(await screen.findByText('Your collection is ready')).toBeInTheDocument()
-    expect(await screen.findByText('API online')).toBeInTheDocument()
+    expect(await screen.findByText('Owner · Test family')).toBeInTheDocument()
   })
 
   it('renders recipes returned by the API', async () => {
-    vi.spyOn(globalThis, 'fetch').mockImplementation((input) => Promise.resolve(String(input).includes('/health') ? jsonResponse({ status: 'ok' }) : jsonResponse([{ id: 4, name: 'Onion soup', description: 'A warming soup.', image_url: null, source_url: null, author: null, servings: '4', preparation_time_minutes: 10, cooking_time_minutes: 30, total_time_minutes: 40, cuisine: 'French', category: 'Dinner', tags: ['Comfort food'], ingredients: [], instructions: [], created_at: '', updated_at: '' }])))
+    vi.spyOn(globalThis, 'fetch').mockImplementation((input) => Promise.resolve(authResponse(input) ?? jsonResponse([{ id: 4, name: 'Onion soup', description: 'A warming soup.', image_url: null, source_url: null, author: null, servings: '4', preparation_time_minutes: 10, cooking_time_minutes: 30, total_time_minutes: 40, cuisine: 'French', category: 'Dinner', tags: ['Comfort food'], ingredients: [], instructions: [], created_at: '', updated_at: '' }])))
     render(<App />)
     expect(await screen.findByRole('heading', { name: 'Onion soup' })).toBeInTheDocument()
     expect(screen.getByText('40 min')).toBeInTheDocument()
@@ -28,7 +111,7 @@ describe('App', () => {
       { id: 1, name: 'Onion soup', description: 'Warm', image_url: null, source_url: null, author: null, servings: '4', preparation_time_minutes: null, cooking_time_minutes: null, total_time_minutes: 40, cuisine: 'French', category: 'Dinner', tags: ['Comfort food'], ingredients: [], instructions: [], created_at: '', updated_at: '' },
       { id: 2, name: 'Berry bowl', description: 'Fresh', image_url: null, source_url: null, author: null, servings: '2', preparation_time_minutes: null, cooking_time_minutes: null, total_time_minutes: 5, cuisine: null, category: 'Breakfast', tags: ['Quick'], ingredients: [], instructions: [], created_at: '', updated_at: '' },
     ]
-    vi.spyOn(globalThis, 'fetch').mockImplementation((input) => Promise.resolve(String(input).includes('/health') ? jsonResponse({ status: 'ok' }) : jsonResponse(recipes)))
+    vi.spyOn(globalThis, 'fetch').mockImplementation((input) => Promise.resolve(authResponse(input) ?? jsonResponse(recipes)))
     render(<App />)
     await screen.findByRole('heading', { name: 'Onion soup' })
 
@@ -41,7 +124,7 @@ describe('App', () => {
 
   it('shows the manual recipe form', async () => {
     window.history.pushState({}, '', '/recipes/new')
-    vi.spyOn(globalThis, 'fetch').mockResolvedValue(jsonResponse({ status: 'ok' }))
+    vi.spyOn(globalThis, 'fetch').mockImplementation((input) => Promise.resolve(authResponse(input) ?? jsonResponse({ status: 'ok' })))
     render(<App />)
     expect(await screen.findByRole('heading', { name: 'Add a recipe' })).toBeInTheDocument()
     expect(screen.getByLabelText('Name *')).toBeInTheDocument()
@@ -54,14 +137,15 @@ describe('App', () => {
     window.history.pushState({}, '', '/planner')
     vi.spyOn(globalThis, 'fetch').mockImplementation((input) => {
       const url = String(input)
-      if (url.includes('/health')) return Promise.resolve(jsonResponse({ status: 'ok' }))
+      const auth = authResponse(input)
+      if (auth) return Promise.resolve(auth)
       if (url.includes('/meal-plans/week')) return Promise.resolve(jsonResponse({ week_start: '2026-08-17', week_end: '2026-08-23', entries: [] }))
       return Promise.resolve(jsonResponse([{ id: 1, name: 'Pasta', image_url: null, tags: ['Quick', 'Vegetarian'], ingredients: [], instructions: [] }]))
     })
     render(<App />)
 
     expect(await screen.findByRole('heading', { name: 'Plan your week' })).toBeInTheDocument()
-    expect(screen.getByLabelText('Monday dinner')).toBeInTheDocument()
+    expect(await screen.findByLabelText('Monday dinner')).toBeInTheDocument()
     expect(screen.getByLabelText('Sunday breakfast')).toBeInTheDocument()
     expect(screen.getAllByRole('combobox')).toHaveLength(22)
     expect(screen.getByRole('button', { name: 'Suggest my week' })).toBeInTheDocument()
@@ -78,11 +162,11 @@ describe('App', () => {
 
   it('shows a generated weekly grocery checklist', async () => {
     window.history.pushState({}, '', '/grocery-list?week=2026-08-17')
-    vi.spyOn(globalThis, 'fetch').mockImplementation((input) => Promise.resolve(String(input).includes('/health') ? jsonResponse({ status: 'ok' }) : jsonResponse({ week_start: '2026-08-17', week_end: '2026-08-23', planned_meals: 2, items: [{ key: '1:1', name: 'pasta', category: 'Other', quantity: '600', quantity_max: null, unit: { name: 'gram', symbol: 'g', dimension: 'mass' }, recipe_names: ['Simple pasta'], raw_texts: ['200 g pasta'] }] })))
+    vi.spyOn(globalThis, 'fetch').mockImplementation((input) => Promise.resolve(authResponse(input) ?? jsonResponse({ week_start: '2026-08-17', week_end: '2026-08-23', planned_meals: 2, items: [{ key: '1:1', name: 'pasta', category: 'Other', quantity: '600', quantity_max: null, unit: { name: 'gram', symbol: 'g', dimension: 'mass' }, recipe_names: ['Simple pasta'], raw_texts: ['200 g pasta'] }] })))
     render(<App />)
 
     expect(await screen.findByRole('heading', { name: /Shop once/ })).toBeInTheDocument()
-    expect(screen.getByText('600 g')).toBeInTheDocument()
+    expect(await screen.findByText('600 g')).toBeInTheDocument()
     expect(screen.getByText('pasta')).toBeInTheDocument()
     expect(screen.getByRole('checkbox')).toBeInTheDocument()
   })

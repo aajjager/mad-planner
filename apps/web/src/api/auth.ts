@@ -1,0 +1,60 @@
+export type FamilyRole = 'owner' | 'member'
+
+export interface Account {
+  id: number
+  email: string
+  display_name: string
+  family_id: number
+  family_name: string
+  role: FamilyRole
+}
+
+export interface FamilyMember {
+  id: number
+  email: string
+  display_name: string
+  role: FamilyRole
+}
+
+export interface Invitation {
+  token: string
+  family_name: string
+  intended_email: string
+  expires_at: string
+}
+
+export interface InvitationPreview {
+  family_name: string
+  intended_email: string
+  expires_at: string
+}
+
+export class ApiError extends Error {
+  readonly status: number
+  constructor(message: string, status: number) { super(message); this.status = status }
+}
+
+async function request<T>(url: string, options?: RequestInit): Promise<T> {
+  const response = await fetch(url, options)
+  if (!response.ok) {
+    const payload = await response.json().catch(() => null)
+    throw new ApiError(typeof payload?.detail === 'string' ? payload.detail : 'The request could not be completed.', response.status)
+  }
+  return response.status === 204 ? (undefined as T) : response.json()
+}
+
+const jsonOptions = (method: string, body: unknown): RequestInit => ({
+  method,
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify(body),
+})
+
+export const getSetupStatus = () => request<{ setup_required: boolean }>('/api/v1/auth/status')
+export const getCurrentAccount = () => request<Account>('/api/v1/auth/me')
+export const setupOwner = (data: { email: string; display_name: string; password: string; family_name: string }) => request<Account>('/api/v1/auth/setup', jsonOptions('POST', data))
+export const login = (data: { email: string; password: string }) => request<Account>('/api/v1/auth/login', jsonOptions('POST', data))
+export const logout = () => request<void>('/api/v1/auth/logout', { method: 'POST' })
+export const listFamilyMembers = () => request<FamilyMember[]>('/api/v1/auth/family/members')
+export const createFamilyInvitation = (email: string) => request<Invitation>('/api/v1/auth/family/invitations', jsonOptions('POST', { email }))
+export const getInvitation = (token: string) => request<InvitationPreview>(`/api/v1/auth/invitations/${encodeURIComponent(token)}`)
+export const acceptInvitation = (token: string, data: { display_name: string; password: string }) => request<Account>(`/api/v1/auth/invitations/${encodeURIComponent(token)}/accept`, jsonOptions('POST', data))

@@ -1,0 +1,51 @@
+import { createContext, useContext, useEffect, useState, type ReactNode } from 'react'
+import { ApiError, getCurrentAccount, getSetupStatus, login as loginRequest, logout as logoutRequest, setupOwner as setupRequest, type Account } from '../api/auth'
+
+interface AuthValue {
+  account: Account | null
+  loading: boolean
+  setupRequired: boolean
+  login: (email: string, password: string) => Promise<void>
+  setupOwner: (data: { email: string; display_name: string; password: string; family_name: string }) => Promise<void>
+  acceptAccount: (account: Account) => void
+  logout: () => Promise<void>
+}
+
+const AuthContext = createContext<AuthValue | null>(null)
+
+export function AuthProvider({ children }: { children: ReactNode }) {
+  const [account, setAccount] = useState<Account | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [setupRequired, setSetupRequired] = useState(false)
+
+  useEffect(() => {
+    getSetupStatus()
+      .then(async ({ setup_required }) => {
+        setSetupRequired(setup_required)
+        if (!setup_required) {
+          try { setAccount(await getCurrentAccount()) }
+          catch (error) { if (!(error instanceof ApiError) || error.status !== 401) throw error }
+        }
+      })
+      .finally(() => setLoading(false))
+  }, [])
+
+  const value: AuthValue = {
+    account,
+    loading,
+    setupRequired,
+    login: async (email, password) => { setAccount(await loginRequest({ email, password })) },
+    setupOwner: async (data) => { setAccount(await setupRequest(data)); setSetupRequired(false) },
+    acceptAccount: (nextAccount) => { setAccount(nextAccount); setSetupRequired(false) },
+    logout: async () => { await logoutRequest(); setAccount(null) },
+  }
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
+}
+
+// oxlint-disable-next-line react/only-export-components -- Provider and its typed hook form one module.
+export function useAuth(): AuthValue {
+  const value = useContext(AuthContext)
+  if (!value) throw new Error('useAuth must be used inside AuthProvider')
+  return value
+}
