@@ -33,6 +33,13 @@ class FamilyMemberResponse(BaseModel):
     email: str
     display_name: str
     role: FamilyRole
+    active_sessions: int = 0
+
+
+class ManagedInvitationResponse(BaseModel):
+    id: int
+    intended_email: str
+    expires_at: str
 
 
 class InvitationCreateRequest(BaseModel):

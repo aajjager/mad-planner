@@ -10,6 +10,7 @@ import { AuthProvider, useAuth } from './auth/AuthContext'
 import { AccountAccessPage } from './pages/AccountAccessPage'
 import { FamilyPage } from './pages/FamilyPage'
 import { InvitationPage } from './pages/InvitationPage'
+import { AdminPage } from './pages/AdminPage'
 
 function ApplicationShell() {
   const { account, logout } = useAuth()
@@ -18,7 +19,7 @@ function ApplicationShell() {
         <header className="site-header">
           <Link className="brand" to="/recipes"><span className="brand-mark">M</span>Mad Planner</Link>
           <nav aria-label="Main navigation"><Link to="/recipes">Recipes</Link><Link to="/planner">Planner</Link><Link to="/grocery-list">Groceries</Link><Link to="/recipes/import">Import</Link><Link className="primary-link" to="/recipes/new">Add recipe</Link></nav>
-          <div className="account-menu"><Link className="account-link" to="/family">{account?.display_name} · {account?.family_name}</Link><button className="text-button" onClick={() => void logout()}>Sign out</button></div>
+          <div className="account-menu"><Link className="account-link" to="/family">{account?.display_name} · {account?.family_name}</Link>{account?.role === 'owner' && <Link className="account-link" to="/admin">Admin</Link>}<button className="text-button" onClick={() => void logout()}>Sign out</button></div>
         </header>
         <main>
           <Routes>
@@ -30,6 +31,7 @@ function ApplicationShell() {
             <Route path="/planner" element={<PlannerPage />} />
             <Route path="/grocery-list" element={<GroceryListPage />} />
             <Route path="/family" element={<FamilyPage />} />
+            <Route path="/admin" element={<AdminPage />} />
             <Route path="*" element={<Navigate to="/recipes" replace />} />
           </Routes>
         </main>

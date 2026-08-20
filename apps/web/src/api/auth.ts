@@ -14,7 +14,10 @@ export interface FamilyMember {
   email: string
   display_name: string
   role: FamilyRole
+  active_sessions: number
 }
+
+export interface ManagedInvitation { id: number; intended_email: string; expires_at: string }
 
 export interface Invitation {
   token: string
@@ -58,3 +61,7 @@ export const listFamilyMembers = () => request<FamilyMember[]>('/api/v1/auth/fam
 export const createFamilyInvitation = (email: string) => request<Invitation>('/api/v1/auth/family/invitations', jsonOptions('POST', { email }))
 export const getInvitation = (token: string) => request<InvitationPreview>(`/api/v1/auth/invitations/${encodeURIComponent(token)}`)
 export const acceptInvitation = (token: string, data: { display_name: string; password: string }) => request<Account>(`/api/v1/auth/invitations/${encodeURIComponent(token)}/accept`, jsonOptions('POST', data))
+export const listManagedInvitations = () => request<ManagedInvitation[]>('/api/v1/auth/admin/invitations')
+export const revokeInvitation = (id: number) => request<void>(`/api/v1/auth/admin/invitations/${id}`, { method: 'DELETE' })
+export const revokeMemberSessions = (id: number) => request<void>(`/api/v1/auth/admin/members/${id}/revoke-sessions`, { method: 'POST' })
+export const removeFamilyMember = (id: number) => request<void>(`/api/v1/auth/admin/members/${id}`, { method: 'DELETE' })

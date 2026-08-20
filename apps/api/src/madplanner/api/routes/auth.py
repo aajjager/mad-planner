@@ -14,6 +14,7 @@ from madplanner.schemas.account import (
     InvitationPreviewResponse,
     InvitationResponse,
     LoginRequest,
+    ManagedInvitationResponse,
     OwnerSetupRequest,
     SetupStatusResponse,
 )
@@ -104,9 +105,44 @@ def current_account(context: Annotated[AuthContext, Depends(require_auth)]):
 @router.get("/family/members", response_model=list[FamilyMemberResponse])
 def family_members(context: Annotated[AuthContext, Depends(require_auth)], service: Annotated[AuthService, Depends(get_auth_service)]):
     return [
-        FamilyMemberResponse(id=item.user.id, email=item.user.email, display_name=item.user.display_name, role=item.role)
+        FamilyMemberResponse(id=item.user.id, email=item.user.email, display_name=item.user.display_name, role=item.role, active_sessions=service.count_sessions(item.user.id, context.family.id))
         for item in service.list_members(context.family.id)
     ]
+
+
+def require_owner(context: Annotated[AuthContext, Depends(require_auth)]) -> AuthContext:
+    if context.role is not FamilyRole.OWNER:
+        raise HTTPException(status_code=403, detail="Only a family owner can manage logins")
+    return context
+
+
+@router.get("/admin/invitations", response_model=list[ManagedInvitationResponse])
+def managed_invitations(context: Annotated[AuthContext, Depends(require_owner)], service: Annotated[AuthService, Depends(get_auth_service)]):
+    return [
+        ManagedInvitationResponse(id=item.id, intended_email=item.intended_email or "", expires_at=item.expires_at.isoformat())
+        for item in service.list_pending_invitations(context.family.id)
+    ]
+
+
+@router.delete("/admin/invitations/{invitation_id}", status_code=status.HTTP_204_NO_CONTENT)
+def revoke_invitation(invitation_id: int, context: Annotated[AuthContext, Depends(require_owner)], service: Annotated[AuthService, Depends(get_auth_service)]) -> Response:
+    if not service.revoke_invitation(context.family.id, invitation_id):
+        raise HTTPException(status_code=404, detail="Invitation not found")
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
+@router.post("/admin/members/{user_id}/revoke-sessions", status_code=status.HTTP_204_NO_CONTENT)
+def revoke_member_sessions(user_id: int, context: Annotated[AuthContext, Depends(require_owner)], service: Annotated[AuthService, Depends(get_auth_service)]) -> Response:
+    if not service.revoke_member_sessions(context.family.id, user_id):
+        raise HTTPException(status_code=404, detail="Family member not found")
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
+@router.delete("/admin/members/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
+def remove_member(user_id: int, context: Annotated[AuthContext, Depends(require_owner)], service: Annotated[AuthService, Depends(get_auth_service)]) -> Response:
+    if not service.remove_member(context.family.id, user_id):
+        raise HTTPException(status_code=404, detail="Family member not found")
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
 @router.post("/family/invitations", response_model=InvitationResponse, status_code=status.HTTP_201_CREATED)

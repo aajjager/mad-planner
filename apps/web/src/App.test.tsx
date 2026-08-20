@@ -91,6 +91,29 @@ describe('App', () => {
     expect(await screen.findByRole('heading', { name: 'Your recipes' })).toBeInTheDocument()
   })
 
+  it('shows owner controls for family logins and invitations', async () => {
+    window.history.pushState({}, '', '/admin')
+    vi.spyOn(globalThis, 'fetch').mockImplementation((input) => {
+      const url = String(input)
+      const auth = authResponse(input)
+      if (auth) return Promise.resolve(auth)
+      if (url.includes('/family/members')) return Promise.resolve(jsonResponse([
+        { id: 1, email: 'owner@example.com', display_name: 'Owner', role: 'owner', active_sessions: 1 },
+        { id: 2, email: 'member@example.com', display_name: 'Member', role: 'member', active_sessions: 2 },
+      ]))
+      if (url.includes('/admin/invitations')) return Promise.resolve(jsonResponse([{ id: 4, intended_email: 'pending@example.com', expires_at: '2026-08-27T12:00:00Z' }]))
+      return Promise.resolve(jsonResponse([]))
+    })
+    render(<App />)
+
+    expect(await screen.findByRole('heading', { name: 'Manage access.' })).toBeInTheDocument()
+    expect(await screen.findByText('member@example.com · 2 active logins')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Sign out everywhere' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Remove access' })).toBeInTheDocument()
+    expect(screen.getByText('pending@example.com')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Revoke invitation' })).toBeInTheDocument()
+  })
+
   it('shows the empty recipe collection and API status', async () => {
     vi.spyOn(globalThis, 'fetch').mockImplementation((input) => Promise.resolve(authResponse(input) ?? jsonResponse([])))
     render(<App />)

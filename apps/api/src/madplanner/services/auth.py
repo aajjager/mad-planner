@@ -5,7 +5,7 @@ import secrets
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 
-from sqlalchemy import select, update
+from sqlalchemy import delete, func, select, update
 from sqlalchemy.orm import Session, joinedload
 
 from madplanner.models import Family, FamilyInvitation, FamilyMembership, FamilyRole, MealPlanEntry, Recipe, User, UserSession
@@ -142,6 +142,82 @@ class AuthService:
                 .order_by(FamilyMembership.joined_at, FamilyMembership.id)
             )
         )
+
+    def count_sessions(self, user_id: int, family_id: int) -> int:
+        return self.session.scalar(
+            select(func.count(UserSession.id)).where(
+                UserSession.user_id == user_id,
+                UserSession.active_family_id == family_id,
+                UserSession.expires_at > utc_now(),
+            )
+        ) or 0
+
+    def list_pending_invitations(self, family_id: int) -> list[FamilyInvitation]:
+        return list(
+            self.session.scalars(
+                select(FamilyInvitation)
+                .where(
+                    FamilyInvitation.family_id == family_id,
+                    FamilyInvitation.accepted_at.is_(None),
+                    FamilyInvitation.expires_at > utc_now(),
+                )
+                .order_by(FamilyInvitation.created_at.desc())
+            )
+        )
+
+    def revoke_invitation(self, family_id: int, invitation_id: int) -> bool:
+        invitation = self.session.scalar(
+            select(FamilyInvitation).where(
+                FamilyInvitation.id == invitation_id,
+                FamilyInvitation.family_id == family_id,
+                FamilyInvitation.accepted_at.is_(None),
+            )
+        )
+        if invitation is None:
+            return False
+        self.session.delete(invitation)
+        self.session.commit()
+        return True
+
+    def revoke_member_sessions(self, family_id: int, user_id: int) -> bool:
+        membership = self.session.scalar(
+            select(FamilyMembership).where(
+                FamilyMembership.family_id == family_id,
+                FamilyMembership.user_id == user_id,
+                FamilyMembership.role == FamilyRole.MEMBER,
+            )
+        )
+        if membership is None:
+            return False
+        self.session.execute(
+            delete(UserSession).where(
+                UserSession.user_id == user_id,
+                UserSession.active_family_id == family_id,
+            )
+        )
+        self.session.commit()
+        return True
+
+    def remove_member(self, family_id: int, user_id: int) -> bool:
+        membership = self.session.scalar(
+            select(FamilyMembership).where(
+                FamilyMembership.family_id == family_id,
+                FamilyMembership.user_id == user_id,
+                FamilyMembership.role == FamilyRole.MEMBER,
+            )
+        )
+        if membership is None:
+            return False
+        user = membership.user
+        self.session.delete(membership)
+        self.session.flush()
+        remaining_memberships = self.session.scalar(
+            select(func.count(FamilyMembership.id)).where(FamilyMembership.user_id == user_id)
+        ) or 0
+        if remaining_memberships == 0:
+            self.session.delete(user)
+        self.session.commit()
+        return True
 
     def create_invitation(self, context: AuthContext, email: str) -> tuple[FamilyInvitation, str]:
         normalized = normalize_email(email)

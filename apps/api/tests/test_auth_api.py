@@ -73,6 +73,25 @@ def test_owner_can_invite_a_family_member(client: TestClient) -> None:
     members = client.get("/api/v1/auth/family/members")
     assert members.status_code == 200
     assert {member["email"] for member in members.json()} == {"owner@example.com", "member@example.com"}
+    member_id = next(member["id"] for member in members.json() if member["role"] == "member")
+    assert client.get("/api/v1/auth/admin/invitations").status_code == 403
+
+    assert client.post("/api/v1/auth/login", json={"email": "owner@example.com", "password": "correct-horse-battery-staple"}).status_code == 200
+    members = client.get("/api/v1/auth/family/members").json()
+    assert next(member for member in members if member["id"] == member_id)["active_sessions"] == 1
+    assert client.post(f"/api/v1/auth/admin/members/{member_id}/revoke-sessions").status_code == 204
+    members = client.get("/api/v1/auth/family/members").json()
+    assert next(member for member in members if member["id"] == member_id)["active_sessions"] == 0
+
+    pending = client.post("/api/v1/auth/family/invitations", json={"email": "pending@example.com"})
+    assert pending.status_code == 201
+    invitations = client.get("/api/v1/auth/admin/invitations")
+    assert invitations.status_code == 200
+    assert invitations.json()[0]["intended_email"] == "pending@example.com"
+    assert client.delete(f"/api/v1/auth/admin/invitations/{invitations.json()[0]['id']}").status_code == 204
+
+    assert client.delete(f"/api/v1/auth/admin/members/{member_id}").status_code == 204
+    assert client.post("/api/v1/auth/login", json={"email": "member@example.com", "password": "member-password-123"}).status_code == 401
 
 
 def test_domain_endpoints_require_authentication(client: TestClient) -> None:
