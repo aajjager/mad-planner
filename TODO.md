@@ -55,7 +55,7 @@
 - [ ] Phase 8 — Accounts and shared families
   - [x] Add family, user, membership, invitation, and session models
   - [x] Add owner setup, login, logout, and invitation APIs
-  - [ ] Scope recipes, plans, and grocery lists to a family
+  - [x] Scope recipes, plans, and grocery lists to a family
   - [ ] Add login and family management interfaces
 - [ ] Phase 9 — TrueNAS deployment
   - [x] Add a TrueNAS Compose override and environment template

@@ -5,22 +5,24 @@ from fastapi import APIRouter, Depends, HTTPException, Response, status
 from sqlalchemy.orm import Session
 
 from madplanner.db.session import get_session
+from madplanner.api.routes.auth import require_auth
 from madplanner.models import MealType
 from madplanner.repositories.planner import MealPlanRepository
 from madplanner.repositories.recipes import RecipeRepository
 from madplanner.schemas.planner import MealPlanEntryResponse, MealPlanEntryWrite, MealSuggestionPreferences, WeeklyMealPlanResponse, WeeklyMealSuggestionsResponse
 from madplanner.services.planner import MealPlanService
 from madplanner.services.suggestions import MealSuggestionService
+from madplanner.services.auth import AuthContext
 
 router = APIRouter(prefix="/meal-plans", tags=["meal plans"])
 
 
-def get_meal_plan_service(session: Annotated[Session, Depends(get_session)]) -> MealPlanService:
-    return MealPlanService(MealPlanRepository(session))
+def get_meal_plan_service(session: Annotated[Session, Depends(get_session)], context: Annotated[AuthContext, Depends(require_auth)]) -> MealPlanService:
+    return MealPlanService(MealPlanRepository(session, context.family.id))
 
 
-def get_suggestion_service(session: Annotated[Session, Depends(get_session)]) -> MealSuggestionService:
-    return MealSuggestionService(MealPlanRepository(session), RecipeRepository(session))
+def get_suggestion_service(session: Annotated[Session, Depends(get_session)], context: Annotated[AuthContext, Depends(require_auth)]) -> MealSuggestionService:
+    return MealSuggestionService(MealPlanRepository(session, context.family.id), RecipeRepository(session, context.family.id))
 
 
 @router.get("/week", response_model=WeeklyMealPlanResponse)

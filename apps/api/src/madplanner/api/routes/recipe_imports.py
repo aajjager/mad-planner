@@ -3,6 +3,8 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException
 
 from madplanner.importers.json_ld import RecipeParseError
+from madplanner.api.routes.auth import require_auth
+from madplanner.services.auth import AuthContext
 from madplanner.importers.safe_http import RecipeFetchError, UnsafeUrlError
 from madplanner.importers.service import RecipeImporter
 from madplanner.schemas.imported_recipe import ImportedRecipePreview, RecipeImportRequest
@@ -15,7 +17,7 @@ def get_recipe_importer() -> RecipeImporter:
 
 
 @router.post("/preview", response_model=ImportedRecipePreview)
-def preview_recipe(data: RecipeImportRequest, importer: Annotated[RecipeImporter, Depends(get_recipe_importer)]):
+def preview_recipe(data: RecipeImportRequest, importer: Annotated[RecipeImporter, Depends(get_recipe_importer)], _context: Annotated[AuthContext, Depends(require_auth)]):
     try:
         return importer.preview(data.url)
     except UnsafeUrlError as error:

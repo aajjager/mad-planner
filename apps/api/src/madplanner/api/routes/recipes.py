@@ -4,6 +4,8 @@ from fastapi import APIRouter, Depends, HTTPException, Response, status
 from sqlalchemy.orm import Session
 
 from madplanner.db.session import get_session
+from madplanner.api.routes.auth import require_auth
+from madplanner.services.auth import AuthContext
 from madplanner.repositories.recipes import RecipeRepository
 from madplanner.schemas.recipe import RecipeMealTypesUpdate, RecipeResponse, RecipeWrite
 from madplanner.services.recipes import RecipeService
@@ -11,8 +13,8 @@ from madplanner.services.recipes import RecipeService
 router = APIRouter(prefix="/recipes", tags=["recipes"])
 
 
-def get_recipe_service(session: Annotated[Session, Depends(get_session)]) -> RecipeService:
-    return RecipeService(RecipeRepository(session))
+def get_recipe_service(session: Annotated[Session, Depends(get_session)], context: Annotated[AuthContext, Depends(require_auth)]) -> RecipeService:
+    return RecipeService(RecipeRepository(session, context.family.id))
 
 
 @router.get("", response_model=list[RecipeResponse])

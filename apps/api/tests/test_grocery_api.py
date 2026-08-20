@@ -20,6 +20,8 @@ def test_weekly_grocery_list_combines_and_scales_ingredients() -> None:
     app.dependency_overrides[get_session] = override_session
     try:
         client = TestClient(app)
+        setup = client.post("/api/v1/auth/setup", json={"email": "owner@example.com", "display_name": "Owner", "password": "test-password-123", "family_name": "Test family"})
+        assert setup.status_code == 201
         recipe = client.post("/api/v1/recipes", json={
             "name": "Simple pasta", "servings": "2",
             "ingredients": [{"raw_text": "200 g pasta"}, {"raw_text": "salt"}],

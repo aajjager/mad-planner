@@ -120,11 +120,16 @@ def test_safe_client_blocks_non_web_and_local_urls(url: str) -> None:
 
 
 def test_preview_endpoint_returns_imported_recipe() -> None:
+    from types import SimpleNamespace
+
+    from madplanner.api.routes.auth import require_auth
+
     class StubImporter:
         def preview(self, url: str) -> ImportedRecipePreview:
             return parse_json_ld_recipe(SAMPLE_HTML, url)
 
     app.dependency_overrides[get_recipe_importer] = StubImporter
+    app.dependency_overrides[require_auth] = lambda: SimpleNamespace()
     try:
         response = TestClient(app).post(
             "/api/v1/recipe-imports/preview",

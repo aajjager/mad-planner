@@ -5,10 +5,10 @@ import secrets
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 
-from sqlalchemy import select
+from sqlalchemy import select, update
 from sqlalchemy.orm import Session, joinedload
 
-from madplanner.models import Family, FamilyInvitation, FamilyMembership, FamilyRole, User, UserSession
+from madplanner.models import Family, FamilyInvitation, FamilyMembership, FamilyRole, MealPlanEntry, Recipe, User, UserSession
 
 
 def normalize_email(email: str) -> str:
@@ -80,6 +80,8 @@ class AuthService:
         membership = FamilyMembership(user=user, family=family, role=FamilyRole.OWNER)
         self.session.add_all([user, family, membership])
         self.session.flush()
+        self.session.execute(update(Recipe).where(Recipe.family_id.is_(None)).values(family_id=family.id))
+        self.session.execute(update(MealPlanEntry).where(MealPlanEntry.family_id.is_(None)).values(family_id=family.id))
         auth_context, token = self._create_session(user, family, FamilyRole.OWNER)
         self.session.commit()
         return auth_context, token

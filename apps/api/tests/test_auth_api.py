@@ -73,3 +73,9 @@ def test_owner_can_invite_a_family_member(client: TestClient) -> None:
     members = client.get("/api/v1/auth/family/members")
     assert members.status_code == 200
     assert {member["email"] for member in members.json()} == {"owner@example.com", "member@example.com"}
+
+
+def test_domain_endpoints_require_authentication(client: TestClient) -> None:
+    assert client.get("/api/v1/recipes").status_code == 401
+    assert client.get("/api/v1/meal-plans/week", params={"week_start": "2026-08-17"}).status_code == 401
+    assert client.get("/api/v1/grocery-lists/week", params={"week_start": "2026-08-17"}).status_code == 401

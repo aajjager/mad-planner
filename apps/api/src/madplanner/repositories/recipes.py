@@ -6,18 +6,20 @@ from madplanner.models.ingredient import UnitDimension
 
 
 class RecipeRepository:
-    def __init__(self, session: Session) -> None:
+    def __init__(self, session: Session, family_id: int) -> None:
         self.session = session
+        self.family_id = family_id
 
     def list(self) -> list[Recipe]:
-        statement = select(Recipe).options(*self._load_options()).order_by(Recipe.name)
+        statement = select(Recipe).where(Recipe.family_id == self.family_id).options(*self._load_options()).order_by(Recipe.name)
         return list(self.session.scalars(statement).all())
 
     def get(self, recipe_id: int) -> Recipe | None:
-        statement = select(Recipe).where(Recipe.id == recipe_id).options(*self._load_options())
+        statement = select(Recipe).where(Recipe.id == recipe_id, Recipe.family_id == self.family_id).options(*self._load_options())
         return self.session.scalar(statement)
 
     def add(self, recipe: Recipe) -> Recipe:
+        recipe.family_id = self.family_id
         self.session.add(recipe)
         self.session.commit()
         stored = self.get(recipe.id)

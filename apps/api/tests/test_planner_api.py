@@ -26,7 +26,10 @@ def client() -> TestClient:
 
     app.dependency_overrides[get_session] = override_session
     try:
-        yield TestClient(app)
+        test_client = TestClient(app)
+        setup = test_client.post("/api/v1/auth/setup", json={"email": "owner@example.com", "display_name": "Owner", "password": "test-password-123", "family_name": "Test family"})
+        assert setup.status_code == 201
+        yield test_client
     finally:
         app.dependency_overrides.clear()
 

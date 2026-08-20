@@ -17,10 +17,13 @@ class MealType(str, Enum):
 class MealPlanEntry(Base):
     __tablename__ = "meal_plan_entries"
     __table_args__ = (
-        UniqueConstraint("meal_date", "meal_type", name="uq_meal_plan_entries_date_type"),
+        UniqueConstraint("family_id", "meal_date", "meal_type", name="uq_meal_plan_entries_family_date_type"),
     )
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    family_id: Mapped[int | None] = mapped_column(
+        ForeignKey("families.id", ondelete="CASCADE"), index=True
+    )
     meal_date: Mapped[date] = mapped_column(Date, index=True)
     meal_type: Mapped[MealType] = mapped_column(
         SqlEnum(MealType, name="meal_type", native_enum=False, values_callable=lambda values: [value.value for value in values])
