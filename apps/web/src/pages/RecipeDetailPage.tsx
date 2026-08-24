@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
-import { deleteRecipe, getRecipe, updateRecipeMealTypes, type Recipe, type RecipeMealType } from '../api/recipes'
+import { deleteRecipe, getRecipe, updateRecipeMealTypes, uploadRecipeImage, type Recipe, type RecipeMealType } from '../api/recipes'
 import './RecipeDetailPage.css'
 import { useAuth } from '../auth/AuthContext'
 
@@ -8,14 +8,17 @@ export function RecipeDetailPage() {
   const { account } = useAuth(); const canEdit = account?.role === 'owner' || account?.role === 'editor'
   const { recipeId } = useParams(); const navigate = useNavigate()
   const [recipe, setRecipe] = useState<Recipe | null>(null); const [error, setError] = useState(false)
+  const [photoBusy, setPhotoBusy] = useState(false); const [photoError, setPhotoError] = useState('')
   useEffect(() => { getRecipe(Number(recipeId)).then(setRecipe).catch(() => setError(true)) }, [recipeId])
   async function handleDelete() { if (recipe && window.confirm(`Delete “${recipe.name}”?`)) { await deleteRecipe(recipe.id); navigate('/recipes') } }
   async function toggleMealType(mealType: RecipeMealType) { if (!recipe) return; const current = recipe.meal_types || []; const next = current.includes(mealType) ? current.filter((item) => item !== mealType) : [...current, mealType]; setRecipe(await updateRecipeMealTypes(recipe.id, next)) }
+  async function changePhoto(file: File | undefined) { if (!recipe || !file) return; setPhotoBusy(true); setPhotoError(''); try { setRecipe(await uploadRecipeImage(recipe.id, file)) } catch (reason) { setPhotoError(reason instanceof Error ? reason.message : 'The photo could not be uploaded.') } finally { setPhotoBusy(false) } }
   if (error) return <section className="page"><p className="notice notice--error">Recipe not found.</p><Link to="/recipes">Back to recipes</Link></section>
   if (!recipe) return <section className="page"><p className="notice">Loading recipe…</p></section>
   return <article className="page recipe-detail">
     <Link className="back-link" to="/recipes">← All recipes</Link>
     {recipe.image_url && <div className="detail-image"><img src={recipe.image_url} alt={recipe.name} /></div>}
+    {canEdit && <div className="photo-actions"><label className="button"><input type="file" accept="image/jpeg,image/png,image/webp" capture="environment" disabled={photoBusy} onChange={(event) => changePhoto(event.target.files?.[0])} />{photoBusy ? 'Uploading…' : recipe.image_url ? 'Replace photo' : 'Add photo'}</label>{photoError && <span className="notice notice--error">{photoError}</span>}</div>}
     <div className="detail-heading"><div><p className="eyebrow">{recipe.category || 'Recipe'}</p><h1>{recipe.name}</h1>{recipe.description && <p>{recipe.description}</p>}</div>{canEdit && <button className="button button--danger" onClick={handleDelete}>Delete</button>}</div>
     {(recipe.recipe_types || []).length > 0 && <div className="tag-list" aria-label="Recipe types">{recipe.recipe_types.map((type) => <span className="tag" key={type}>{type}</span>)}</div>}
     {recipe.tags.length > 0 && <div className="tag-list" aria-label="Recipe tags">{recipe.tags.map((tag) => <span className="tag" key={tag}>{tag}</span>)}</div>}

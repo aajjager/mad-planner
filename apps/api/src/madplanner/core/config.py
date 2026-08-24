@@ -1,4 +1,5 @@
 from functools import lru_cache
+from pathlib import Path
 
 from pydantic import SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -10,6 +11,7 @@ class Settings(BaseSettings):
     )
     session_cookie_name: str = "madplanner_session"
     session_cookie_secure: bool = False
+    media_root: Path = Path("/data/media")
 
     model_config = SettingsConfigDict(
         env_file=".env",

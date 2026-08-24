@@ -1,4 +1,10 @@
 services:
+  media-init:
+    volumes:
+      - type: bind
+        source: ${MADPLANNER_MEDIA_PATH:?Set MADPLANNER_MEDIA_PATH to a TrueNAS media dataset path}
+        target: /data/media
+
   db:
     volumes:
       - type: bind
@@ -8,3 +14,9 @@ services:
   web:
     ports:
       - "${MADPLANNER_BIND_ADDRESS:-0.0.0.0}:${MADPLANNER_PORT:-8080}:80"
+
+  api:
+    volumes:
+      - type: bind
+        source: ${MADPLANNER_MEDIA_PATH:?Set MADPLANNER_MEDIA_PATH to a TrueNAS media dataset path}
+        target: /data/media

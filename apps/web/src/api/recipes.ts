@@ -39,6 +39,7 @@ export const getRecipe = (id: number) => request<Recipe>(`/api/v1/recipes/${id}`
 export const createRecipe = (recipe: RecipeWrite) => request<Recipe>('/api/v1/recipes', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(recipe) })
 export const deleteRecipe = (id: number) => request<void>(`/api/v1/recipes/${id}`, { method: 'DELETE' })
 export const updateRecipeMealTypes = (id: number, mealTypes: RecipeMealType[]) => request<Recipe>(`/api/v1/recipes/${id}/meal-types`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ meal_types: mealTypes }) })
+export const uploadRecipeImage = (id: number, file: File) => request<Recipe>(`/api/v1/recipes/${id}/image`, { method: 'POST', headers: { 'Content-Type': file.type }, body: file })
 export const previewRecipeImport = (url: string) => request<ImportedRecipePreview>('/api/v1/recipe-imports/preview', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ url }) })
 
 export function parseServingCount(value: string | null): string | undefined {

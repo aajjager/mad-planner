@@ -48,6 +48,13 @@ class RecipeService:
         recipe.meal_types = data.meal_types
         return self._to_response(self.repository.save(recipe))
 
+    def update_image(self, recipe_id: int, image_url: str) -> RecipeResponse | None:
+        recipe = self.repository.get(recipe_id)
+        if recipe is None:
+            return None
+        recipe.image_url = image_url
+        return self._to_response(self.repository.save(recipe))
+
     def _apply(self, recipe: Recipe, data: RecipeWrite) -> None:
         if recipe.id is not None:
             self.repository.clear_contents(recipe)

@@ -84,7 +84,7 @@
   - [x] Add category-based grocery icons
 
 - [ ] Phase 13 — Recipe media and cooking mode
-  - [ ] Add persistent recipe photo storage and camera upload
+  - [x] Add persistent recipe photo storage and camera upload
   - [ ] Add white-paper recipe reading view
   - [ ] Add reversible cooking-step completion
   - [ ] Add book-recipe OCR with review before saving

@@ -1,6 +1,13 @@
 name: madplanner
 
 services:
+  media-init:
+    image: alpine:3.22
+    restart: "no"
+    command: ["chown", "-R", "10001:10001", "/data/media"]
+    volumes:
+      - recipe_media:/data/media
+
   db:
     image: postgres:18-alpine
     restart: unless-stopped
@@ -23,9 +30,14 @@ services:
     restart: unless-stopped
     environment:
       DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-madplanner}:${POSTGRES_PASSWORD:-change-me-for-local-development}@db:5432/${POSTGRES_DB:-madplanner}
+      MEDIA_ROOT: /data/media
+    volumes:
+      - recipe_media:/data/media
     depends_on:
       db:
         condition: service_healthy
+      media-init:
+        condition: service_completed_successfully
     healthcheck:
       test:
         - CMD
@@ -55,3 +67,4 @@ services:
 
 volumes:
   postgres_data:
+  recipe_media:
