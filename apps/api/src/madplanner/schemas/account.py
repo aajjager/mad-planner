@@ -49,6 +49,17 @@ class FamilyMemberRoleUpdate(BaseModel):
     role: Literal["editor", "planner", "viewer"]
 
 
+class RecipeTypeResponse(BaseModel):
+    id: int
+    name: str
+    meal_type: Literal["breakfast", "lunch", "dinner"] | None
+
+
+class RecipeTypeCreate(BaseModel):
+    name: str = Field(min_length=1, max_length=60)
+    meal_type: Literal["breakfast", "lunch", "dinner"] | None = None
+
+
 class FamilySettingsResponse(BaseModel):
     household_size: int
     leftovers_enabled: bool

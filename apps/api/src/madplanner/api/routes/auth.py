@@ -19,6 +19,8 @@ from madplanner.schemas.account import (
     LoginRequest,
     ManagedInvitationResponse,
     OwnerSetupRequest,
+    RecipeTypeCreate,
+    RecipeTypeResponse,
     SetupStatusResponse,
 )
 from madplanner.services.auth import AuthContext, AuthService
@@ -149,6 +151,31 @@ def family_settings(context: Annotated[AuthContext, Depends(require_auth)]):
 def update_family_settings(data: FamilySettingsUpdate, context: Annotated[AuthContext, Depends(require_owner)], service: Annotated[AuthService, Depends(get_auth_service)]):
     service.update_family_settings(context.family, **data.model_dump())
     return family_settings_response(context)
+
+
+@router.get("/family/recipe-types", response_model=list[RecipeTypeResponse])
+def family_recipe_types(context: Annotated[AuthContext, Depends(require_auth)], service: Annotated[AuthService, Depends(get_auth_service)]):
+    return [RecipeTypeResponse(id=item.id, name=item.name, meal_type=item.meal_type) for item in service.list_recipe_types(context.family.id)]
+
+
+@router.post("/family/recipe-types", response_model=RecipeTypeResponse, status_code=status.HTTP_201_CREATED)
+def create_family_recipe_type(data: RecipeTypeCreate, context: Annotated[AuthContext, Depends(require_owner)], service: Annotated[AuthService, Depends(get_auth_service)]):
+    try:
+        item = service.create_recipe_type(context.family.id, data.name, data.meal_type)
+    except ValueError:
+        raise HTTPException(status_code=409, detail="This recipe type already exists") from None
+    return RecipeTypeResponse(id=item.id, name=item.name, meal_type=item.meal_type)
+
+
+@router.delete("/family/recipe-types/{recipe_type_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_family_recipe_type(recipe_type_id: int, context: Annotated[AuthContext, Depends(require_owner)], service: Annotated[AuthService, Depends(get_auth_service)]) -> Response:
+    try:
+        deleted = service.delete_recipe_type(context.family.id, recipe_type_id)
+    except ValueError:
+        raise HTTPException(status_code=409, detail="This recipe type is used by saved recipes") from None
+    if not deleted:
+        raise HTTPException(status_code=404, detail="Recipe type not found")
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
 @router.get("/admin/invitations", response_model=list[ManagedInvitationResponse])

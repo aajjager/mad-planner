@@ -6,4 +6,5 @@
 .title-input { width:100%; border:0; border-bottom:1px solid var(--border); color:var(--ink); background:transparent; font:2.4rem Georgia,serif; }
 .parser-badge { align-self:start; padding:6px 10px; border-radius:999px; color:var(--green); background:#e7efe9; font-size:.75rem; font-weight:800; }
 .preview-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; }
+.type-confirmation { display:grid; gap:14px; padding:18px; border:1px solid var(--border); border-radius:14px; background:#faf8f1; }.type-confirmation p { margin:5px 0 0; color:var(--muted); }.type-required { color:#a44531; font-weight:700; }
 @media(max-width:800px){.heading-actions{flex-wrap:wrap}.import-bar,.preview-grid{grid-template-columns:1fr}.import-preview{padding:20px}}

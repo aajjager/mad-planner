@@ -24,7 +24,10 @@ def list_recipes(service: Annotated[RecipeService, Depends(get_recipe_service)])
 
 @router.post("", response_model=RecipeResponse, status_code=status.HTTP_201_CREATED)
 def create_recipe(data: RecipeWrite, service: Annotated[RecipeService, Depends(get_recipe_service)], _permission: Annotated[AuthContext, Depends(require_recipe_editor)]):
-    return service.create_recipe(data)
+    try:
+        return service.create_recipe(data)
+    except ValueError as error:
+        raise HTTPException(status_code=422, detail=str(error)) from error
 
 
 @router.get("/{recipe_id}", response_model=RecipeResponse)
@@ -37,7 +40,10 @@ def get_recipe(recipe_id: int, service: Annotated[RecipeService, Depends(get_rec
 
 @router.put("/{recipe_id}", response_model=RecipeResponse)
 def replace_recipe(recipe_id: int, data: RecipeWrite, service: Annotated[RecipeService, Depends(get_recipe_service)], _permission: Annotated[AuthContext, Depends(require_recipe_editor)]):
-    recipe = service.replace_recipe(recipe_id, data)
+    try:
+        recipe = service.replace_recipe(recipe_id, data)
+    except ValueError as error:
+        raise HTTPException(status_code=422, detail=str(error)) from error
     if recipe is None:
         raise HTTPException(status_code=404, detail="Recipe not found")
     return recipe

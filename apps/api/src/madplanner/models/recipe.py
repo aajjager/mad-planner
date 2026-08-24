@@ -14,6 +14,28 @@ recipe_tags = Table(
     Column("tag_id", ForeignKey("tags.id", ondelete="CASCADE"), primary_key=True),
 )
 
+recipe_recipe_types = Table(
+    "recipe_recipe_types", Base.metadata,
+    Column("recipe_id", ForeignKey("recipes.id", ondelete="CASCADE"), primary_key=True),
+    Column("recipe_type_id", ForeignKey("recipe_types.id", ondelete="RESTRICT"), primary_key=True),
+)
+
+
+class RecipeType(Base):
+    __tablename__ = "recipe_types"
+    __table_args__ = (
+        UniqueConstraint("family_id", "normalized_name", name="uq_recipe_types_family_normalized_name"),
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    family_id: Mapped[int] = mapped_column(ForeignKey("families.id", ondelete="CASCADE"), index=True)
+    name: Mapped[str] = mapped_column(String(60))
+    normalized_name: Mapped[str] = mapped_column(String(60))
+    meal_type: Mapped[str | None] = mapped_column(String(20))
+    recipes: Mapped[list["Recipe"]] = relationship(
+        secondary=recipe_recipe_types, back_populates="recipe_types"
+    )
+
 
 class Tag(Base):
     __tablename__ = "tags"
@@ -63,6 +85,9 @@ class Recipe(Base):
     )
     tags: Mapped[list[Tag]] = relationship(
         secondary=recipe_tags, back_populates="recipes", order_by="Tag.name"
+    )
+    recipe_types: Mapped[list[RecipeType]] = relationship(
+        secondary=recipe_recipe_types, back_populates="recipes", order_by="RecipeType.name"
     )
 
 

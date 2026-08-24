@@ -8,7 +8,13 @@ from datetime import UTC, datetime, timedelta
 from sqlalchemy import delete, func, select, update
 from sqlalchemy.orm import Session, joinedload
 
-from madplanner.models import Family, FamilyInvitation, FamilyMembership, FamilyRole, MealPlanEntry, Recipe, User, UserSession
+from madplanner.models import Family, FamilyInvitation, FamilyMembership, FamilyRole, MealPlanEntry, Recipe, RecipeType, User, UserSession
+
+
+DEFAULT_RECIPE_TYPES = (
+    ("Breakfast", "breakfast"), ("Lunch", "lunch"), ("Dinner", "dinner"),
+    ("Bake-off", None), ("Cake", None), ("Dessert", None), ("Bread", None), ("Snack", None),
+)
 
 
 def normalize_email(email: str) -> str:
@@ -80,6 +86,9 @@ class AuthService:
         membership = FamilyMembership(user=user, family=family, role=FamilyRole.OWNER)
         self.session.add_all([user, family, membership])
         self.session.flush()
+        self.session.add_all(
+            [RecipeType(family_id=family.id, name=name, normalized_name=name.casefold(), meal_type=meal_type) for name, meal_type in DEFAULT_RECIPE_TYPES]
+        )
         self.session.execute(update(Recipe).where(Recipe.family_id.is_(None)).values(family_id=family.id))
         self.session.execute(update(MealPlanEntry).where(MealPlanEntry.family_id.is_(None)).values(family_id=family.id))
         auth_context, token = self._create_session(user, family, FamilyRole.OWNER)
@@ -168,6 +177,34 @@ class AuthService:
         self.session.add(family)
         self.session.commit()
         return family
+
+    def list_recipe_types(self, family_id: int) -> list[RecipeType]:
+        return list(self.session.scalars(select(RecipeType).where(RecipeType.family_id == family_id).order_by(RecipeType.name)))
+
+    def create_recipe_type(self, family_id: int, name: str, meal_type: str | None) -> RecipeType:
+        cleaned = " ".join(name.split())
+        normalized = cleaned.casefold()
+        existing = self.session.scalar(
+            select(RecipeType).where(RecipeType.family_id == family_id, RecipeType.normalized_name == normalized)
+        )
+        if existing is not None:
+            raise ValueError("type_exists")
+        recipe_type = RecipeType(family_id=family_id, name=cleaned, normalized_name=normalized, meal_type=meal_type)
+        self.session.add(recipe_type)
+        self.session.commit()
+        return recipe_type
+
+    def delete_recipe_type(self, family_id: int, recipe_type_id: int) -> bool:
+        recipe_type = self.session.scalar(
+            select(RecipeType).where(RecipeType.id == recipe_type_id, RecipeType.family_id == family_id)
+        )
+        if recipe_type is None:
+            return False
+        if recipe_type.recipes:
+            raise ValueError("type_in_use")
+        self.session.delete(recipe_type)
+        self.session.commit()
+        return True
 
     def list_pending_invitations(self, family_id: int) -> list[FamilyInvitation]:
         return list(

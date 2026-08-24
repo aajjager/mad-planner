@@ -64,18 +64,18 @@
   - [x] Document installation, backup, restore, and update procedures
   - [ ] Deploy and verify the stack on the user's TrueNAS SCALE system
 
-- [ ] Phase 10 — Family preferences and permissions
+- [x] Phase 10 — Family preferences and permissions
   - [x] Add household size and leftovers preferences
   - [x] Move enabled meal types into family settings
   - [x] Add cooking-mode preference
   - [x] Add configurable member permissions
   - [x] Make leftovers quantity-aware
 
-- [ ] Phase 11 — Recipe types and guided entry
-  - [ ] Add family-managed recipe types
-  - [ ] Suggest and confirm types during recipe import
-  - [ ] Add a guided manual recipe workflow
-  - [ ] Require type selection when classification is uncertain
+- [x] Phase 11 — Recipe types and guided entry
+  - [x] Add family-managed recipe types
+  - [x] Suggest and confirm types during recipe import
+  - [x] Add a guided manual recipe workflow
+  - [x] Require type selection when classification is uncertain
 
 - [ ] Phase 12 — Persistent grocery lists
   - [ ] Add manual grocery items and quantity parsing

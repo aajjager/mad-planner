@@ -52,7 +52,7 @@ class RecipeService:
         if recipe.id is not None:
             self.repository.clear_contents(recipe)
 
-        values = data.model_dump(exclude={"ingredients", "instructions", "tags"})
+        values = data.model_dump(exclude={"ingredients", "instructions", "tags", "recipe_types"})
         for url_field in ("image_url", "source_url"):
             if values[url_field] is not None:
                 values[url_field] = str(values[url_field])
@@ -83,6 +83,11 @@ class RecipeService:
             ]
         )
         recipe.tags.extend(self.repository.get_or_create_tag(tag) for tag in data.tags)
+        requested_types = data.recipe_types or [meal_type.title() for meal_type in data.meal_types]
+        recipe_types = self.repository.get_recipe_types(requested_types)
+        if len(recipe_types) != len({name.casefold() for name in requested_types}):
+            raise ValueError("Unknown recipe type")
+        recipe.recipe_types.extend(recipe_types)
 
     @staticmethod
     def _to_response(recipe: Recipe) -> RecipeResponse:
@@ -94,6 +99,7 @@ class RecipeService:
             cuisine=recipe.cuisine, category=recipe.category, nutrition=recipe.nutrition,
             tags=sorted((tag.name for tag in recipe.tags), key=str.casefold),
             meal_types=recipe.meal_types or [],
+            recipe_types=[item.name for item in recipe.recipe_types],
             ingredients=[RecipeIngredientResponse(
                 id=item.id, position=item.position, raw_text=item.raw_text,
                 ingredient_name=item.ingredient.name if item.ingredient else None,

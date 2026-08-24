@@ -18,6 +18,7 @@ export interface FamilyMember {
 }
 
 export interface ManagedInvitation { id: number; intended_email: string; expires_at: string; role: FamilyRole }
+export interface RecipeType { id: number; name: string; meal_type: 'breakfast' | 'lunch' | 'dinner' | null }
 export interface FamilySettings {
   household_size: number
   leftovers_enabled: boolean
@@ -76,3 +77,6 @@ export const removeFamilyMember = (id: number) => request<void>(`/api/v1/auth/ad
 export const getFamilySettings = () => request<FamilySettings>('/api/v1/auth/family/settings')
 export const updateFamilySettings = (settings: FamilySettings) => request<FamilySettings>('/api/v1/auth/family/settings', jsonOptions('PUT', settings))
 export const updateFamilyMemberRole = (id: number, role: Exclude<FamilyRole, 'owner'>) => request<FamilyMember>(`/api/v1/auth/admin/members/${id}/role`, jsonOptions('PATCH', { role }))
+export const listRecipeTypes = () => request<RecipeType[]>('/api/v1/auth/family/recipe-types')
+export const createRecipeType = (name: string, meal_type: RecipeType['meal_type']) => request<RecipeType>('/api/v1/auth/family/recipe-types', jsonOptions('POST', { name, meal_type }))
+export const deleteRecipeType = (id: number) => request<void>(`/api/v1/auth/family/recipe-types/${id}`, { method: 'DELETE' })

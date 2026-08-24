@@ -51,6 +51,13 @@ def test_owner_setup_login_and_logout(client: TestClient) -> None:
     assert updated.status_code == 200
     assert updated.json()["household_size"] == 3
     assert updated.json()["enabled_meal_types"] == ["dinner"]
+    recipe_types = client.get("/api/v1/auth/family/recipe-types")
+    assert recipe_types.status_code == 200
+    assert {item["name"] for item in recipe_types.json()} >= {"Breakfast", "Dinner", "Cake", "Bake-off"}
+    custom_type = client.post("/api/v1/auth/family/recipe-types", json={"name": "Soup", "meal_type": "dinner"})
+    assert custom_type.status_code == 201
+    assert custom_type.json()["name"] == "Soup"
+    assert client.delete(f"/api/v1/auth/family/recipe-types/{custom_type.json()['id']}").status_code == 204
     assert client.post("/api/v1/auth/setup", json={"email": "second@example.com", "display_name": "Second", "password": "another-long-password", "family_name": "Other"}).status_code == 409
 
     assert client.post("/api/v1/auth/logout").status_code == 204

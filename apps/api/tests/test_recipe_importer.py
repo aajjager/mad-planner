@@ -122,14 +122,17 @@ def test_safe_client_blocks_non_web_and_local_urls(url: str) -> None:
 def test_preview_endpoint_returns_imported_recipe() -> None:
     from types import SimpleNamespace
 
-    from madplanner.api.routes.auth import require_recipe_editor
+    from madplanner.api.routes.auth import get_auth_service, require_recipe_editor
 
     class StubImporter:
         def preview(self, url: str) -> ImportedRecipePreview:
             return parse_json_ld_recipe(SAMPLE_HTML, url)
 
     app.dependency_overrides[get_recipe_importer] = StubImporter
-    app.dependency_overrides[require_recipe_editor] = lambda: SimpleNamespace()
+    app.dependency_overrides[require_recipe_editor] = lambda: SimpleNamespace(family=SimpleNamespace(id=1))
+    app.dependency_overrides[get_auth_service] = lambda: SimpleNamespace(
+        list_recipe_types=lambda _family_id: [SimpleNamespace(name="Dessert", normalized_name="dessert")]
+    )
     try:
         response = TestClient(app).post(
             "/api/v1/recipe-imports/preview",
@@ -140,3 +143,5 @@ def test_preview_endpoint_returns_imported_recipe() -> None:
 
     assert response.status_code == 200
     assert response.json()["name"] == "Danish pancakes"
+    assert response.json()["suggested_recipe_types"] == ["Dessert"]
+    assert response.json()["recipe_type_confidence"] == "high"

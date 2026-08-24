@@ -8,7 +8,7 @@ from madplanner.models.account import (
 )
 from madplanner.models.ingredient import Ingredient, IngredientAlias, Unit
 from madplanner.models.planner import MealPlanEntry, MealType
-from madplanner.models.recipe import Recipe, RecipeIngredient, RecipeInstruction, Tag
+from madplanner.models.recipe import Recipe, RecipeIngredient, RecipeInstruction, RecipeType, Tag
 
 __all__ = [
     "Family",
@@ -22,6 +22,7 @@ __all__ = [
     "Recipe",
     "RecipeIngredient",
     "RecipeInstruction",
+    "RecipeType",
     "Tag",
     "Unit",
     "User",

@@ -22,3 +22,5 @@ class ImportedRecipePreview(BaseModel):
     nutrition: dict | None = None
     parser: str
     warnings: list[str] = Field(default_factory=list)
+    suggested_recipe_types: list[str] = Field(default_factory=list)
+    recipe_type_confidence: str = "low"

@@ -6,11 +6,13 @@ import { inferMealTypes, parseServingCount } from './api/recipes'
 const jsonResponse = (value: unknown) => new Response(JSON.stringify(value), { status: 200, headers: { 'Content-Type': 'application/json' } })
 const account = { id: 1, email: 'owner@example.com', display_name: 'Owner', family_id: 1, family_name: 'Test family', role: 'owner' }
 const familySettings = { household_size: 2, leftovers_enabled: true, cooking_mode_enabled: true, enabled_meal_types: ['breakfast', 'lunch', 'dinner'] }
+const recipeTypes = [{ id: 1, name: 'Breakfast', meal_type: 'breakfast' }, { id: 2, name: 'Lunch', meal_type: 'lunch' }, { id: 3, name: 'Dinner', meal_type: 'dinner' }]
 const authResponse = (input: RequestInfo | URL) => {
   const url = String(input)
   if (url.includes('/auth/status')) return jsonResponse({ setup_required: false })
   if (url.includes('/auth/me')) return jsonResponse(account)
   if (url.includes('/family/settings')) return jsonResponse(familySettings)
+  if (url.includes('/family/recipe-types')) return jsonResponse(recipeTypes)
   return null
 }
 
@@ -156,7 +158,9 @@ describe('App', () => {
     render(<App />)
     expect(await screen.findByRole('heading', { name: 'Add a recipe' })).toBeInTheDocument()
     expect(screen.getByLabelText('Name *')).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Save recipe' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Continue' })).toBeInTheDocument()
+    expect(screen.getByRole('navigation', { name: 'Recipe creation progress' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Dinner recipe type' })).toHaveAttribute('aria-pressed', 'true')
     expect(screen.getByRole('button', { name: 'dinner' })).toHaveAttribute('aria-pressed', 'true')
     expect(screen.getByRole('button', { name: 'breakfast' })).toHaveAttribute('aria-pressed', 'false')
   })

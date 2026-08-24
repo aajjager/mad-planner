@@ -50,6 +50,7 @@ class RecipeWrite(BaseModel):
     nutrition: dict | None = None
     tags: list[str] = Field(default_factory=list, max_length=20)
     meal_types: list[RecipeMealType] = Field(default_factory=list, max_length=3)
+    recipe_types: list[str] = Field(default_factory=list, max_length=10)
     ingredients: list[RecipeIngredientInput] = Field(default_factory=list)
     instructions: list[RecipeInstructionInput] = Field(default_factory=list)
 
@@ -101,6 +102,7 @@ class RecipeResponse(BaseModel):
     nutrition: dict | None
     tags: list[str]
     meal_types: list[RecipeMealType]
+    recipe_types: list[str]
     ingredients: list[RecipeIngredientResponse]
     instructions: list[RecipeInstructionResponse]
     created_at: datetime
