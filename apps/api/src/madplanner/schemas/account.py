@@ -42,6 +42,11 @@ class ManagedInvitationResponse(BaseModel):
     id: int
     intended_email: str
     expires_at: str
+    role: FamilyRole
+
+
+class FamilyMemberRoleUpdate(BaseModel):
+    role: Literal["editor", "planner", "viewer"]
 
 
 class FamilySettingsResponse(BaseModel):
@@ -60,6 +65,7 @@ class FamilySettingsUpdate(BaseModel):
 
 class InvitationCreateRequest(BaseModel):
     email: str = Field(min_length=3, max_length=320, pattern=r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
+    role: Literal["editor", "planner", "viewer"] = "editor"
 
 
 class InvitationResponse(BaseModel):
@@ -67,12 +73,14 @@ class InvitationResponse(BaseModel):
     family_name: str
     intended_email: str
     expires_at: str
+    role: FamilyRole
 
 
 class InvitationPreviewResponse(BaseModel):
     family_name: str
     intended_email: str
     expires_at: str
+    role: FamilyRole
 
 
 class InvitationAcceptRequest(BaseModel):

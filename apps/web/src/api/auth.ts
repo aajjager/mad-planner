@@ -1,4 +1,4 @@
-export type FamilyRole = 'owner' | 'member'
+export type FamilyRole = 'owner' | 'editor' | 'planner' | 'viewer'
 
 export interface Account {
   id: number
@@ -17,7 +17,7 @@ export interface FamilyMember {
   active_sessions: number
 }
 
-export interface ManagedInvitation { id: number; intended_email: string; expires_at: string }
+export interface ManagedInvitation { id: number; intended_email: string; expires_at: string; role: FamilyRole }
 export interface FamilySettings {
   household_size: number
   leftovers_enabled: boolean
@@ -30,12 +30,14 @@ export interface Invitation {
   family_name: string
   intended_email: string
   expires_at: string
+  role: FamilyRole
 }
 
 export interface InvitationPreview {
   family_name: string
   intended_email: string
   expires_at: string
+  role: FamilyRole
 }
 
 export class ApiError extends Error {
@@ -64,7 +66,7 @@ export const setupOwner = (data: { email: string; display_name: string; password
 export const login = (data: { email: string; password: string }) => request<Account>('/api/v1/auth/login', jsonOptions('POST', data))
 export const logout = () => request<void>('/api/v1/auth/logout', { method: 'POST' })
 export const listFamilyMembers = () => request<FamilyMember[]>('/api/v1/auth/family/members')
-export const createFamilyInvitation = (email: string) => request<Invitation>('/api/v1/auth/family/invitations', jsonOptions('POST', { email }))
+export const createFamilyInvitation = (email: string, role: Exclude<FamilyRole, 'owner'>) => request<Invitation>('/api/v1/auth/family/invitations', jsonOptions('POST', { email, role }))
 export const getInvitation = (token: string) => request<InvitationPreview>(`/api/v1/auth/invitations/${encodeURIComponent(token)}`)
 export const acceptInvitation = (token: string, data: { display_name: string; password: string }) => request<Account>(`/api/v1/auth/invitations/${encodeURIComponent(token)}/accept`, jsonOptions('POST', data))
 export const listManagedInvitations = () => request<ManagedInvitation[]>('/api/v1/auth/admin/invitations')
@@ -73,3 +75,4 @@ export const revokeMemberSessions = (id: number) => request<void>(`/api/v1/auth/
 export const removeFamilyMember = (id: number) => request<void>(`/api/v1/auth/admin/members/${id}`, { method: 'DELETE' })
 export const getFamilySettings = () => request<FamilySettings>('/api/v1/auth/family/settings')
 export const updateFamilySettings = (settings: FamilySettings) => request<FamilySettings>('/api/v1/auth/family/settings', jsonOptions('PUT', settings))
+export const updateFamilyMemberRole = (id: number, role: Exclude<FamilyRole, 'owner'>) => request<FamilyMember>(`/api/v1/auth/admin/members/${id}/role`, jsonOptions('PATCH', { role }))

@@ -5,7 +5,7 @@ from fastapi import APIRouter, Depends, HTTPException, Response, status
 from sqlalchemy.orm import Session
 
 from madplanner.db.session import get_session
-from madplanner.api.routes.auth import require_auth
+from madplanner.api.routes.auth import require_auth, require_planner_editor
 from madplanner.models import MealType
 from madplanner.repositories.planner import MealPlanRepository
 from madplanner.repositories.recipes import RecipeRepository
@@ -31,7 +31,7 @@ def get_week(week_start: date, service: Annotated[MealPlanService, Depends(get_m
 
 
 @router.post("/week/suggestions", response_model=WeeklyMealSuggestionsResponse)
-def suggest_week(week_start: date, preferences: MealSuggestionPreferences, service: Annotated[MealSuggestionService, Depends(get_suggestion_service)], context: Annotated[AuthContext, Depends(require_auth)]):
+def suggest_week(week_start: date, preferences: MealSuggestionPreferences, service: Annotated[MealSuggestionService, Depends(get_suggestion_service)], context: Annotated[AuthContext, Depends(require_planner_editor)]):
     preferences.meal_types = [MealType(value) for value in context.family.enabled_meal_types]
     preferences.include_leftover_lunches = (
         preferences.include_leftover_lunches
@@ -43,7 +43,7 @@ def suggest_week(week_start: date, preferences: MealSuggestionPreferences, servi
 
 
 @router.put("/{meal_date}/{meal_type}", response_model=MealPlanEntryResponse)
-def assign_meal(meal_date: date, meal_type: MealType, data: MealPlanEntryWrite, service: Annotated[MealPlanService, Depends(get_meal_plan_service)], context: Annotated[AuthContext, Depends(require_auth)]):
+def assign_meal(meal_date: date, meal_type: MealType, data: MealPlanEntryWrite, service: Annotated[MealPlanService, Depends(get_meal_plan_service)], context: Annotated[AuthContext, Depends(require_planner_editor)]):
     if meal_type.value not in context.family.enabled_meal_types:
         raise HTTPException(status_code=422, detail="This meal type is disabled in family settings")
     entry = service.assign(meal_date, meal_type, data)
@@ -53,14 +53,14 @@ def assign_meal(meal_date: date, meal_type: MealType, data: MealPlanEntryWrite, 
 
 
 @router.delete("/{meal_date}/{meal_type}", status_code=status.HTTP_204_NO_CONTENT)
-def remove_meal(meal_date: date, meal_type: MealType, service: Annotated[MealPlanService, Depends(get_meal_plan_service)]) -> Response:
+def remove_meal(meal_date: date, meal_type: MealType, service: Annotated[MealPlanService, Depends(get_meal_plan_service)], _permission: Annotated[AuthContext, Depends(require_planner_editor)]) -> Response:
     if not service.remove(meal_date, meal_type):
         raise HTTPException(status_code=404, detail="Planned meal not found")
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
 @router.post("/{meal_date}/{meal_type}/leftovers", response_model=MealPlanEntryResponse)
-def plan_leftovers(meal_date: date, meal_type: MealType, service: Annotated[MealPlanService, Depends(get_meal_plan_service)], context: Annotated[AuthContext, Depends(require_auth)]):
+def plan_leftovers(meal_date: date, meal_type: MealType, service: Annotated[MealPlanService, Depends(get_meal_plan_service)], context: Annotated[AuthContext, Depends(require_planner_editor)]):
     if not context.family.leftovers_enabled or MealType.LUNCH.value not in context.family.enabled_meal_types:
         raise HTTPException(status_code=422, detail="Leftover lunches are disabled in family settings")
     entry = service.plan_leftovers(meal_date, meal_type)

@@ -61,7 +61,7 @@ describe('App', () => {
       const auth = authResponse(input)
       if (auth) return Promise.resolve(auth)
       if (url.includes('/family/members')) return Promise.resolve(jsonResponse([{ id: 1, email: 'owner@example.com', display_name: 'Owner', role: 'owner' }]))
-      if (url.includes('/family/invitations')) return Promise.resolve(jsonResponse({ token: 'private-token', family_name: 'Test family', intended_email: 'member@example.com', expires_at: '' }))
+      if (url.includes('/family/invitations')) return Promise.resolve(jsonResponse({ token: 'private-token', family_name: 'Test family', intended_email: 'member@example.com', expires_at: '', role: 'editor' }))
       return Promise.resolve(jsonResponse([]))
     })
     render(<App />)
@@ -81,8 +81,8 @@ describe('App', () => {
       const url = String(input)
       if (url.includes('/auth/status')) return Promise.resolve(jsonResponse({ setup_required: false }))
       if (url.includes('/auth/me')) return Promise.resolve(new Response(JSON.stringify({ detail: 'Authentication required' }), { status: 401, headers: { 'Content-Type': 'application/json' } }))
-      if (url.endsWith('/invitations/private-token')) return Promise.resolve(jsonResponse({ family_name: 'Test family', intended_email: 'member@example.com', expires_at: '' }))
-      if (url.includes('/accept')) return Promise.resolve(jsonResponse({ ...account, id: 2, email: 'member@example.com', display_name: 'Member', role: 'member' }))
+      if (url.endsWith('/invitations/private-token')) return Promise.resolve(jsonResponse({ family_name: 'Test family', intended_email: 'member@example.com', expires_at: '', role: 'editor' }))
+      if (url.includes('/accept')) return Promise.resolve(jsonResponse({ ...account, id: 2, email: 'member@example.com', display_name: 'Member', role: 'editor' }))
       return Promise.resolve(jsonResponse([]))
     })
     render(<App />)
@@ -103,9 +103,9 @@ describe('App', () => {
       if (auth) return Promise.resolve(auth)
       if (url.includes('/family/members')) return Promise.resolve(jsonResponse([
         { id: 1, email: 'owner@example.com', display_name: 'Owner', role: 'owner', active_sessions: 1 },
-        { id: 2, email: 'member@example.com', display_name: 'Member', role: 'member', active_sessions: 2 },
+        { id: 2, email: 'member@example.com', display_name: 'Member', role: 'editor', active_sessions: 2 },
       ]))
-      if (url.includes('/admin/invitations')) return Promise.resolve(jsonResponse([{ id: 4, intended_email: 'pending@example.com', expires_at: '2026-08-27T12:00:00Z' }]))
+      if (url.includes('/admin/invitations')) return Promise.resolve(jsonResponse([{ id: 4, intended_email: 'pending@example.com', expires_at: '2026-08-27T12:00:00Z', role: 'viewer' }]))
       return Promise.resolve(jsonResponse([]))
     })
     render(<App />)
@@ -114,6 +114,7 @@ describe('App', () => {
     expect(await screen.findByText('member@example.com · 2 active logins')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Sign out everywhere' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Remove access' })).toBeInTheDocument()
+    expect(screen.getByLabelText('Member permission')).toHaveValue('editor')
     expect(screen.getByText('pending@example.com')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Revoke invitation' })).toBeInTheDocument()
   })

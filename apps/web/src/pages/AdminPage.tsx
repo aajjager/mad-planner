@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
-import { listFamilyMembers, listManagedInvitations, removeFamilyMember, revokeInvitation, revokeMemberSessions, type FamilyMember, type ManagedInvitation } from '../api/auth'
+import { listFamilyMembers, listManagedInvitations, removeFamilyMember, revokeInvitation, revokeMemberSessions, updateFamilyMemberRole, type FamilyMember, type FamilyRole, type ManagedInvitation } from '../api/auth'
 import { useAuth } from '../auth/AuthContext'
 import { Navigate } from 'react-router-dom'
 import './AccountPages.css'
@@ -45,12 +45,19 @@ export function AdminPage() {
     finally { setBusy('') }
   }
 
+  async function changeRole(member: FamilyMember, role: Exclude<FamilyRole, 'owner'>) {
+    setBusy(`role-${member.id}`); setError('')
+    try { await updateFamilyMemberRole(member.id, role); await refresh() }
+    catch (reason) { setError(reason instanceof Error ? reason.message : 'The permission could not be updated.') }
+    finally { setBusy('') }
+  }
+
   return <section className="page admin-page">
     <div className="page-heading"><div><p className="eyebrow">Owner controls</p><h1>Manage access.</h1><p>Review who can sign in to {account.family_name}, close active sessions, and remove access when needed.</p></div></div>
     {error && <div className="notice notice--error" role="alert">{error}</div>}
     <div className="admin-stack">
-      <section className="family-panel"><h2>Family logins</h2><div className="admin-list">{members.map((member) => <article key={member.id}><span className="member-avatar">{member.display_name.charAt(0).toUpperCase()}</span><div><strong>{member.display_name}</strong><small>{member.email} · {member.active_sessions} active {member.active_sessions === 1 ? 'login' : 'logins'}</small></div><span className="tag">{member.role}</span>{member.role === 'member' && <div className="admin-actions"><button className="button" disabled={Boolean(busy)} onClick={() => void revokeSessions(member)}>Sign out everywhere</button><button className="button button--danger" disabled={Boolean(busy)} onClick={() => void removeMember(member)}>Remove access</button></div>}</article>)}</div></section>
-      <section className="family-panel"><h2>Pending invitations</h2>{invitations.length === 0 ? <p>No pending invitations.</p> : <div className="admin-list">{invitations.map((invitation) => <article key={invitation.id}><div><strong>{invitation.intended_email}</strong><small>Expires {new Date(invitation.expires_at).toLocaleDateString()}</small></div><div className="admin-actions"><button className="button button--danger" disabled={Boolean(busy)} onClick={() => void cancelInvitation(invitation)}>Revoke invitation</button></div></article>)}</div>}</section>
+      <section className="family-panel"><h2>Family logins</h2><div className="admin-list">{members.map((member) => <article key={member.id}><span className="member-avatar">{member.display_name.charAt(0).toUpperCase()}</span><div><strong>{member.display_name}</strong><small>{member.email} · {member.active_sessions} active {member.active_sessions === 1 ? 'login' : 'logins'}</small></div>{member.role === 'owner' ? <span className="tag">owner</span> : <select aria-label={`${member.display_name} permission`} value={member.role} disabled={Boolean(busy)} onChange={(event) => void changeRole(member, event.target.value as Exclude<FamilyRole, 'owner'>)}><option value="editor">Editor</option><option value="planner">Planner</option><option value="viewer">Viewer</option></select>}{member.role !== 'owner' && <div className="admin-actions"><button className="button" disabled={Boolean(busy)} onClick={() => void revokeSessions(member)}>Sign out everywhere</button><button className="button button--danger" disabled={Boolean(busy)} onClick={() => void removeMember(member)}>Remove access</button></div>}</article>)}</div></section>
+      <section className="family-panel"><h2>Pending invitations</h2>{invitations.length === 0 ? <p>No pending invitations.</p> : <div className="admin-list">{invitations.map((invitation) => <article key={invitation.id}><div><strong>{invitation.intended_email}</strong><small>{invitation.role} · Expires {new Date(invitation.expires_at).toLocaleDateString()}</small></div><div className="admin-actions"><button className="button button--danger" disabled={Boolean(busy)} onClick={() => void cancelInvitation(invitation)}>Revoke invitation</button></div></article>)}</div>}</section>
     </div>
   </section>
 }

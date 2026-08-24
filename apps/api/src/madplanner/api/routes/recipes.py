@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException, Response, status
 from sqlalchemy.orm import Session
 
 from madplanner.db.session import get_session
-from madplanner.api.routes.auth import require_auth
+from madplanner.api.routes.auth import require_auth, require_recipe_editor
 from madplanner.services.auth import AuthContext
 from madplanner.repositories.recipes import RecipeRepository
 from madplanner.schemas.recipe import RecipeMealTypesUpdate, RecipeResponse, RecipeWrite
@@ -23,7 +23,7 @@ def list_recipes(service: Annotated[RecipeService, Depends(get_recipe_service)])
 
 
 @router.post("", response_model=RecipeResponse, status_code=status.HTTP_201_CREATED)
-def create_recipe(data: RecipeWrite, service: Annotated[RecipeService, Depends(get_recipe_service)]):
+def create_recipe(data: RecipeWrite, service: Annotated[RecipeService, Depends(get_recipe_service)], _permission: Annotated[AuthContext, Depends(require_recipe_editor)]):
     return service.create_recipe(data)
 
 
@@ -36,7 +36,7 @@ def get_recipe(recipe_id: int, service: Annotated[RecipeService, Depends(get_rec
 
 
 @router.put("/{recipe_id}", response_model=RecipeResponse)
-def replace_recipe(recipe_id: int, data: RecipeWrite, service: Annotated[RecipeService, Depends(get_recipe_service)]):
+def replace_recipe(recipe_id: int, data: RecipeWrite, service: Annotated[RecipeService, Depends(get_recipe_service)], _permission: Annotated[AuthContext, Depends(require_recipe_editor)]):
     recipe = service.replace_recipe(recipe_id, data)
     if recipe is None:
         raise HTTPException(status_code=404, detail="Recipe not found")
@@ -44,7 +44,7 @@ def replace_recipe(recipe_id: int, data: RecipeWrite, service: Annotated[RecipeS
 
 
 @router.patch("/{recipe_id}/meal-types", response_model=RecipeResponse)
-def update_recipe_meal_types(recipe_id: int, data: RecipeMealTypesUpdate, service: Annotated[RecipeService, Depends(get_recipe_service)]):
+def update_recipe_meal_types(recipe_id: int, data: RecipeMealTypesUpdate, service: Annotated[RecipeService, Depends(get_recipe_service)], _permission: Annotated[AuthContext, Depends(require_recipe_editor)]):
     recipe = service.update_meal_types(recipe_id, data)
     if recipe is None:
         raise HTTPException(status_code=404, detail="Recipe not found")
@@ -52,7 +52,7 @@ def update_recipe_meal_types(recipe_id: int, data: RecipeMealTypesUpdate, servic
 
 
 @router.delete("/{recipe_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_recipe(recipe_id: int, service: Annotated[RecipeService, Depends(get_recipe_service)]) -> Response:
+def delete_recipe(recipe_id: int, service: Annotated[RecipeService, Depends(get_recipe_service)], _permission: Annotated[AuthContext, Depends(require_recipe_editor)]) -> Response:
     if not service.delete_recipe(recipe_id):
         raise HTTPException(status_code=404, detail="Recipe not found")
     return Response(status_code=status.HTTP_204_NO_CONTENT)

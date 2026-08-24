@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { assignMeal, getMealPlanWeek, planLeftovers, removeMeal, suggestMealPlanWeek, type MealPlanEntry, type MealSuggestion, type MealType } from '../api/planner'
 import { listRecipes, type Recipe } from '../api/recipes'
 import { getFamilySettings, type FamilySettings } from '../api/auth'
+import { useAuth } from '../auth/AuthContext'
 import './PlannerPage.css'
 
 const allMealTypes: MealType[] = ['breakfast', 'lunch', 'dinner']
@@ -14,6 +15,8 @@ const mondayOf = (value: Date) => addDays(value, -((value.getDay() + 6) % 7))
 const prettyDate = (value: Date) => value.toLocaleDateString(undefined, { day: 'numeric', month: 'short' })
 
 export function PlannerPage() {
+  const { account } = useAuth()
+  const canEditPlanner = account?.role === 'owner' || account?.role === 'editor' || account?.role === 'planner'
   const [weekStart, setWeekStart] = useState(() => mondayOf(new Date()))
   const [entries, setEntries] = useState<MealPlanEntry[]>([])
   const [recipes, setRecipes] = useState<Recipe[]>([])
@@ -38,6 +41,7 @@ export function PlannerPage() {
   function toggleTag(tag: string) { setPreferredTags((current) => current.includes(tag) ? current.filter((item) => item !== tag) : [...current, tag]) }
 
   async function changeMeal(mealDate: string, mealType: MealType, recipeId: string) {
+    if (!canEditPlanner) return
     const slot = `${mealDate}-${mealType}`; setSaving(slot)
     try {
       if (!recipeId) { await removeMeal(mealDate, mealType); setEntries((items) => items.filter((item) => item.meal_date !== mealDate || item.meal_type !== mealType)) }
@@ -46,18 +50,21 @@ export function PlannerPage() {
   }
 
   async function planNextLunch(mealDate: string, mealType: MealType) {
+    if (!canEditPlanner) return
     const slot = `${mealDate}-${mealType}`; setSaving(slot)
     try { const entry = await planLeftovers(mealDate, mealType); setEntries((items) => [...items.filter((item) => item.meal_date !== entry.meal_date || item.meal_type !== entry.meal_type), entry]) }
     catch { setState('error') } finally { setSaving('') }
   }
 
   async function generateSuggestions() {
+    if (!canEditPlanner) return
     setSaving('suggestions')
     try { const result = await suggestMealPlanWeek(dateKey(weekStart), { meal_types: selectedMealTypes, preferred_tags: preferredTags, max_cooking_time_minutes: maxTime ? Number(maxTime) : undefined, include_leftover_lunches: Boolean(familySettings?.leftovers_enabled) }); setSuggestions(result.suggestions) }
     catch { setState('error') } finally { setSaving('') }
   }
 
   async function applySuggestions() {
+    if (!canEditPlanner) return
     if (!suggestions) return; setSaving('suggestions')
     try {
       for (const item of suggestions.filter((suggestion) => !suggestion.is_leftover)) await assignMeal(item.meal_date, item.meal_type, item.recipe.id)
@@ -66,8 +73,9 @@ export function PlannerPage() {
     } catch { setState('error') } finally { setSaving('') }
   }
 
-  return <section className="page planner-page">
+  return <section className={`page planner-page${!canEditPlanner ? ' planner-page--readonly' : ''}`}>
     <div className="page-heading"><div><p className="eyebrow">Weekly meal planner</p><h1>Plan your week</h1><p>Choose recipes for every meal and adjust the week whenever plans change.</p></div></div>
+    {!canEditPlanner && <p className="notice">You have read-only access to this family planner.</p>}
     <div className="week-toolbar"><button className="button" onClick={() => changeWeek(addDays(weekStart, -7))}>← Previous</button><div><strong>{prettyDate(days[0])} – {prettyDate(days[6])}</strong><button className="text-button" onClick={() => changeWeek(mondayOf(new Date()))}>This week</button><Link className="text-button" to={`/grocery-list?week=${dateKey(weekStart)}`}>Grocery list</Link></div><button className="button" onClick={() => changeWeek(addDays(weekStart, 7))}>Next →</button></div>
     {state === 'ready' && recipes.length > 0 && <section className="smart-planner"><div className="smart-planner__heading"><div><p className="eyebrow">Smart planning</p><h2>Build a varied week</h2></div><button className="button button--primary" disabled={saving === 'suggestions'} onClick={generateSuggestions}>{saving === 'suggestions' ? 'Working…' : 'Suggest my week'}</button></div><div className="preference-group"><span>Family planner settings</span><div className="choice-chips">{selectedMealTypes.map((mealType) => <span className="choice-chip choice-chip--selected" key={mealType}>{mealType}</span>)}</div><small>{familySettings?.household_size} people · Leftovers {familySettings?.leftovers_enabled ? 'enabled' : 'disabled'} · Change these in Family.</small></div><div className="preference-group"><span>Preferred tags</span>{availableTags.length > 0 ? <div className="choice-chips">{availableTags.map((tag) => <button type="button" className={`choice-chip${preferredTags.includes(tag) ? ' choice-chip--selected' : ''}`} aria-pressed={preferredTags.includes(tag)} onClick={() => toggleTag(tag)} key={tag}>{tag}</button>)}</div> : <small>Add tags to recipes to use tag preferences.</small>}</div><div className="smart-preferences"><label className="field"><span>Maximum total time</span><select value={maxTime} onChange={(event) => setMaxTime(event.target.value)}><option value="30">30 minutes</option><option value="45">45 minutes</option><option value="60">60 minutes</option><option value="">No limit</option></select></label></div>{suggestions && <div className="suggestion-review"><div className="suggestion-review__heading"><div><strong>Review {suggestions.length} suggestions</strong><span>Existing meals will not be replaced.</span></div><div><button className="button" onClick={() => setSuggestions(null)}>Cancel</button><button className="button button--primary" onClick={applySuggestions}>Apply suggestions</button></div></div><div className="suggestion-list">{suggestions.map((item) => <div className={`suggestion-item${item.is_leftover ? ' suggestion-item--leftover' : ''}`} key={`${item.meal_date}-${item.meal_type}`}><span>{item.meal_date.slice(5)}</span><strong>{item.recipe.name}</strong><small>{item.is_leftover ? 'Leftover lunch' : item.reasons.join(' · ')}</small></div>)}</div></div>}</section>}
     {state === 'loading' && <p className="notice" role="status">Loading meal plan…</p>}

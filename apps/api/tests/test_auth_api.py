@@ -72,19 +72,27 @@ def test_owner_can_invite_a_family_member(client: TestClient) -> None:
         json={"display_name": "Member", "password": "member-password-123"},
     )
     assert accepted.status_code == 201
-    assert accepted.json()["role"] == "member"
+    assert accepted.json()["role"] == "editor"
     assert accepted.json()["family_name"] == "Example family"
     assert client.get(f"/api/v1/auth/invitations/{token}").status_code == 404
 
     members = client.get("/api/v1/auth/family/members")
     assert members.status_code == 200
     assert {member["email"] for member in members.json()} == {"owner@example.com", "member@example.com"}
-    member_id = next(member["id"] for member in members.json() if member["role"] == "member")
+    member_id = next(member["id"] for member in members.json() if member["role"] == "editor")
     assert client.get("/api/v1/auth/admin/invitations").status_code == 403
 
     assert client.post("/api/v1/auth/login", json={"email": "owner@example.com", "password": "correct-horse-battery-staple"}).status_code == 200
+    changed_role = client.patch(f"/api/v1/auth/admin/members/{member_id}/role", json={"role": "viewer"})
+    assert changed_role.status_code == 200
+    assert changed_role.json()["role"] == "viewer"
+    assert client.post("/api/v1/auth/login", json={"email": "member@example.com", "password": "member-password-123"}).status_code == 200
+    assert client.get("/api/v1/recipes").status_code == 200
+    assert client.post("/api/v1/recipes", json={"name": "Forbidden recipe"}).status_code == 403
+    assert client.put("/api/v1/meal-plans/2026-08-24/dinner", json={"recipe_id": 1}).status_code == 403
+    assert client.post("/api/v1/auth/login", json={"email": "owner@example.com", "password": "correct-horse-battery-staple"}).status_code == 200
     members = client.get("/api/v1/auth/family/members").json()
-    assert next(member for member in members if member["id"] == member_id)["active_sessions"] == 1
+    assert next(member for member in members if member["id"] == member_id)["active_sessions"] == 2
     assert client.post(f"/api/v1/auth/admin/members/{member_id}/revoke-sessions").status_code == 204
     members = client.get("/api/v1/auth/family/members").json()
     assert next(member for member in members if member["id"] == member_id)["active_sessions"] == 0

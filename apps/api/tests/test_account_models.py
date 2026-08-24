@@ -37,7 +37,7 @@ def test_family_membership_invitation_and_session_relationships() -> None:
                 created_by_user_id=user.id,
                 intended_email="member@example.com",
                 token_hash="b" * 64,
-                role=FamilyRole.MEMBER,
+                role=FamilyRole.EDITOR,
                 expires_at=now + timedelta(days=7),
             )
         )

@@ -201,7 +201,7 @@ class AuthService:
             select(FamilyMembership).where(
                 FamilyMembership.family_id == family_id,
                 FamilyMembership.user_id == user_id,
-                FamilyMembership.role == FamilyRole.MEMBER,
+                FamilyMembership.role != FamilyRole.OWNER,
             )
         )
         if membership is None:
@@ -220,7 +220,7 @@ class AuthService:
             select(FamilyMembership).where(
                 FamilyMembership.family_id == family_id,
                 FamilyMembership.user_id == user_id,
-                FamilyMembership.role == FamilyRole.MEMBER,
+                FamilyMembership.role != FamilyRole.OWNER,
             )
         )
         if membership is None:
@@ -236,7 +236,22 @@ class AuthService:
         self.session.commit()
         return True
 
-    def create_invitation(self, context: AuthContext, email: str) -> tuple[FamilyInvitation, str]:
+    def update_member_role(self, family_id: int, user_id: int, role: FamilyRole) -> FamilyMembership | None:
+        membership = self.session.scalar(
+            select(FamilyMembership).where(
+                FamilyMembership.family_id == family_id,
+                FamilyMembership.user_id == user_id,
+                FamilyMembership.role != FamilyRole.OWNER,
+            )
+        )
+        if membership is None:
+            return None
+        membership.role = role
+        self.session.add(membership)
+        self.session.commit()
+        return membership
+
+    def create_invitation(self, context: AuthContext, email: str, role: FamilyRole) -> tuple[FamilyInvitation, str]:
         normalized = normalize_email(email)
         existing = self.session.scalar(select(User.id).where(User.normalized_email == normalized))
         if existing is not None:
@@ -247,7 +262,7 @@ class AuthService:
             created_by_user_id=context.user.id,
             intended_email=normalized,
             token_hash=hash_token(token),
-            role=FamilyRole.MEMBER,
+            role=role,
             expires_at=utc_now() + timedelta(days=7),
         )
         self.session.add(invitation)

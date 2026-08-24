@@ -9,7 +9,9 @@ from madplanner.db.base import Base
 
 class FamilyRole(str, Enum):
     OWNER = "owner"
-    MEMBER = "member"
+    EDITOR = "editor"
+    PLANNER = "planner"
+    VIEWER = "viewer"
 
 
 class Family(Base):
@@ -102,7 +104,7 @@ class FamilyInvitation(Base):
             native_enum=False,
             values_callable=lambda roles: [role.value for role in roles],
         ),
-        default=FamilyRole.MEMBER,
+        default=FamilyRole.EDITOR,
     )
     expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
     accepted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))

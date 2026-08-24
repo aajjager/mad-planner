@@ -9,6 +9,7 @@ from madplanner.models import FamilyRole
 from madplanner.schemas.account import (
     AccountResponse,
     FamilyMemberResponse,
+    FamilyMemberRoleUpdate,
     FamilySettingsResponse,
     FamilySettingsUpdate,
     InvitationAcceptRequest,
@@ -118,6 +119,18 @@ def require_owner(context: Annotated[AuthContext, Depends(require_auth)]) -> Aut
     return context
 
 
+def require_recipe_editor(context: Annotated[AuthContext, Depends(require_auth)]) -> AuthContext:
+    if context.role not in {FamilyRole.OWNER, FamilyRole.EDITOR}:
+        raise HTTPException(status_code=403, detail="Recipe editing permission required")
+    return context
+
+
+def require_planner_editor(context: Annotated[AuthContext, Depends(require_auth)]) -> AuthContext:
+    if context.role not in {FamilyRole.OWNER, FamilyRole.EDITOR, FamilyRole.PLANNER}:
+        raise HTTPException(status_code=403, detail="Planner editing permission required")
+    return context
+
+
 def family_settings_response(context: AuthContext) -> FamilySettingsResponse:
     return FamilySettingsResponse(
         household_size=context.family.household_size,
@@ -141,7 +154,7 @@ def update_family_settings(data: FamilySettingsUpdate, context: Annotated[AuthCo
 @router.get("/admin/invitations", response_model=list[ManagedInvitationResponse])
 def managed_invitations(context: Annotated[AuthContext, Depends(require_owner)], service: Annotated[AuthService, Depends(get_auth_service)]):
     return [
-        ManagedInvitationResponse(id=item.id, intended_email=item.intended_email or "", expires_at=item.expires_at.isoformat())
+        ManagedInvitationResponse(id=item.id, intended_email=item.intended_email or "", expires_at=item.expires_at.isoformat(), role=item.role)
         for item in service.list_pending_invitations(context.family.id)
     ]
 
@@ -167,12 +180,26 @@ def remove_member(user_id: int, context: Annotated[AuthContext, Depends(require_
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
+@router.patch("/admin/members/{user_id}/role", response_model=FamilyMemberResponse)
+def update_member_role(user_id: int, data: FamilyMemberRoleUpdate, context: Annotated[AuthContext, Depends(require_owner)], service: Annotated[AuthService, Depends(get_auth_service)]):
+    membership = service.update_member_role(context.family.id, user_id, FamilyRole(data.role))
+    if membership is None:
+        raise HTTPException(status_code=404, detail="Family member not found")
+    return FamilyMemberResponse(
+        id=membership.user.id,
+        email=membership.user.email,
+        display_name=membership.user.display_name,
+        role=membership.role,
+        active_sessions=service.count_sessions(membership.user.id, context.family.id),
+    )
+
+
 @router.post("/family/invitations", response_model=InvitationResponse, status_code=status.HTTP_201_CREATED)
 def create_invitation(data: InvitationCreateRequest, context: Annotated[AuthContext, Depends(require_auth)], service: Annotated[AuthService, Depends(get_auth_service)]):
     if context.role is not FamilyRole.OWNER:
         raise HTTPException(status_code=403, detail="Only a family owner can invite members")
     try:
-        invitation, token = service.create_invitation(context, data.email)
+        invitation, token = service.create_invitation(context, data.email, FamilyRole(data.role))
     except ValueError:
         raise HTTPException(status_code=409, detail="An account already exists for this email") from None
     return InvitationResponse(
@@ -180,6 +207,7 @@ def create_invitation(data: InvitationCreateRequest, context: Annotated[AuthCont
         family_name=context.family.name,
         intended_email=invitation.intended_email or "",
         expires_at=invitation.expires_at.isoformat(),
+        role=invitation.role,
     )
 
 
@@ -192,6 +220,7 @@ def invitation_preview(token: str, service: Annotated[AuthService, Depends(get_a
         family_name=invitation.family.name,
         intended_email=invitation.intended_email or "",
         expires_at=invitation.expires_at.isoformat(),
+        role=invitation.role,
     )
 
 

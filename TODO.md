@@ -68,7 +68,7 @@
   - [x] Add household size and leftovers preferences
   - [x] Move enabled meal types into family settings
   - [x] Add cooking-mode preference
-  - [ ] Add configurable member permissions
+  - [x] Add configurable member permissions
   - [x] Make leftovers quantity-aware
 
 - [ ] Phase 11 — Recipe types and guided entry
