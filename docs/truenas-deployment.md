@@ -52,6 +52,16 @@ Take a snapshot or portable backup before every update.
 
 After GitHub publishes new `latest` images, open the installed app in TrueNAS and use its update or redeploy action. Take a dataset snapshot first. The API applies pending database migrations automatically during startup.
 
+Redeploying replaces the disposable application containers, not the PostgreSQL dataset. The database remains at the configured `/mnt/.../postgres` path. Do not select storage-removal options or delete that dataset during an update.
+
+For every update:
+
+1. Take a TrueNAS snapshot of the Mad Planner PostgreSQL dataset.
+2. Create a portable PostgreSQL dump when the data is important.
+3. Deploy the new images and wait for all health checks.
+4. Confirm login, recipes, planner entries, and grocery generation.
+5. Keep the previous image version available until verification is complete.
+
 ## Home-network security
 
-Mad Planner does not yet have user authentication. Keep it on a trusted home network and do not expose its port directly to the internet. Authentication and HTTPS through a reverse proxy can be added later.
+Mad Planner has family accounts and access controls, but its current TrueNAS example uses plain HTTP. Keep it on a trusted home network and do not expose its port directly to the internet. HTTPS with a stable hostname is required before passkeys are enabled for production use.

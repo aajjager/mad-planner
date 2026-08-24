@@ -116,4 +116,4 @@ Vite opens the frontend at <http://127.0.0.1:5173> and proxies `/api` requests t
 
 ## Roadmap
 
-See [TODO.md](TODO.md) for phase boundaries and progress.
+See [TODO.md](TODO.md) for phase boundaries and progress. The [expanded product roadmap](docs/product-roadmap.md) covers family settings, recipe classification, persistent groceries, media/OCR, languages, strong authentication, and deployment resilience.

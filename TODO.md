@@ -52,7 +52,7 @@
 - [x] Classify recipes for breakfast, lunch, and/or dinner
 
 ## Later phases
-- [ ] Phase 8 — Accounts and shared families
+- [x] Phase 8 — Accounts and shared families
   - [x] Add family, user, membership, invitation, and session models
   - [x] Add owner setup, login, logout, and invitation APIs
   - [x] Scope recipes, plans, and grocery lists to a family
@@ -63,3 +63,45 @@
   - [x] Add published container images and a TrueNAS Apps YAML configuration
   - [x] Document installation, backup, restore, and update procedures
   - [ ] Deploy and verify the stack on the user's TrueNAS SCALE system
+
+- [ ] Phase 10 — Family preferences and permissions
+  - [ ] Add household size and leftovers preferences
+  - [ ] Move enabled meal types into family settings
+  - [ ] Add cooking-mode preference
+  - [ ] Add configurable member permissions
+  - [ ] Make leftovers quantity-aware
+
+- [ ] Phase 11 — Recipe types and guided entry
+  - [ ] Add family-managed recipe types
+  - [ ] Suggest and confirm types during recipe import
+  - [ ] Add a guided manual recipe workflow
+  - [ ] Require type selection when classification is uncertain
+
+- [ ] Phase 12 — Persistent grocery lists
+  - [ ] Add manual grocery items and quantity parsing
+  - [ ] Persist purchased state and history
+  - [ ] Add undo and restore actions
+  - [ ] Add category-based grocery icons
+
+- [ ] Phase 13 — Recipe media and cooking mode
+  - [ ] Add persistent recipe photo storage and camera upload
+  - [ ] Add white-paper recipe reading view
+  - [ ] Add reversible cooking-step completion
+  - [ ] Add book-recipe OCR with review before saving
+
+- [ ] Phase 14 — Personal languages
+  - [ ] Add per-user locale settings
+  - [ ] Translate the interface into English, Danish, and Dutch
+  - [ ] Localize dates, quantities, and units
+
+- [ ] Phase 15 — MFA and passkeys
+  - [ ] Add account recovery and security-event logging
+  - [ ] Add TOTP MFA and recovery codes
+  - [ ] Add WebAuthn/passkeys after HTTPS and hostname setup
+
+- [ ] Phase 16 — Deployment resilience
+  - [ ] Add persistent media storage
+  - [ ] Add and test PostgreSQL backup/restore tooling
+  - [ ] Pin production versions and document rollback
+
+See [docs/product-roadmap.md](docs/product-roadmap.md) for design notes and dependency ordering.
