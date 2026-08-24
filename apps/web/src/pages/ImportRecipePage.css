@@ -8,3 +8,4 @@
 .preview-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; }
 .type-confirmation { display:grid; gap:14px; padding:18px; border:1px solid var(--border); border-radius:14px; background:#faf8f1; }.type-confirmation p { margin:5px 0 0; color:var(--muted); }.type-required { color:#a44531; font-weight:700; }
 @media(max-width:800px){.heading-actions{flex-wrap:wrap}.import-bar,.preview-grid{grid-template-columns:1fr}.import-preview{padding:20px}}
+.scan-raw-text { max-height:280px; overflow:auto; padding:16px; border-radius:10px; white-space:pre-wrap; background:#f5f1e8; font:0.85rem/1.5 monospace; }

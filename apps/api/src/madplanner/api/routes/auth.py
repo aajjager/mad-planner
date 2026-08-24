@@ -19,6 +19,7 @@ from madplanner.schemas.account import (
     LoginRequest,
     ManagedInvitationResponse,
     OwnerSetupRequest,
+    PersonalPreferencesUpdate,
     RecipeTypeCreate,
     RecipeTypeResponse,
     SetupStatusResponse,
@@ -54,6 +55,7 @@ def account_response(context: AuthContext) -> AccountResponse:
         family_id=context.family.id,
         family_name=context.family.name,
         role=context.role,
+        locale=context.user.locale,
     )
 
 
@@ -104,6 +106,12 @@ def logout(response: Response, token: Annotated[str | None, Depends(session_toke
 
 @router.get("/me", response_model=AccountResponse)
 def current_account(context: Annotated[AuthContext, Depends(require_auth)]):
+    return account_response(context)
+
+
+@router.patch("/me/preferences", response_model=AccountResponse)
+def update_personal_preferences(data: PersonalPreferencesUpdate, context: Annotated[AuthContext, Depends(require_auth)], service: Annotated[AuthService, Depends(get_auth_service)]):
+    service.update_personal_locale(context.user, data.locale)
     return account_response(context)
 
 

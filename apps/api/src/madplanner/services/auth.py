@@ -152,6 +152,12 @@ class AuthService:
             )
         )
 
+    def update_personal_locale(self, user: User, locale: str) -> User:
+        user.locale = locale
+        self.session.add(user)
+        self.session.commit()
+        return user
+
     def count_sessions(self, user_id: int, family_id: int) -> int:
         return self.session.scalar(
             select(func.count(UserSession.id)).where(

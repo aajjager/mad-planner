@@ -83,14 +83,15 @@
   - [x] Add undo and restore actions
   - [x] Add category-based grocery icons
 
-- [ ] Phase 13 — Recipe media and cooking mode
+- [x] Phase 13 — Recipe media and cooking mode
   - [x] Add persistent recipe photo storage and camera upload
-  - [ ] Add white-paper recipe reading view
-  - [ ] Add reversible cooking-step completion
-  - [ ] Add book-recipe OCR with review before saving
+  - [x] Add white-paper recipe reading view
+  - [x] Add reversible cooking-step completion
+  - [x] Add book-recipe OCR with review before saving
+  - [ ] Improve OCR accuracy, multi-column page detection, and automatic section layout (lower priority)
 
 - [ ] Phase 14 — Personal languages
-  - [ ] Add per-user locale settings
+  - [x] Add per-user locale settings
   - [ ] Translate the interface into English, Danish, and Dutch
   - [ ] Localize dates, quantities, and units
 

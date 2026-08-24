@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react'
-import { ApiError, getCurrentAccount, getSetupStatus, login as loginRequest, logout as logoutRequest, setupOwner as setupRequest, type Account } from '../api/auth'
+import { ApiError, getCurrentAccount, getSetupStatus, login as loginRequest, logout as logoutRequest, setupOwner as setupRequest, updatePersonalLocale, type Account } from '../api/auth'
 
 interface AuthValue {
   account: Account | null
@@ -9,6 +9,7 @@ interface AuthValue {
   setupOwner: (data: { email: string; display_name: string; password: string; family_name: string }) => Promise<void>
   acceptAccount: (account: Account) => void
   logout: () => Promise<void>
+  setLocale: (locale: Account['locale']) => Promise<void>
 }
 
 const AuthContext = createContext<AuthValue | null>(null)
@@ -29,6 +30,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       })
       .finally(() => setLoading(false))
   }, [])
+  useEffect(() => { document.documentElement.lang = account?.locale || 'en' }, [account?.locale])
 
   const value: AuthValue = {
     account,
@@ -38,6 +40,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setupOwner: async (data) => { setAccount(await setupRequest(data)); setSetupRequired(false) },
     acceptAccount: (nextAccount) => { setAccount(nextAccount); setSetupRequired(false) },
     logout: async () => { await logoutRequest(); setAccount(null) },
+    setLocale: async (locale) => { setAccount(await updatePersonalLocale(locale)) },
   }
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

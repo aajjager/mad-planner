@@ -7,6 +7,7 @@ export interface Account {
   family_id: number
   family_name: string
   role: FamilyRole
+  locale: 'en' | 'da' | 'nl'
 }
 
 export interface FamilyMember {
@@ -80,3 +81,4 @@ export const updateFamilyMemberRole = (id: number, role: Exclude<FamilyRole, 'ow
 export const listRecipeTypes = () => request<RecipeType[]>('/api/v1/auth/family/recipe-types')
 export const createRecipeType = (name: string, meal_type: RecipeType['meal_type']) => request<RecipeType>('/api/v1/auth/family/recipe-types', jsonOptions('POST', { name, meal_type }))
 export const deleteRecipeType = (id: number) => request<void>(`/api/v1/auth/family/recipe-types/${id}`, { method: 'DELETE' })
+export const updatePersonalLocale = (locale: Account['locale']) => request<Account>('/api/v1/auth/me/preferences', jsonOptions('PATCH', { locale }))

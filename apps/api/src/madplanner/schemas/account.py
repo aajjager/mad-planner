@@ -28,6 +28,11 @@ class AccountResponse(BaseModel):
     family_id: int
     family_name: str
     role: FamilyRole
+    locale: Literal["en", "da", "nl"]
+
+
+class PersonalPreferencesUpdate(BaseModel):
+    locale: Literal["en", "da", "nl"]
 
 
 class FamilyMemberResponse(BaseModel):
