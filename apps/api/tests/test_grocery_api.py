@@ -51,3 +51,29 @@ def test_weekly_grocery_list_combines_and_scales_ingredients() -> None:
     assert pasta["recipe_names"] == ["Simple pasta"]
     salt = next(item for item in payload["items"] if item["name"] == "salt")
     assert salt["quantity"] is None
+
+
+def test_manual_grocery_item_can_be_purchased_and_restored() -> None:
+    engine = create_engine("sqlite+pysqlite:///:memory:", connect_args={"check_same_thread": False}, poolclass=StaticPool)
+    Base.metadata.create_all(engine)
+    def override_session():
+        with Session(engine, expire_on_commit=False) as session: yield session
+    app.dependency_overrides[get_session] = override_session
+    try:
+        client = TestClient(app)
+        client.post("/api/v1/auth/setup", json={"email": "owner@example.com", "display_name": "Owner", "password": "test-password-123", "family_name": "Test family"})
+        created = client.post("/api/v1/grocery-lists/week/items", params={"week_start": "2026-08-19"}, json={"raw_text": "2 ds tomater"})
+        assert created.status_code == 201
+        item = created.json()
+        assert item["name"] == "tomater"
+        assert item["quantity"] == "2"
+        assert item["unit"]["symbol"] == "ds"
+        assert item["category"] == "Produce"
+        assert client.patch(f"/api/v1/grocery-lists/items/{item['id']}/purchased", json={"purchased": True}).status_code == 200
+        weekly = client.get("/api/v1/grocery-lists/week", params={"week_start": "2026-08-19"}).json()
+        assert weekly["items"] == []
+        assert weekly["history"][0]["name"] == "tomater"
+        assert client.patch(f"/api/v1/grocery-lists/items/{item['id']}/purchased", json={"purchased": False}).status_code == 200
+        assert client.get("/api/v1/grocery-lists/week", params={"week_start": "2026-08-19"}).json()["items"][0]["name"] == "tomater"
+    finally:
+        app.dependency_overrides.clear()

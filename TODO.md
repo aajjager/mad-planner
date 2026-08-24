@@ -77,11 +77,11 @@
   - [x] Add a guided manual recipe workflow
   - [x] Require type selection when classification is uncertain
 
-- [ ] Phase 12 — Persistent grocery lists
-  - [ ] Add manual grocery items and quantity parsing
-  - [ ] Persist purchased state and history
-  - [ ] Add undo and restore actions
-  - [ ] Add category-based grocery icons
+- [x] Phase 12 — Persistent grocery lists
+  - [x] Add manual grocery items and quantity parsing
+  - [x] Persist purchased state and history
+  - [x] Add undo and restore actions
+  - [x] Add category-based grocery icons
 
 - [ ] Phase 13 — Recipe media and cooking mode
   - [ ] Add persistent recipe photo storage and camera upload

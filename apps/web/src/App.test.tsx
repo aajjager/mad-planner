@@ -190,7 +190,7 @@ describe('App', () => {
 
   it('shows a generated weekly grocery checklist', async () => {
     window.history.pushState({}, '', '/grocery-list?week=2026-08-17')
-    vi.spyOn(globalThis, 'fetch').mockImplementation((input) => Promise.resolve(authResponse(input) ?? jsonResponse({ week_start: '2026-08-17', week_end: '2026-08-23', planned_meals: 2, items: [{ key: '1:1', name: 'pasta', category: 'Other', quantity: '600', quantity_max: null, unit: { name: 'gram', symbol: 'g', dimension: 'mass' }, recipe_names: ['Simple pasta'], raw_texts: ['200 g pasta'] }] })))
+    vi.spyOn(globalThis, 'fetch').mockImplementation((input) => Promise.resolve(authResponse(input) ?? jsonResponse({ week_start: '2026-08-17', week_end: '2026-08-23', planned_meals: 2, items: [{ id: 1, key: 'entry:1', name: 'pasta', category: 'Other', quantity: '600', quantity_max: null, unit: { name: 'gram', symbol: 'g', dimension: 'mass' }, recipe_names: ['Simple pasta'], raw_texts: ['200 g pasta'], origin: 'generated', purchased_at: null }], history: [] })))
     render(<App />)
 
     expect(await screen.findByRole('heading', { name: /Shop once/ })).toBeInTheDocument()

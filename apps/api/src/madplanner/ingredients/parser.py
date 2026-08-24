@@ -40,6 +40,7 @@ _add_unit("tablespoon", "spsk", UnitDimension.VOLUME, "spsk", "spiseske", "spise
 _add_unit("piece", "stk", UnitDimension.COUNT, "stk", "styk", "stykker")
 _add_unit("clove", "fed", UnitDimension.COUNT, "fed")
 _add_unit("bunch", "bundt", UnitDimension.COUNT, "bundt")
+_add_unit("can", "ds", UnitDimension.COUNT, "ds", "dåse", "dåser", "can", "cans")
 
 _FRACTIONS = {
     "¼": Decimal("0.25"), "½": Decimal("0.5"), "¾": Decimal("0.75"),
