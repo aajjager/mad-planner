@@ -6,8 +6,9 @@ from madplanner.schemas.planner import MealPlanEntryResponse, MealPlanEntryWrite
 
 
 class MealPlanService:
-    def __init__(self, repository: MealPlanRepository) -> None:
+    def __init__(self, repository: MealPlanRepository, household_size: int) -> None:
         self.repository = repository
+        self.household_size = household_size
 
     def get_week(self, requested_date: date) -> WeeklyMealPlanResponse:
         week_start = requested_date - timedelta(days=requested_date.weekday())
@@ -24,7 +25,8 @@ class MealPlanService:
             return None
         entry = self.repository.get(meal_date, meal_type) or MealPlanEntry(meal_date=meal_date, meal_type=meal_type)
         entry.recipe = recipe
-        entry.servings = data.servings
+        recipe_yield = recipe.servings or self.household_size
+        entry.servings = data.servings or max(recipe_yield, self.household_size)
         entry.notes = data.notes
         entry.is_leftover = False
         entry.source_entry = None
@@ -34,10 +36,14 @@ class MealPlanService:
         source = self.repository.get(source_date, source_type)
         if source is None:
             return None
+        prepared_servings = source.servings or source.recipe.servings or self.household_size
+        leftover_servings = prepared_servings - self.household_size
+        if leftover_servings <= 0:
+            return None
         target_date = source_date + timedelta(days=1)
         target = self.repository.get(target_date, MealType.LUNCH) or MealPlanEntry(meal_date=target_date, meal_type=MealType.LUNCH)
         target.recipe = source.recipe
-        target.servings = None
+        target.servings = leftover_servings
         target.notes = f"Leftovers from {source_date.isoformat()} {source_type.value}"
         target.is_leftover = True
         target.source_entry = source

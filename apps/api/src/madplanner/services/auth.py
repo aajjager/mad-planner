@@ -152,6 +152,23 @@ class AuthService:
             )
         ) or 0
 
+    def update_family_settings(
+        self,
+        family: Family,
+        *,
+        household_size: int,
+        leftovers_enabled: bool,
+        cooking_mode_enabled: bool,
+        enabled_meal_types: list[str],
+    ) -> Family:
+        family.household_size = household_size
+        family.leftovers_enabled = leftovers_enabled
+        family.cooking_mode_enabled = cooking_mode_enabled
+        family.enabled_meal_types = list(dict.fromkeys(enabled_meal_types))
+        self.session.add(family)
+        self.session.commit()
+        return family
+
     def list_pending_invitations(self, family_id: int) -> list[FamilyInvitation]:
         return list(
             self.session.scalars(

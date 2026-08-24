@@ -17,7 +17,7 @@ def client() -> TestClient:
     engine = create_engine("sqlite+pysqlite:///:memory:", connect_args={"check_same_thread": False}, poolclass=StaticPool)
     Base.metadata.create_all(engine)
     with Session(engine) as session:
-        session.add(Recipe(name="Monday pasta"))
+        session.add(Recipe(name="Monday pasta", servings=4))
         session.commit()
 
     def override_session():
@@ -90,7 +90,7 @@ def test_plan_next_day_lunch_as_leftovers(client: TestClient) -> None:
 
 
 def test_suggest_week_returns_reviewable_varied_dinners_and_leftovers(client: TestClient) -> None:
-    client.post("/api/v1/recipes", json={"name": "Quick curry", "category": "Aftensmad", "tags": ["Quick"], "meal_types": ["dinner"], "total_time_minutes": 25, "ingredients": [{"raw_text": "1 stk. løg"}]})
+    client.post("/api/v1/recipes", json={"name": "Quick curry", "category": "Aftensmad", "tags": ["Quick"], "meal_types": ["dinner"], "servings": "4", "total_time_minutes": 25, "ingredients": [{"raw_text": "1 stk. løg"}]})
     client.post("/api/v1/recipes", json={"name": "Slow stew", "category": "Aftensmad", "total_time_minutes": 120, "ingredients": [{"raw_text": "1 stk. løg"}]})
     client.post("/api/v1/recipes", json={"name": "Quick porridge", "tags": ["Quick"], "meal_types": ["breakfast"], "total_time_minutes": 10})
 

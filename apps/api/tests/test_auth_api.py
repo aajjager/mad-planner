@@ -45,6 +45,12 @@ def test_owner_setup_login_and_logout(client: TestClient) -> None:
     assert owner["role"] == "owner"
     assert client.get("/api/v1/auth/status").json() == {"setup_required": False}
     assert client.get("/api/v1/auth/me").json()["family_name"] == "Example family"
+    settings = client.get("/api/v1/auth/family/settings")
+    assert settings.json() == {"household_size": 2, "leftovers_enabled": True, "cooking_mode_enabled": True, "enabled_meal_types": ["breakfast", "lunch", "dinner"]}
+    updated = client.put("/api/v1/auth/family/settings", json={"household_size": 3, "leftovers_enabled": False, "cooking_mode_enabled": False, "enabled_meal_types": ["dinner"]})
+    assert updated.status_code == 200
+    assert updated.json()["household_size"] == 3
+    assert updated.json()["enabled_meal_types"] == ["dinner"]
     assert client.post("/api/v1/auth/setup", json={"email": "second@example.com", "display_name": "Second", "password": "another-long-password", "family_name": "Other"}).status_code == 409
 
     assert client.post("/api/v1/auth/logout").status_code == 204

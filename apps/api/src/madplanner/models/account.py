@@ -1,7 +1,7 @@
 from datetime import datetime
 from enum import Enum
 
-from sqlalchemy import DateTime, Enum as SqlEnum, ForeignKey, Integer, String, UniqueConstraint, func
+from sqlalchemy import Boolean, DateTime, Enum as SqlEnum, ForeignKey, Integer, JSON, String, UniqueConstraint, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from madplanner.db.base import Base
@@ -17,6 +17,14 @@ class Family(Base):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     name: Mapped[str] = mapped_column(String(120))
+    household_size: Mapped[int] = mapped_column(Integer, default=2, server_default="2")
+    leftovers_enabled: Mapped[bool] = mapped_column(Boolean, default=True, server_default="true")
+    cooking_mode_enabled: Mapped[bool] = mapped_column(Boolean, default=True, server_default="true")
+    enabled_meal_types: Mapped[list[str]] = mapped_column(
+        JSON,
+        default=lambda: ["breakfast", "lunch", "dinner"],
+        server_default='["breakfast", "lunch", "dinner"]',
+    )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now()
     )

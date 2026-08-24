@@ -14,9 +14,10 @@ _MEAL_WORDS = {
 
 
 class MealSuggestionService:
-    def __init__(self, planner: MealPlanRepository, recipes: RecipeRepository) -> None:
+    def __init__(self, planner: MealPlanRepository, recipes: RecipeRepository, household_size: int) -> None:
         self.planner = planner
         self.recipes = recipes
+        self.household_size = household_size
 
     def suggest_week(self, requested_date: date, preferences: MealSuggestionPreferences) -> WeeklyMealSuggestionsResponse:
         week_start = requested_date - timedelta(days=requested_date.weekday())
@@ -54,6 +55,9 @@ class MealSuggestionService:
             for source_date, dinner in dinner_by_date.items():
                 target_date = source_date + timedelta(days=1)
                 if target_date > week_end or (target_date, MealType.LUNCH) in existing:
+                    continue
+                dinner_recipe = next((recipe for recipe in recipes if recipe.id == dinner.recipe.id), None)
+                if dinner_recipe is None or not dinner_recipe.servings or dinner_recipe.servings <= self.household_size:
                     continue
                 suggestions.append(MealSuggestion(meal_date=target_date, meal_type=MealType.LUNCH, recipe=dinner.recipe, score=dinner.score, reasons=["Uses the previous dinner and avoids food waste"], is_leftover=True, source_date=source_date))
 

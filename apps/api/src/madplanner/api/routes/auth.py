@@ -9,6 +9,8 @@ from madplanner.models import FamilyRole
 from madplanner.schemas.account import (
     AccountResponse,
     FamilyMemberResponse,
+    FamilySettingsResponse,
+    FamilySettingsUpdate,
     InvitationAcceptRequest,
     InvitationCreateRequest,
     InvitationPreviewResponse,
@@ -114,6 +116,26 @@ def require_owner(context: Annotated[AuthContext, Depends(require_auth)]) -> Aut
     if context.role is not FamilyRole.OWNER:
         raise HTTPException(status_code=403, detail="Only a family owner can manage logins")
     return context
+
+
+def family_settings_response(context: AuthContext) -> FamilySettingsResponse:
+    return FamilySettingsResponse(
+        household_size=context.family.household_size,
+        leftovers_enabled=context.family.leftovers_enabled,
+        cooking_mode_enabled=context.family.cooking_mode_enabled,
+        enabled_meal_types=context.family.enabled_meal_types,
+    )
+
+
+@router.get("/family/settings", response_model=FamilySettingsResponse)
+def family_settings(context: Annotated[AuthContext, Depends(require_auth)]):
+    return family_settings_response(context)
+
+
+@router.put("/family/settings", response_model=FamilySettingsResponse)
+def update_family_settings(data: FamilySettingsUpdate, context: Annotated[AuthContext, Depends(require_owner)], service: Annotated[AuthService, Depends(get_auth_service)]):
+    service.update_family_settings(context.family, **data.model_dump())
+    return family_settings_response(context)
 
 
 @router.get("/admin/invitations", response_model=list[ManagedInvitationResponse])

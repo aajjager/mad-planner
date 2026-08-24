@@ -65,11 +65,11 @@
   - [ ] Deploy and verify the stack on the user's TrueNAS SCALE system
 
 - [ ] Phase 10 — Family preferences and permissions
-  - [ ] Add household size and leftovers preferences
-  - [ ] Move enabled meal types into family settings
-  - [ ] Add cooking-mode preference
+  - [x] Add household size and leftovers preferences
+  - [x] Move enabled meal types into family settings
+  - [x] Add cooking-mode preference
   - [ ] Add configurable member permissions
-  - [ ] Make leftovers quantity-aware
+  - [x] Make leftovers quantity-aware
 
 - [ ] Phase 11 — Recipe types and guided entry
   - [ ] Add family-managed recipe types

@@ -5,10 +5,12 @@ import { inferMealTypes, parseServingCount } from './api/recipes'
 
 const jsonResponse = (value: unknown) => new Response(JSON.stringify(value), { status: 200, headers: { 'Content-Type': 'application/json' } })
 const account = { id: 1, email: 'owner@example.com', display_name: 'Owner', family_id: 1, family_name: 'Test family', role: 'owner' }
+const familySettings = { household_size: 2, leftovers_enabled: true, cooking_mode_enabled: true, enabled_meal_types: ['breakfast', 'lunch', 'dinner'] }
 const authResponse = (input: RequestInfo | URL) => {
   const url = String(input)
   if (url.includes('/auth/status')) return jsonResponse({ setup_required: false })
   if (url.includes('/auth/me')) return jsonResponse(account)
+  if (url.includes('/family/settings')) return jsonResponse(familySettings)
   return null
 }
 
@@ -65,6 +67,8 @@ describe('App', () => {
     render(<App />)
 
     expect(await screen.findByRole('heading', { name: 'Test family' })).toBeInTheDocument()
+    expect(await screen.findByLabelText('People in the household')).toHaveValue(2)
+    expect(screen.getByRole('button', { name: 'Save family options' })).toBeInTheDocument()
     fireEvent.change(screen.getByLabelText('Email address'), { target: { value: 'member@example.com' } })
     fireEvent.click(screen.getByRole('button', { name: 'Create invitation' }))
 
@@ -172,11 +176,7 @@ describe('App', () => {
     expect(screen.getByLabelText('Sunday breakfast')).toBeInTheDocument()
     expect(screen.getAllByRole('combobox')).toHaveLength(22)
     expect(screen.getByRole('button', { name: 'Suggest my week' })).toBeInTheDocument()
-    fireEvent.click(screen.getByRole('button', { name: 'breakfast' }))
-    fireEvent.click(screen.getByRole('button', { name: 'lunch' }))
-    expect(screen.queryByLabelText('Monday breakfast')).not.toBeInTheDocument()
-    expect(screen.getByLabelText('Monday dinner')).toBeInTheDocument()
-    expect(screen.getAllByRole('combobox')).toHaveLength(8)
+    expect(screen.getByText('2 people · Leftovers enabled · Change these in Family.')).toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: 'Quick' }))
     fireEvent.click(screen.getByRole('button', { name: 'Vegetarian' }))
     expect(screen.getByRole('button', { name: 'Quick' })).toHaveAttribute('aria-pressed', 'true')

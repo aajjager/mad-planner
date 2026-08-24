@@ -18,11 +18,11 @@ router = APIRouter(prefix="/meal-plans", tags=["meal plans"])
 
 
 def get_meal_plan_service(session: Annotated[Session, Depends(get_session)], context: Annotated[AuthContext, Depends(require_auth)]) -> MealPlanService:
-    return MealPlanService(MealPlanRepository(session, context.family.id))
+    return MealPlanService(MealPlanRepository(session, context.family.id), context.family.household_size)
 
 
 def get_suggestion_service(session: Annotated[Session, Depends(get_session)], context: Annotated[AuthContext, Depends(require_auth)]) -> MealSuggestionService:
-    return MealSuggestionService(MealPlanRepository(session, context.family.id), RecipeRepository(session, context.family.id))
+    return MealSuggestionService(MealPlanRepository(session, context.family.id), RecipeRepository(session, context.family.id), context.family.household_size)
 
 
 @router.get("/week", response_model=WeeklyMealPlanResponse)
@@ -31,12 +31,21 @@ def get_week(week_start: date, service: Annotated[MealPlanService, Depends(get_m
 
 
 @router.post("/week/suggestions", response_model=WeeklyMealSuggestionsResponse)
-def suggest_week(week_start: date, preferences: MealSuggestionPreferences, service: Annotated[MealSuggestionService, Depends(get_suggestion_service)]):
+def suggest_week(week_start: date, preferences: MealSuggestionPreferences, service: Annotated[MealSuggestionService, Depends(get_suggestion_service)], context: Annotated[AuthContext, Depends(require_auth)]):
+    preferences.meal_types = [MealType(value) for value in context.family.enabled_meal_types]
+    preferences.include_leftover_lunches = (
+        preferences.include_leftover_lunches
+        and context.family.leftovers_enabled
+        and MealType.LUNCH.value in context.family.enabled_meal_types
+        and MealType.DINNER.value in context.family.enabled_meal_types
+    )
     return service.suggest_week(week_start, preferences)
 
 
 @router.put("/{meal_date}/{meal_type}", response_model=MealPlanEntryResponse)
-def assign_meal(meal_date: date, meal_type: MealType, data: MealPlanEntryWrite, service: Annotated[MealPlanService, Depends(get_meal_plan_service)]):
+def assign_meal(meal_date: date, meal_type: MealType, data: MealPlanEntryWrite, service: Annotated[MealPlanService, Depends(get_meal_plan_service)], context: Annotated[AuthContext, Depends(require_auth)]):
+    if meal_type.value not in context.family.enabled_meal_types:
+        raise HTTPException(status_code=422, detail="This meal type is disabled in family settings")
     entry = service.assign(meal_date, meal_type, data)
     if entry is None:
         raise HTTPException(status_code=404, detail="Recipe not found")
@@ -51,7 +60,9 @@ def remove_meal(meal_date: date, meal_type: MealType, service: Annotated[MealPla
 
 
 @router.post("/{meal_date}/{meal_type}/leftovers", response_model=MealPlanEntryResponse)
-def plan_leftovers(meal_date: date, meal_type: MealType, service: Annotated[MealPlanService, Depends(get_meal_plan_service)]):
+def plan_leftovers(meal_date: date, meal_type: MealType, service: Annotated[MealPlanService, Depends(get_meal_plan_service)], context: Annotated[AuthContext, Depends(require_auth)]):
+    if not context.family.leftovers_enabled or MealType.LUNCH.value not in context.family.enabled_meal_types:
+        raise HTTPException(status_code=422, detail="Leftover lunches are disabled in family settings")
     entry = service.plan_leftovers(meal_date, meal_type)
     if entry is None:
         raise HTTPException(status_code=404, detail="Source meal not found")

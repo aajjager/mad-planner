@@ -14,7 +14,7 @@ async function request<T>(url: string, options?: RequestInit): Promise<T> {
 }
 
 export const getMealPlanWeek = (weekStart: string) => request<WeeklyMealPlan>(`/api/v1/meal-plans/week?week_start=${weekStart}`)
-export const assignMeal = (mealDate: string, mealType: MealType, recipeId: number) => request<MealPlanEntry>(`/api/v1/meal-plans/${mealDate}/${mealType}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ recipe_id: recipeId }) })
+export const assignMeal = (mealDate: string, mealType: MealType, recipeId: number, servings?: number) => request<MealPlanEntry>(`/api/v1/meal-plans/${mealDate}/${mealType}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ recipe_id: recipeId, servings }) })
 export const removeMeal = (mealDate: string, mealType: MealType) => request<void>(`/api/v1/meal-plans/${mealDate}/${mealType}`, { method: 'DELETE' })
 export const planLeftovers = (mealDate: string, mealType: MealType) => request<MealPlanEntry>(`/api/v1/meal-plans/${mealDate}/${mealType}/leftovers`, { method: 'POST' })
 export const suggestMealPlanWeek = (weekStart: string, preferences: SuggestionPreferences) => request<WeeklyMealSuggestions>(`/api/v1/meal-plans/week/suggestions?week_start=${weekStart}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(preferences) })

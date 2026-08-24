@@ -1,3 +1,5 @@
+from typing import Literal
+
 from pydantic import BaseModel, Field
 
 from madplanner.models.account import FamilyRole
@@ -40,6 +42,20 @@ class ManagedInvitationResponse(BaseModel):
     id: int
     intended_email: str
     expires_at: str
+
+
+class FamilySettingsResponse(BaseModel):
+    household_size: int
+    leftovers_enabled: bool
+    cooking_mode_enabled: bool
+    enabled_meal_types: list[Literal["breakfast", "lunch", "dinner"]]
+
+
+class FamilySettingsUpdate(BaseModel):
+    household_size: int = Field(ge=1, le=50)
+    leftovers_enabled: bool
+    cooking_mode_enabled: bool
+    enabled_meal_types: list[Literal["breakfast", "lunch", "dinner"]] = Field(min_length=1)
 
 
 class InvitationCreateRequest(BaseModel):
