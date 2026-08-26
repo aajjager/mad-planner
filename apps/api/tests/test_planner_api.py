@@ -67,12 +67,45 @@ def test_week_is_normalized_to_monday_and_includes_entries(client: TestClient) -
     assert response.json()["week_start"] == "2026-08-17"
     assert response.json()["week_end"] == "2026-08-23"
     assert len(response.json()["entries"]) == 1
+    assert response.json()["exclusions"] == []
+
+
+def test_excluded_slot_replaces_a_meal_and_can_be_restored(client: TestClient) -> None:
+    recipe_id = client.get("/api/v1/recipes").json()[0]["id"]
+    client.put("/api/v1/meal-plans/2026-08-19/dinner", json={"recipe_id": recipe_id})
+
+    excluded = client.put("/api/v1/meal-plans/2026-08-19/dinner/excluded")
+    assert excluded.status_code == 200
+    assert excluded.json() == {"meal_date": "2026-08-19", "meal_type": "dinner"}
+    week = client.get("/api/v1/meal-plans/week", params={"week_start": "2026-08-17"}).json()
+    assert week["entries"] == []
+    assert week["exclusions"] == [{"meal_date": "2026-08-19", "meal_type": "dinner"}]
+
+    assert client.delete("/api/v1/meal-plans/2026-08-19/dinner/excluded").status_code == 204
+    assert client.get("/api/v1/meal-plans/week", params={"week_start": "2026-08-17"}).json()["exclusions"] == []
+
+
+def test_assigning_recipe_clears_an_excluded_slot(client: TestClient) -> None:
+    recipe_id = client.get("/api/v1/recipes").json()[0]["id"]
+    client.put("/api/v1/meal-plans/2026-08-19/dinner/excluded")
+
+    assert client.put("/api/v1/meal-plans/2026-08-19/dinner", json={"recipe_id": recipe_id}).status_code == 200
+    assert client.get("/api/v1/meal-plans/week", params={"week_start": "2026-08-17"}).json()["exclusions"] == []
 
 
 def test_assign_rejects_unknown_recipe(client: TestClient) -> None:
     response = client.put("/api/v1/meal-plans/2026-08-19/dinner", json={"recipe_id": 999})
 
     assert response.status_code == 404
+
+
+def test_plan_reminder_reports_incomplete_upcoming_week(client: TestClient) -> None:
+    response = client.get("/api/v1/meal-plans/reminders")
+
+    assert response.status_code == 200
+    assert response.json()["enabled"] is True
+    assert len(response.json()["weeks"]) == 1
+    assert response.json()["weeks"][0]["missing_slots"] == 21
 
 
 def test_plan_next_day_lunch_as_leftovers(client: TestClient) -> None:
@@ -102,10 +135,43 @@ def test_suggest_week_returns_reviewable_varied_dinners_and_leftovers(client: Te
 
     assert response.status_code == 200
     payload = response.json()
-    dinners = [item for item in payload["suggestions"] if item["meal_type"] == "dinner"]
-    leftovers = [item for item in payload["suggestions"] if item["is_leftover"]]
+    assert len(payload["options"]) == 3
+    dinners = [item for item in payload["options"][0]["suggestions"] if item["meal_type"] == "dinner"]
+    leftovers = [item for item in payload["options"][0]["suggestions"] if item["is_leftover"]]
     assert len(dinners) == 7
     assert len(leftovers) == 6
     assert {item["recipe"]["name"] for item in dinners} == {"Quick curry"}
     assert all("quick" in " ".join(item["reasons"]).lower() for item in dinners)
     assert client.get("/api/v1/meal-plans/week", params={"week_start": "2026-08-17"}).json()["entries"] == []
+
+
+def test_suggestions_skip_excluded_slots(client: TestClient) -> None:
+    client.post("/api/v1/recipes", json={"name": "Dinner", "meal_types": ["dinner"]})
+    client.put("/api/v1/meal-plans/2026-08-19/dinner/excluded")
+
+    response = client.post("/api/v1/meal-plans/week/suggestions", params={"week_start": "2026-08-17"}, json={"meal_types": ["dinner"], "include_leftover_lunches": False})
+
+    assert response.status_code == 200
+    assert all(not any(item["meal_date"] == "2026-08-19" and item["meal_type"] == "dinner" for item in option["suggestions"]) for option in response.json()["options"])
+
+
+def test_suggestions_return_three_different_review_options(client: TestClient) -> None:
+    for name, cuisine, tag in [
+        ("Mexican bowls", "Mexican", "Quick"),
+        ("Summer salad", "Danish", "Summer"),
+        ("Fish tacos", "Mexican", "Fish"),
+        ("Vegetable soup", "Dutch", "Winter"),
+    ]:
+        client.post("/api/v1/recipes", json={"name": name, "cuisine": cuisine, "tags": [tag], "meal_types": ["dinner"], "total_time_minutes": 30})
+
+    response = client.post(
+        "/api/v1/meal-plans/week/suggestions",
+        params={"week_start": "2026-08-17"},
+        json={"meal_types": ["dinner"], "preferred_tags": ["Mexican", "Quick"], "max_cooking_time_minutes": 45, "include_leftover_lunches": False},
+    )
+
+    assert response.status_code == 200
+    options = response.json()["options"]
+    assert [option["id"] for option in options] == ["option-1", "option-2", "option-3"]
+    sequences = [tuple(item["recipe"]["id"] for item in option["suggestions"]) for option in options]
+    assert len(set(sequences)) >= 2

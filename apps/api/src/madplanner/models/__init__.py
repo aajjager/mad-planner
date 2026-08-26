@@ -11,7 +11,7 @@ from madplanner.models.account import (
 )
 from madplanner.models.ingredient import Ingredient, IngredientAlias, Unit
 from madplanner.models.grocery import GroceryListEntry
-from madplanner.models.planner import MealPlanEntry, MealType
+from madplanner.models.planner import MealPlanEntry, MealPlanExclusion, MealType
 from madplanner.models.recipe import Recipe, RecipeIngredient, RecipeInstruction, RecipeType, Tag
 
 __all__ = [
@@ -23,6 +23,7 @@ __all__ = [
     "IngredientAlias",
     "GroceryListEntry",
     "MealPlanEntry",
+    "MealPlanExclusion",
     "MealType",
     "MfaLoginChallenge",
     "PasswordResetToken",

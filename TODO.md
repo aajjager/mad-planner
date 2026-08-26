@@ -108,4 +108,34 @@
   - [x] Verify restore against a disposable database
   - [x] Pin production versions and document rollback
 
+- [x] Phase 17 — Planner usability
+  - [x] Open planned recipes directly from each meal slot
+  - [x] Replace recipe dropdowns with searchable selection by name, cuisine, category, type, and tag
+  - [x] Exclude individual meal slots for eating out or being away
+
+- [x] Phase 18 — Personal nutrition display
+  - [x] Add a per-user nutrition visibility preference
+  - [x] Normalize supplied nutrition and estimate missing values from recognized ingredient quantities
+  - [x] Add a discreet pastel macronutrient donut to recipe details
+  - [x] Use an offline generic-food estimator informed by USDA FoodData Central, with visible coverage and estimate labels
+  - [ ] Revisit missing nutrition panel on some imported recipes (confirmed on Monsterpasta despite recognizable quantified ingredients)
+
+- [x] Phase 19 — Settings and mobile polish
+  - [x] Reorganize family settings into clear left-label/right-control rows and sections
+  - [x] Add compact mobile navigation and responsive planner/recipe cards
+  - [x] Verify Recipes, Planner, Groceries, Family, and recipe details at phone and tablet widths
+
+- [ ] Phase 20 — Planning automation
+  - [x] Add family-configurable in-app incomplete-plan reminders for 1–4 weeks ahead
+  - [x] Add installable phone-app support and per-user browser notification permission
+  - [ ] Add server-sent background push delivery after the HTTPS TrueNAS hostname is configured
+  - [x] Generate three alternative weekly plans from tags, cuisines, meal types, seasons, and cooking time
+  - [ ] Let families choose three-plan review or immediate automatic filling
+
+- [ ] Phase 21 — Cross-family recipe sharing
+  - [ ] Add a simple family-to-family sharing invitation and recipe picker
+  - [ ] Show source/shared badges in recipe lists and details
+  - [ ] Keep shared recipes linked to their source and remove access when the source is deleted
+  - [ ] Enforce family permissions and read-only shared-recipe behavior
+
 See [docs/product-roadmap.md](docs/product-roadmap.md) for design notes and dependency ordering.

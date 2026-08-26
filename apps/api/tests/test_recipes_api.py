@@ -85,3 +85,30 @@ def test_recipe_create_parses_raw_ingredient_text(client: TestClient) -> None:
     assert ingredient["ingredient_name"] == "æg"
     assert ingredient["quantity"] == "2"
     assert ingredient["unit"] == {"name": "piece", "symbol": "stk", "dimension": "count"}
+
+
+def test_recipe_estimates_nutrition_from_recognized_ingredients(client: TestClient) -> None:
+    response = client.post("/api/v1/recipes", json={"name": "Simple meal", "servings": "2", "ingredients": [{"raw_text": "200 g kylling"}, {"raw_text": "100 g broccoli"}]})
+
+    assert response.status_code == 201
+    nutrition = response.json()["nutrition"]
+    assert nutrition["estimated"] is True
+    assert nutrition["coveragePercent"] == 100
+    assert nutrition["calories"] > 0
+    assert nutrition["proteinContent"] > 0
+
+
+def test_supplied_nutrition_takes_priority_over_estimate(client: TestClient) -> None:
+    supplied = {"calories": "123 kcal", "fatContent": "4 g", "carbohydrateContent": "5 g", "proteinContent": "6 g"}
+    response = client.post("/api/v1/recipes", json={"name": "Labelled meal", "nutrition": supplied, "ingredients": [{"raw_text": "200 g kylling"}]})
+
+    assert response.status_code == 201
+    assert response.json()["nutrition"] == supplied
+
+
+def test_metadata_only_nutrition_uses_ingredient_estimate(client: TestClient) -> None:
+    response = client.post("/api/v1/recipes", json={"name": "Incomplete website nutrition", "servings": "4", "nutrition": {"@type": "NutritionInformation"}, "ingredients": [{"raw_text": "400 g pasta"}, {"raw_text": "500 g kyllingebryst"}]})
+
+    assert response.status_code == 201
+    assert response.json()["nutrition"]["estimated"] is True
+    assert response.json()["nutrition"]["coveragePercent"] == 100

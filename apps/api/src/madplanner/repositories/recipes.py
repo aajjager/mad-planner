@@ -57,6 +57,9 @@ class RecipeRepository:
 
     def get_or_create_unit(self, name: str, symbol: str, dimension: UnitDimension) -> Unit:
         normalized_name = " ".join(name.casefold().split())
+        pending = next((item for item in self.session.new if isinstance(item, Unit) and item.name == normalized_name), None)
+        if pending is not None:
+            return pending
         with self.session.no_autoflush:
             unit = self.session.scalar(select(Unit).where(Unit.name == normalized_name))
         if unit is None:

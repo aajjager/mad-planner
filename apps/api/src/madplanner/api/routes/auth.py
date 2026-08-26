@@ -66,6 +66,8 @@ def account_response(context: AuthContext) -> AccountResponse:
         family_name=context.family.name,
         role=context.role,
         locale=context.user.locale,
+        show_nutrition=context.user.show_nutrition,
+        browser_notifications_enabled=context.user.browser_notifications_enabled,
         mfa_enabled=context.user.mfa_enabled,
     )
 
@@ -137,7 +139,12 @@ def current_account(context: Annotated[AuthContext, Depends(require_auth)]):
 
 @router.patch("/me/preferences", response_model=AccountResponse)
 def update_personal_preferences(data: PersonalPreferencesUpdate, context: Annotated[AuthContext, Depends(require_auth)], service: Annotated[AuthService, Depends(get_auth_service)]):
-    service.update_personal_locale(context.user, data.locale)
+    service.update_personal_preferences(
+        context.user,
+        locale=data.locale,
+        show_nutrition=data.show_nutrition,
+        browser_notifications_enabled=data.browser_notifications_enabled,
+    )
     return account_response(context)
 
 
@@ -199,6 +206,8 @@ def family_settings_response(context: AuthContext) -> FamilySettingsResponse:
         household_size=context.family.household_size,
         leftovers_enabled=context.family.leftovers_enabled,
         cooking_mode_enabled=context.family.cooking_mode_enabled,
+        plan_reminders_enabled=context.family.plan_reminders_enabled,
+        plan_reminder_weeks=context.family.plan_reminder_weeks,
         enabled_meal_types=context.family.enabled_meal_types,
     )
 

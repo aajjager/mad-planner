@@ -4,8 +4,8 @@ import App from './App'
 import { inferMealTypes, parseServingCount } from './api/recipes'
 
 const jsonResponse = (value: unknown) => new Response(JSON.stringify(value), { status: 200, headers: { 'Content-Type': 'application/json' } })
-const account = { id: 1, email: 'owner@example.com', display_name: 'Owner', family_id: 1, family_name: 'Test family', role: 'owner' }
-const familySettings = { household_size: 2, leftovers_enabled: true, cooking_mode_enabled: true, enabled_meal_types: ['breakfast', 'lunch', 'dinner'] }
+const account = { id: 1, email: 'owner@example.com', display_name: 'Owner', family_id: 1, family_name: 'Test family', role: 'owner', locale: 'en', show_nutrition: true, browser_notifications_enabled: false, mfa_enabled: false }
+const familySettings = { household_size: 2, leftovers_enabled: true, cooking_mode_enabled: true, plan_reminders_enabled: true, plan_reminder_weeks: 1, enabled_meal_types: ['breakfast', 'lunch', 'dinner'] }
 const recipeTypes = [{ id: 1, name: 'Breakfast', meal_type: 'breakfast' }, { id: 2, name: 'Lunch', meal_type: 'lunch' }, { id: 3, name: 'Dinner', meal_type: 'dinner' }]
 const authResponse = (input: RequestInfo | URL) => {
   const url = String(input)

@@ -29,10 +29,26 @@ class MealPlanEntryResponse(BaseModel):
     recipe: PlannedRecipe
 
 
+class MealPlanExclusionResponse(BaseModel):
+    meal_date: date
+    meal_type: MealType
+
+
 class WeeklyMealPlanResponse(BaseModel):
     week_start: date
     week_end: date
     entries: list[MealPlanEntryResponse]
+    exclusions: list[MealPlanExclusionResponse]
+
+
+class IncompletePlanWeek(BaseModel):
+    week_start: date
+    missing_slots: int
+
+
+class PlanReminderResponse(BaseModel):
+    enabled: bool
+    weeks: list[IncompletePlanWeek]
 
 
 class MealSuggestionPreferences(BaseModel):
@@ -55,4 +71,11 @@ class MealSuggestion(BaseModel):
 class WeeklyMealSuggestionsResponse(BaseModel):
     week_start: date
     week_end: date
+    options: list["WeeklyMealSuggestionOption"]
+
+
+class WeeklyMealSuggestionOption(BaseModel):
+    id: str
+    title: str
+    focus: str
     suggestions: list[MealSuggestion]

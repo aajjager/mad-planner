@@ -1,4 +1,4 @@
-import { BrowserRouter, Link, Navigate, Route, Routes } from 'react-router-dom'
+import { BrowserRouter, Link, NavLink, Navigate, Route, Routes } from 'react-router-dom'
 import './App.css'
 import { CreateRecipePage } from './pages/CreateRecipePage'
 import { RecipeDetailPage } from './pages/RecipeDetailPage'
@@ -14,6 +14,7 @@ import { AdminPage } from './pages/AdminPage'
 import { ScanRecipePage } from './pages/ScanRecipePage'
 import { PasswordResetPage } from './pages/PasswordResetPage'
 import { translator } from './i18n'
+import { PlanReminderBanner } from './components/PlanReminderBanner'
 
 function ApplicationShell() {
   const { account, logout } = useAuth()
@@ -26,6 +27,7 @@ function ApplicationShell() {
           <nav aria-label="Main navigation"><Link to="/recipes">{t('recipes')}</Link><Link to="/planner">{t('planner')}</Link><Link to="/grocery-list">{t('groceries')}</Link>{canEditRecipes && <Link to="/recipes/import">{t('import')}</Link>}{canEditRecipes && <Link className="primary-link" to="/recipes/new">{t('addRecipe')}</Link>}</nav>
           <div className="account-menu"><Link className="account-link" to="/family">{account?.display_name} · {account?.family_name}</Link>{account?.role === 'owner' && <Link className="account-link" to="/admin">{t('admin')}</Link>}<button className="text-button" onClick={() => void logout()}>{t('signOut')}</button></div>
         </header>
+        <PlanReminderBanner />
         <main>
           <Routes>
             <Route path="/" element={<Navigate to="/recipes" replace />} />
@@ -41,6 +43,13 @@ function ApplicationShell() {
             <Route path="*" element={<Navigate to="/recipes" replace />} />
           </Routes>
         </main>
+        <nav className="mobile-navigation" aria-label="Mobile navigation">
+          <NavLink to="/recipes"><span aria-hidden="true">▤</span>{t('recipes')}</NavLink>
+          <NavLink to="/planner"><span aria-hidden="true">□</span>{t('planner')}</NavLink>
+          {canEditRecipes && <NavLink className="mobile-navigation__add" to="/recipes/new"><span aria-hidden="true">+</span>{t('addRecipe')}</NavLink>}
+          <NavLink to="/grocery-list"><span aria-hidden="true">✓</span>{t('groceries')}</NavLink>
+          <NavLink to="/family"><span aria-hidden="true">⌂</span>{t('familyNav')}</NavLink>
+        </nav>
       </div>
   )
 }

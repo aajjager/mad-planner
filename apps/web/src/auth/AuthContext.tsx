@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react'
-import { ApiError, completeMfaLogin as completeMfaLoginRequest, confirmMfaEnrollment as confirmMfaRequest, disableMfa as disableMfaRequest, getCurrentAccount, getSetupStatus, login as loginRequest, logout as logoutRequest, setupOwner as setupRequest, startMfaEnrollment as startMfaRequest, updatePersonalLocale, type Account, type MfaChallenge, type MfaEnrollment } from '../api/auth'
+import { ApiError, completeMfaLogin as completeMfaLoginRequest, confirmMfaEnrollment as confirmMfaRequest, disableMfa as disableMfaRequest, getCurrentAccount, getSetupStatus, login as loginRequest, logout as logoutRequest, setupOwner as setupRequest, startMfaEnrollment as startMfaRequest, updatePersonalPreferences, type Account, type MfaChallenge, type MfaEnrollment } from '../api/auth'
 import { rememberLocale } from '../i18n'
 
 interface AuthValue {
@@ -15,6 +15,8 @@ interface AuthValue {
   acceptAccount: (account: Account) => void
   logout: () => Promise<void>
   setLocale: (locale: Account['locale']) => Promise<void>
+  setShowNutrition: (show: boolean) => Promise<void>
+  setBrowserNotifications: (enabled: boolean) => Promise<void>
 }
 
 const AuthContext = createContext<AuthValue | null>(null)
@@ -49,7 +51,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setupOwner: async (data) => { setAccount(await setupRequest(data)); setSetupRequired(false) },
     acceptAccount: (nextAccount) => { setAccount(nextAccount); setSetupRequired(false) },
     logout: async () => { await logoutRequest(); setAccount(null) },
-    setLocale: async (locale) => { setAccount(await updatePersonalLocale(locale)) },
+    setLocale: async (locale) => { setAccount(await updatePersonalPreferences({ locale })) },
+    setShowNutrition: async (show) => { setAccount(await updatePersonalPreferences({ show_nutrition: show })) },
+    setBrowserNotifications: async (enabled) => { setAccount(await updatePersonalPreferences({ browser_notifications_enabled: enabled })) },
   }
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

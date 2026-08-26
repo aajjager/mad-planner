@@ -1,0 +1,13 @@
+{
+  "name": "Mad Planner",
+  "short_name": "Mad Planner",
+  "description": "Private family meal and grocery planning.",
+  "start_url": "/planner",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#f6f1e7",
+  "theme_color": "#275f4e",
+  "icons": [
+    { "src": "/favicon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}

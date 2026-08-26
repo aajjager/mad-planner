@@ -47,14 +47,25 @@ def test_owner_setup_login_and_logout(client: TestClient) -> None:
     assert client.get("/api/v1/auth/status").json() == {"setup_required": True}
     owner = setup_owner(client)
     assert owner["role"] == "owner"
+    assert owner["show_nutrition"] is True
+    assert owner["browser_notifications_enabled"] is False
+    preferences = client.patch(
+        "/api/v1/auth/me/preferences",
+        json={"show_nutrition": False, "browser_notifications_enabled": True},
+    )
+    assert preferences.status_code == 200
+    assert preferences.json()["show_nutrition"] is False
+    assert preferences.json()["browser_notifications_enabled"] is True
     assert client.get("/api/v1/auth/status").json() == {"setup_required": False}
     assert client.get("/api/v1/auth/me").json()["family_name"] == "Example family"
     settings = client.get("/api/v1/auth/family/settings")
-    assert settings.json() == {"household_size": 2, "leftovers_enabled": True, "cooking_mode_enabled": True, "enabled_meal_types": ["breakfast", "lunch", "dinner"]}
-    updated = client.put("/api/v1/auth/family/settings", json={"household_size": 3, "leftovers_enabled": False, "cooking_mode_enabled": False, "enabled_meal_types": ["dinner"]})
+    assert settings.json() == {"household_size": 2, "leftovers_enabled": True, "cooking_mode_enabled": True, "plan_reminders_enabled": True, "plan_reminder_weeks": 1, "enabled_meal_types": ["breakfast", "lunch", "dinner"]}
+    updated = client.put("/api/v1/auth/family/settings", json={"household_size": 3, "leftovers_enabled": False, "cooking_mode_enabled": False, "plan_reminders_enabled": False, "plan_reminder_weeks": 3, "enabled_meal_types": ["dinner"]})
     assert updated.status_code == 200
     assert updated.json()["household_size"] == 3
     assert updated.json()["enabled_meal_types"] == ["dinner"]
+    assert updated.json()["plan_reminders_enabled"] is False
+    assert updated.json()["plan_reminder_weeks"] == 3
     recipe_types = client.get("/api/v1/auth/family/recipe-types")
     assert recipe_types.status_code == 200
     assert {item["name"] for item in recipe_types.json()} >= {"Breakfast", "Dinner", "Cake", "Bake-off"}

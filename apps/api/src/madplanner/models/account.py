@@ -22,6 +22,8 @@ class Family(Base):
     household_size: Mapped[int] = mapped_column(Integer, default=2, server_default="2")
     leftovers_enabled: Mapped[bool] = mapped_column(Boolean, default=True, server_default="true")
     cooking_mode_enabled: Mapped[bool] = mapped_column(Boolean, default=True, server_default="true")
+    plan_reminders_enabled: Mapped[bool] = mapped_column(Boolean, default=True, server_default="true")
+    plan_reminder_weeks: Mapped[int] = mapped_column(Integer, default=1, server_default="1")
     enabled_meal_types: Mapped[list[str]] = mapped_column(
         JSON,
         default=lambda: ["breakfast", "lunch", "dinner"],
@@ -45,6 +47,8 @@ class User(Base):
     display_name: Mapped[str] = mapped_column(String(120))
     password_hash: Mapped[str] = mapped_column(String(255))
     locale: Mapped[str] = mapped_column(String(10), default="en", server_default="en")
+    show_nutrition: Mapped[bool] = mapped_column(Boolean, default=True, server_default="true")
+    browser_notifications_enabled: Mapped[bool] = mapped_column(Boolean, default=False, server_default="false")
     mfa_enabled: Mapped[bool] = mapped_column(Boolean, default=False, server_default="false")
     mfa_secret_encrypted: Mapped[str | None] = mapped_column(String(500))
     mfa_recovery_code_hashes: Mapped[list[str]] = mapped_column(JSON, default=list, server_default="[]")

@@ -4,12 +4,18 @@ from datetime import date, timedelta
 from madplanner.models import MealType, Recipe
 from madplanner.repositories.planner import MealPlanRepository
 from madplanner.repositories.recipes import RecipeRepository
-from madplanner.schemas.planner import MealSuggestion, MealSuggestionPreferences, PlannedRecipe, WeeklyMealSuggestionsResponse
+from madplanner.schemas.planner import MealSuggestion, MealSuggestionPreferences, PlannedRecipe, WeeklyMealSuggestionOption, WeeklyMealSuggestionsResponse
 
 _MEAL_WORDS = {
     MealType.BREAKFAST: {"breakfast", "morgenmad", "brunch"},
     MealType.LUNCH: {"lunch", "frokost"},
     MealType.DINNER: {"dinner", "aftensmad", "hovedret", "hovedretter"},
+}
+_SEASON_WORDS = {
+    "winter": {"winter", "vinter", "winterse", "stew", "soup", "gryderet", "suppe"},
+    "spring": {"spring", "forår", "lente", "asparagus", "salad", "asparges", "salat"},
+    "summer": {"summer", "sommer", "zomer", "grill", "salad", "barbecue", "salat"},
+    "autumn": {"autumn", "fall", "efterår", "herfst", "pumpkin", "mushroom", "græskar", "svamp"},
 }
 
 
@@ -23,12 +29,18 @@ class MealSuggestionService:
         week_start = requested_date - timedelta(days=requested_date.weekday())
         week_end = week_start + timedelta(days=6)
         existing = {(entry.meal_date, entry.meal_type) for entry in self.planner.list_between(week_start, week_end)}
+        existing.update((item.meal_date, item.meal_type) for item in self.planner.list_exclusions_between(week_start, week_end))
         recipes = self.recipes.list()
         if preferences.max_cooking_time_minutes is not None:
             within_limit = [recipe for recipe in recipes if recipe.total_time_minutes is not None and recipe.total_time_minutes <= preferences.max_cooking_time_minutes]
             if within_limit:
                 recipes = within_limit
 
+        season = self._season(week_start)
+        options = [self._build_option(week_start, week_end, existing, recipes, preferences, season, variant) for variant in range(3)]
+        return WeeklyMealSuggestionsResponse(week_start=week_start, week_end=week_end, options=options)
+
+    def _build_option(self, week_start, week_end, existing, recipes, preferences, season: str, variant: int) -> WeeklyMealSuggestionOption:
         suggestions: list[MealSuggestion] = []
         usage: Counter[int] = Counter()
         selected_ingredients: set[str] = set()
@@ -42,7 +54,7 @@ class MealSuggestionService:
                 eligible = [recipe for recipe in recipes if self._allows_meal_type(recipe, meal_type)]
                 if not eligible:
                     continue
-                ranked = [self._rank(recipe, meal_type, preferred, usage[recipe.id], selected_ingredients) for recipe in eligible]
+                ranked = [self._rank(recipe, meal_type, preferred, usage[recipe.id], selected_ingredients, season, variant, offset) for recipe in eligible]
                 score, _, recipe, reasons = max(ranked, key=lambda value: (value[0], value[1]))
                 suggestion = MealSuggestion(meal_date=meal_date, meal_type=meal_type, recipe=PlannedRecipe(id=recipe.id, name=recipe.name, image_url=recipe.image_url), score=score, reasons=reasons)
                 suggestions.append(suggestion)
@@ -62,11 +74,15 @@ class MealSuggestionService:
                 suggestions.append(MealSuggestion(meal_date=target_date, meal_type=MealType.LUNCH, recipe=dinner.recipe, score=dinner.score, reasons=["Uses the previous dinner and avoids food waste"], is_leftover=True, source_date=source_date))
 
         suggestions.sort(key=lambda item: (item.meal_date, item.meal_type.value))
-        return WeeklyMealSuggestionsResponse(week_start=week_start, week_end=week_end, suggestions=suggestions)
+        titles = ["Best match", "More variety", "Seasonal mix"]
+        focuses = ["Prioritizes selected tags and cooking time", "Changes the recipe rhythm and strongly avoids repeats", f"Favors {season} recipes while keeping your preferences"]
+        return WeeklyMealSuggestionOption(id=f"option-{variant + 1}", title=titles[variant], focus=focuses[variant], suggestions=suggestions)
 
-    def _rank(self, recipe: Recipe, meal_type: MealType, preferred: set[str], repeats: int, selected: set[str]):
+    def _rank(self, recipe: Recipe, meal_type: MealType, preferred: set[str], repeats: int, selected: set[str], season: str, variant: int, day_offset: int):
         labels = {tag.name.casefold() for tag in recipe.tags}
         labels.update(part.strip().casefold() for part in (recipe.category or "").split(",") if part.strip())
+        labels.update(part.strip().casefold() for part in (recipe.cuisine or "").split(",") if part.strip())
+        labels.update(recipe_type.name.casefold() for recipe_type in recipe.recipe_types)
         reasons: list[str] = []
         score = 100 - repeats * 60
         if labels & _MEAL_WORDS[meal_type]:
@@ -82,7 +98,23 @@ class MealSuggestionService:
             reasons.append("Reuses ingredients already on the list")
         if repeats == 0:
             reasons.append("Adds variety")
-        return score, recipe.name.casefold(), recipe, reasons
+        if labels & _SEASON_WORDS[season]:
+            score += (8, 6, 25)[variant]
+            reasons.append(f"Fits {season}")
+        if variant == 1:
+            score -= repeats * 40
+        tie_break = -((recipe.id - day_offset - variant * 2) % 10000)
+        return score, tie_break, recipe, reasons
+
+    @staticmethod
+    def _season(value: date) -> str:
+        if value.month in {12, 1, 2}:
+            return "winter"
+        if value.month in {3, 4, 5}:
+            return "spring"
+        if value.month in {6, 7, 8}:
+            return "summer"
+        return "autumn"
 
     @staticmethod
     def _ingredients(recipe: Recipe) -> set[str]:

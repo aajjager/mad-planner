@@ -1,6 +1,7 @@
 from madplanner.models import Recipe, RecipeIngredient, RecipeInstruction
 from madplanner.ingredients import parse_ingredient
 from madplanner.repositories.recipes import RecipeRepository
+from madplanner.services.nutrition import nutrition_for_recipe
 from madplanner.schemas.recipe import (
     RecipeIngredientResponse,
     RecipeInstructionResponse,
@@ -103,7 +104,7 @@ class RecipeService:
             image_url=recipe.image_url, source_url=recipe.source_url, author=recipe.author,
             servings=recipe.servings, preparation_time_minutes=recipe.preparation_time_minutes,
             cooking_time_minutes=recipe.cooking_time_minutes, total_time_minutes=recipe.total_time_minutes,
-            cuisine=recipe.cuisine, category=recipe.category, nutrition=recipe.nutrition,
+            cuisine=recipe.cuisine, category=recipe.category, nutrition=nutrition_for_recipe(recipe),
             tags=sorted((tag.name for tag in recipe.tags), key=str.casefold),
             meal_types=recipe.meal_types or [],
             recipe_types=[item.name for item in recipe.recipe_types],

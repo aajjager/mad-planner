@@ -263,8 +263,20 @@ class AuthService:
             )
         )
 
-    def update_personal_locale(self, user: User, locale: str) -> User:
-        user.locale = locale
+    def update_personal_preferences(
+        self,
+        user: User,
+        *,
+        locale: str | None = None,
+        show_nutrition: bool | None = None,
+        browser_notifications_enabled: bool | None = None,
+    ) -> User:
+        if locale is not None:
+            user.locale = locale
+        if show_nutrition is not None:
+            user.show_nutrition = show_nutrition
+        if browser_notifications_enabled is not None:
+            user.browser_notifications_enabled = browser_notifications_enabled
         self.session.add(user)
         self.session.commit()
         return user
@@ -285,11 +297,15 @@ class AuthService:
         household_size: int,
         leftovers_enabled: bool,
         cooking_mode_enabled: bool,
+        plan_reminders_enabled: bool,
+        plan_reminder_weeks: int,
         enabled_meal_types: list[str],
     ) -> Family:
         family.household_size = household_size
         family.leftovers_enabled = leftovers_enabled
         family.cooking_mode_enabled = cooking_mode_enabled
+        family.plan_reminders_enabled = plan_reminders_enabled
+        family.plan_reminder_weeks = plan_reminder_weeks
         family.enabled_meal_types = list(dict.fromkeys(enabled_meal_types))
         self.session.add(family)
         self.session.commit()

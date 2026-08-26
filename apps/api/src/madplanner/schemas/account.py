@@ -39,11 +39,15 @@ class AccountResponse(BaseModel):
     family_name: str
     role: FamilyRole
     locale: Literal["en", "da", "nl"]
+    show_nutrition: bool
+    browser_notifications_enabled: bool
     mfa_enabled: bool
 
 
 class PersonalPreferencesUpdate(BaseModel):
-    locale: Literal["en", "da", "nl"]
+    locale: Literal["en", "da", "nl"] | None = None
+    show_nutrition: bool | None = None
+    browser_notifications_enabled: bool | None = None
 
 
 class MfaEnrollmentResponse(BaseModel):
@@ -118,6 +122,8 @@ class FamilySettingsResponse(BaseModel):
     household_size: int
     leftovers_enabled: bool
     cooking_mode_enabled: bool
+    plan_reminders_enabled: bool
+    plan_reminder_weeks: int
     enabled_meal_types: list[Literal["breakfast", "lunch", "dinner"]]
 
 
@@ -125,6 +131,8 @@ class FamilySettingsUpdate(BaseModel):
     household_size: int = Field(ge=1, le=50)
     leftovers_enabled: bool
     cooking_mode_enabled: bool
+    plan_reminders_enabled: bool
+    plan_reminder_weeks: int = Field(ge=1, le=4)
     enabled_meal_types: list[Literal["breakfast", "lunch", "dinner"]] = Field(min_length=1)
 
 
