@@ -17,14 +17,21 @@ from madplanner.schemas.account import (
     InvitationPreviewResponse,
     InvitationResponse,
     LoginRequest,
+    MfaChallengeResponse,
+    MfaLoginRequest,
+    MfaConfirmRequest,
+    MfaEnrollmentResponse,
+    MfaDisableRequest,
+    MfaRecoveryCodesResponse,
     ManagedInvitationResponse,
     OwnerSetupRequest,
     PersonalPreferencesUpdate,
     RecipeTypeCreate,
     RecipeTypeResponse,
+    SecurityEventResponse,
     SetupStatusResponse,
 )
-from madplanner.services.auth import AuthContext, AuthService
+from madplanner.services.auth import AuthContext, AuthService, MfaChallenge
 
 router = APIRouter(prefix="/auth", tags=["authentication"])
 
@@ -56,6 +63,7 @@ def account_response(context: AuthContext) -> AccountResponse:
         family_name=context.family.name,
         role=context.role,
         locale=context.user.locale,
+        mfa_enabled=context.user.mfa_enabled,
     )
 
 
@@ -87,11 +95,26 @@ def setup_owner(data: OwnerSetupRequest, response: Response, service: Annotated[
     return account_response(context)
 
 
-@router.post("/login", response_model=AccountResponse)
+@router.post("/login", response_model=AccountResponse | MfaChallengeResponse)
 def login(data: LoginRequest, response: Response, service: Annotated[AuthService, Depends(get_auth_service)]):
     result = service.login(data.email, data.password)
     if result is None:
         raise HTTPException(status_code=401, detail="Invalid email or password")
+    if isinstance(result, MfaChallenge):
+        return MfaChallengeResponse(challenge_token=result.token)
+    context, token = result
+    set_session_cookie(response, token)
+    return account_response(context)
+
+
+@router.post("/login/mfa", response_model=AccountResponse)
+def login_mfa(data: MfaLoginRequest, response: Response, service: Annotated[AuthService, Depends(get_auth_service)]):
+    key = get_settings().mfa_encryption_key
+    if key is None or not key.get_secret_value():
+        raise HTTPException(status_code=503, detail="MFA encryption is not configured")
+    result = service.complete_mfa_login(data.challenge_token, data.code, key.get_secret_value())
+    if result is None:
+        raise HTTPException(status_code=401, detail="Invalid or expired authentication code")
     context, token = result
     set_session_cookie(response, token)
     return account_response(context)
@@ -112,6 +135,33 @@ def current_account(context: Annotated[AuthContext, Depends(require_auth)]):
 @router.patch("/me/preferences", response_model=AccountResponse)
 def update_personal_preferences(data: PersonalPreferencesUpdate, context: Annotated[AuthContext, Depends(require_auth)], service: Annotated[AuthService, Depends(get_auth_service)]):
     service.update_personal_locale(context.user, data.locale)
+    return account_response(context)
+
+
+@router.post("/me/mfa/enroll", response_model=MfaEnrollmentResponse)
+def enroll_mfa(context: Annotated[AuthContext, Depends(require_auth)], service: Annotated[AuthService, Depends(get_auth_service)]):
+    key = get_settings().mfa_encryption_key
+    if key is None or not key.get_secret_value():
+        raise HTTPException(status_code=503, detail="MFA encryption is not configured")
+    secret, uri = service.start_mfa_enrollment(context, key.get_secret_value())
+    return MfaEnrollmentResponse(secret=secret, provisioning_uri=uri)
+
+
+@router.post("/me/mfa/confirm", response_model=MfaRecoveryCodesResponse)
+def confirm_mfa(data: MfaConfirmRequest, context: Annotated[AuthContext, Depends(require_auth)], service: Annotated[AuthService, Depends(get_auth_service)]):
+    key = get_settings().mfa_encryption_key
+    if key is None or not key.get_secret_value():
+        raise HTTPException(status_code=503, detail="MFA encryption is not configured")
+    codes = service.confirm_mfa_enrollment(context, data.code, key.get_secret_value())
+    if codes is None:
+        raise HTTPException(status_code=400, detail="Invalid authenticator code")
+    return MfaRecoveryCodesResponse(recovery_codes=codes)
+
+
+@router.post("/me/mfa/disable", response_model=AccountResponse)
+def disable_mfa(data: MfaDisableRequest, context: Annotated[AuthContext, Depends(require_auth)], service: Annotated[AuthService, Depends(get_auth_service)]):
+    if not service.disable_mfa(context, data.password):
+        raise HTTPException(status_code=401, detail="Invalid password")
     return account_response(context)
 
 
@@ -192,6 +242,11 @@ def managed_invitations(context: Annotated[AuthContext, Depends(require_owner)],
         ManagedInvitationResponse(id=item.id, intended_email=item.intended_email or "", expires_at=item.expires_at.isoformat(), role=item.role)
         for item in service.list_pending_invitations(context.family.id)
     ]
+
+
+@router.get("/admin/security-events", response_model=list[SecurityEventResponse])
+def security_events(context: Annotated[AuthContext, Depends(require_owner)], service: Annotated[AuthService, Depends(get_auth_service)]):
+    return [SecurityEventResponse(id=item.id, event_type=item.event_type, user_email=item.user.email if item.user else None, created_at=item.created_at.isoformat()) for item in service.list_security_events(context.family.id)]
 
 
 @router.delete("/admin/invitations/{invitation_id}", status_code=status.HTTP_204_NO_CONTENT)

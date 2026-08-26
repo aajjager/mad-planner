@@ -8,7 +8,10 @@ export interface Account {
   family_name: string
   role: FamilyRole
   locale: 'en' | 'da' | 'nl'
+  mfa_enabled: boolean
 }
+export interface MfaChallenge { mfa_required: true; challenge_token: string }
+export interface MfaEnrollment { secret: string; provisioning_uri: string }
 
 export interface FamilyMember {
   id: number
@@ -19,6 +22,7 @@ export interface FamilyMember {
 }
 
 export interface ManagedInvitation { id: number; intended_email: string; expires_at: string; role: FamilyRole }
+export interface SecurityEvent { id: number; event_type: 'login_succeeded' | 'login_failed' | string; user_email: string | null; created_at: string }
 export interface RecipeType { id: number; name: string; meal_type: 'breakfast' | 'lunch' | 'dinner' | null }
 export interface FamilySettings {
   household_size: number
@@ -65,13 +69,18 @@ const jsonOptions = (method: string, body: unknown): RequestInit => ({
 export const getSetupStatus = () => request<{ setup_required: boolean }>('/api/v1/auth/status')
 export const getCurrentAccount = () => request<Account>('/api/v1/auth/me')
 export const setupOwner = (data: { email: string; display_name: string; password: string; family_name: string }) => request<Account>('/api/v1/auth/setup', jsonOptions('POST', data))
-export const login = (data: { email: string; password: string }) => request<Account>('/api/v1/auth/login', jsonOptions('POST', data))
+export const login = (data: { email: string; password: string }) => request<Account | MfaChallenge>('/api/v1/auth/login', jsonOptions('POST', data))
+export const completeMfaLogin = (challenge_token: string, code: string) => request<Account>('/api/v1/auth/login/mfa', jsonOptions('POST', { challenge_token, code }))
+export const startMfaEnrollment = () => request<MfaEnrollment>('/api/v1/auth/me/mfa/enroll', { method: 'POST' })
+export const confirmMfaEnrollment = (code: string) => request<{ recovery_codes: string[] }>('/api/v1/auth/me/mfa/confirm', jsonOptions('POST', { code }))
+export const disableMfa = (password: string) => request<Account>('/api/v1/auth/me/mfa/disable', jsonOptions('POST', { password }))
 export const logout = () => request<void>('/api/v1/auth/logout', { method: 'POST' })
 export const listFamilyMembers = () => request<FamilyMember[]>('/api/v1/auth/family/members')
 export const createFamilyInvitation = (email: string, role: Exclude<FamilyRole, 'owner'>) => request<Invitation>('/api/v1/auth/family/invitations', jsonOptions('POST', { email, role }))
 export const getInvitation = (token: string) => request<InvitationPreview>(`/api/v1/auth/invitations/${encodeURIComponent(token)}`)
 export const acceptInvitation = (token: string, data: { display_name: string; password: string }) => request<Account>(`/api/v1/auth/invitations/${encodeURIComponent(token)}/accept`, jsonOptions('POST', data))
 export const listManagedInvitations = () => request<ManagedInvitation[]>('/api/v1/auth/admin/invitations')
+export const listSecurityEvents = () => request<SecurityEvent[]>('/api/v1/auth/admin/security-events')
 export const revokeInvitation = (id: number) => request<void>(`/api/v1/auth/admin/invitations/${id}`, { method: 'DELETE' })
 export const revokeMemberSessions = (id: number) => request<void>(`/api/v1/auth/admin/members/${id}/revoke-sessions`, { method: 'POST' })
 export const removeFamilyMember = (id: number) => request<void>(`/api/v1/auth/admin/members/${id}`, { method: 'DELETE' })

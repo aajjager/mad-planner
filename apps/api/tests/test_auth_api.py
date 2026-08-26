@@ -1,4 +1,7 @@
 import pytest
+import pyotp
+from cryptography.fernet import Fernet
+from pydantic import SecretStr
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
@@ -7,6 +10,7 @@ from sqlalchemy.pool import StaticPool
 from madplanner.db.base import Base
 from madplanner.db.session import get_session
 from madplanner.main import app
+from madplanner.core.config import get_settings
 
 
 @pytest.fixture
@@ -64,6 +68,10 @@ def test_owner_setup_login_and_logout(client: TestClient) -> None:
     assert client.get("/api/v1/auth/me").status_code == 401
     assert client.post("/api/v1/auth/login", json={"email": "owner@example.com", "password": "wrong-password"}).status_code == 401
     assert client.post("/api/v1/auth/login", json={"email": "OWNER@example.com", "password": "correct-horse-battery-staple"}).status_code == 200
+    events = client.get("/api/v1/auth/admin/security-events")
+    assert events.status_code == 200
+    assert [item["event_type"] for item in events.json()[:2]] == ["login_succeeded", "login_failed"]
+    assert all(item["user_email"] == "owner@example.com" for item in events.json())
 
 
 def test_owner_can_invite_a_family_member(client: TestClient) -> None:
@@ -119,3 +127,31 @@ def test_domain_endpoints_require_authentication(client: TestClient) -> None:
     assert client.get("/api/v1/recipes").status_code == 401
     assert client.get("/api/v1/meal-plans/week", params={"week_start": "2026-08-17"}).status_code == 401
     assert client.get("/api/v1/grocery-lists/week", params={"week_start": "2026-08-17"}).status_code == 401
+
+
+def test_owner_can_enroll_totp_mfa(client: TestClient) -> None:
+    get_settings().mfa_encryption_key = SecretStr(Fernet.generate_key().decode())
+    setup_owner(client)
+    enrollment = client.post("/api/v1/auth/me/mfa/enroll")
+    assert enrollment.status_code == 200
+    assert enrollment.json()["provisioning_uri"].startswith("otpauth://totp/")
+    assert client.post("/api/v1/auth/me/mfa/confirm", json={"code": "000000"}).status_code == 400
+    confirmed = client.post("/api/v1/auth/me/mfa/confirm", json={"code": pyotp.TOTP(enrollment.json()["secret"]).now()})
+    assert confirmed.status_code == 200
+    assert len(confirmed.json()["recovery_codes"]) == 10
+    assert client.get("/api/v1/auth/me").json()["mfa_enabled"] is True
+    recovery_code = confirmed.json()["recovery_codes"][0]
+    client.post("/api/v1/auth/logout")
+    challenge = client.post("/api/v1/auth/login", json={"email": "owner@example.com", "password": "correct-horse-battery-staple"})
+    assert challenge.json()["mfa_required"] is True
+    assert client.get("/api/v1/auth/me").status_code == 401
+    assert client.post("/api/v1/auth/login/mfa", json={"challenge_token": challenge.json()["challenge_token"], "code": "000000"}).status_code == 401
+    signed_in = client.post("/api/v1/auth/login/mfa", json={"challenge_token": challenge.json()["challenge_token"], "code": pyotp.TOTP(enrollment.json()["secret"]).now()})
+    assert signed_in.status_code == 200
+    client.post("/api/v1/auth/logout")
+    recovery_challenge = client.post("/api/v1/auth/login", json={"email": "owner@example.com", "password": "correct-horse-battery-staple"}).json()
+    assert client.post("/api/v1/auth/login/mfa", json={"challenge_token": recovery_challenge["challenge_token"], "code": recovery_code}).status_code == 200
+    assert client.post("/api/v1/auth/me/mfa/disable", json={"password": "wrong"}).status_code == 401
+    disabled = client.post("/api/v1/auth/me/mfa/disable", json={"password": "correct-horse-battery-staple"})
+    assert disabled.status_code == 200
+    assert disabled.json()["mfa_enabled"] is False

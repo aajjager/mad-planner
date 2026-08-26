@@ -7,8 +7,10 @@ from datetime import UTC, datetime, timedelta
 
 from sqlalchemy import delete, func, select, update
 from sqlalchemy.orm import Session, joinedload
+from cryptography.fernet import Fernet
+import pyotp
 
-from madplanner.models import Family, FamilyInvitation, FamilyMembership, FamilyRole, MealPlanEntry, Recipe, RecipeType, User, UserSession
+from madplanner.models import Family, FamilyInvitation, FamilyMembership, FamilyRole, MealPlanEntry, MfaLoginChallenge, Recipe, RecipeType, SecurityEvent, User, UserSession
 
 
 DEFAULT_RECIPE_TYPES = (
@@ -66,6 +68,11 @@ class AuthContext:
     session: UserSession
 
 
+@dataclass(frozen=True)
+class MfaChallenge:
+    token: str
+
+
 class AuthService:
     def __init__(self, session: Session):
         self.session = session
@@ -95,18 +102,88 @@ class AuthService:
         self.session.commit()
         return auth_context, token
 
-    def login(self, email: str, password: str) -> tuple[AuthContext, str] | None:
+    def login(self, email: str, password: str) -> tuple[AuthContext, str] | MfaChallenge | None:
         user = self.session.scalar(
             select(User)
             .options(joinedload(User.memberships).joinedload(FamilyMembership.family))
             .where(User.normalized_email == normalize_email(email))
         )
-        if user is None or not verify_password(password, user.password_hash) or not user.memberships:
+        if user is None or not user.memberships:
             return None
         membership = user.memberships[0]
+        if not verify_password(password, user.password_hash):
+            self.session.add(SecurityEvent(family_id=membership.family_id, user_id=user.id, event_type="login_failed"))
+            self.session.commit()
+            return None
+        if user.mfa_enabled:
+            token = secrets.token_urlsafe(32)
+            self.session.add(MfaLoginChallenge(user_id=user.id, family_id=membership.family_id, token_hash=hash_token(token), expires_at=utc_now() + timedelta(minutes=5)))
+            self.session.commit()
+            return MfaChallenge(token)
         auth_context, token = self._create_session(user, membership.family, membership.role)
+        self.session.add(SecurityEvent(family_id=membership.family_id, user_id=user.id, event_type="login_succeeded"))
         self.session.commit()
         return auth_context, token
+
+    def complete_mfa_login(self, challenge_token: str, code: str, encryption_key: str) -> tuple[AuthContext, str] | None:
+        challenge = self.session.scalar(select(MfaLoginChallenge).options(joinedload(MfaLoginChallenge.user), joinedload(MfaLoginChallenge.family)).where(MfaLoginChallenge.token_hash == hash_token(challenge_token)))
+        if challenge is None or is_expired(challenge.expires_at) or challenge.attempts >= 5:
+            if challenge is not None:
+                self.session.delete(challenge); self.session.commit()
+            return None
+        membership = self.session.scalar(select(FamilyMembership).where(FamilyMembership.user_id == challenge.user_id, FamilyMembership.family_id == challenge.family_id))
+        user = challenge.user
+        normalized_code = code.strip().replace("-", "").upper()
+        valid = False
+        if user.mfa_secret_encrypted and normalized_code.isdigit():
+            secret = Fernet(encryption_key).decrypt(user.mfa_secret_encrypted.encode()).decode()
+            valid = pyotp.TOTP(secret).verify(normalized_code, valid_window=1)
+        if not valid:
+            recovery_hash = hash_token(normalized_code)
+            valid = any(hmac.compare_digest(recovery_hash, stored) for stored in user.mfa_recovery_code_hashes)
+            if valid:
+                user.mfa_recovery_code_hashes = [stored for stored in user.mfa_recovery_code_hashes if not hmac.compare_digest(recovery_hash, stored)]
+        if not valid or membership is None:
+            challenge.attempts += 1; self.session.commit(); return None
+        self.session.delete(challenge)
+        context, token = self._create_session(user, challenge.family, membership.role)
+        self.session.add(SecurityEvent(family_id=challenge.family_id, user_id=user.id, event_type="login_succeeded"))
+        self.session.commit()
+        return context, token
+
+    def list_security_events(self, family_id: int, limit: int = 100) -> list[SecurityEvent]:
+        return list(self.session.scalars(select(SecurityEvent).options(joinedload(SecurityEvent.user)).where(SecurityEvent.family_id == family_id).order_by(SecurityEvent.created_at.desc(), SecurityEvent.id.desc()).limit(limit)))
+
+    def start_mfa_enrollment(self, context: AuthContext, encryption_key: str) -> tuple[str, str]:
+        secret = pyotp.random_base32()
+        context.user.mfa_secret_encrypted = Fernet(encryption_key).encrypt(secret.encode()).decode()
+        context.user.mfa_enabled = False
+        context.user.mfa_recovery_code_hashes = []
+        self.session.commit()
+        return secret, pyotp.TOTP(secret).provisioning_uri(name=context.user.email, issuer_name="Mad Planner")
+
+    def confirm_mfa_enrollment(self, context: AuthContext, code: str, encryption_key: str) -> list[str] | None:
+        if not context.user.mfa_secret_encrypted:
+            return None
+        secret = Fernet(encryption_key).decrypt(context.user.mfa_secret_encrypted.encode()).decode()
+        if not pyotp.TOTP(secret).verify(code.strip(), valid_window=1):
+            return None
+        recovery_codes = [secrets.token_hex(5).upper() for _ in range(10)]
+        context.user.mfa_recovery_code_hashes = [hash_token(code) for code in recovery_codes]
+        context.user.mfa_enabled = True
+        self.session.add(SecurityEvent(family_id=context.family.id, user_id=context.user.id, event_type="mfa_enabled"))
+        self.session.commit()
+        return recovery_codes
+
+    def disable_mfa(self, context: AuthContext, password: str) -> bool:
+        if not verify_password(password, context.user.password_hash):
+            return False
+        context.user.mfa_enabled = False
+        context.user.mfa_secret_encrypted = None
+        context.user.mfa_recovery_code_hashes = []
+        self.session.add(SecurityEvent(family_id=context.family.id, user_id=context.user.id, event_type="mfa_disabled"))
+        self.session.commit()
+        return True
 
     def authenticate(self, token: str | None) -> AuthContext | None:
         if not token:

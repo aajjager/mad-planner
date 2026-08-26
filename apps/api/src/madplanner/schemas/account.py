@@ -21,6 +21,16 @@ class LoginRequest(BaseModel):
     password: str = Field(min_length=1, max_length=200)
 
 
+class MfaChallengeResponse(BaseModel):
+    mfa_required: Literal[True] = True
+    challenge_token: str
+
+
+class MfaLoginRequest(BaseModel):
+    challenge_token: str = Field(min_length=20, max_length=200)
+    code: str = Field(min_length=6, max_length=30)
+
+
 class AccountResponse(BaseModel):
     id: int
     email: str
@@ -29,10 +39,28 @@ class AccountResponse(BaseModel):
     family_name: str
     role: FamilyRole
     locale: Literal["en", "da", "nl"]
+    mfa_enabled: bool
 
 
 class PersonalPreferencesUpdate(BaseModel):
     locale: Literal["en", "da", "nl"]
+
+
+class MfaEnrollmentResponse(BaseModel):
+    secret: str
+    provisioning_uri: str
+
+
+class MfaConfirmRequest(BaseModel):
+    code: str = Field(min_length=6, max_length=8)
+
+
+class MfaRecoveryCodesResponse(BaseModel):
+    recovery_codes: list[str]
+
+
+class MfaDisableRequest(BaseModel):
+    password: str = Field(min_length=1, max_length=200)
 
 
 class FamilyMemberResponse(BaseModel):
@@ -48,6 +76,13 @@ class ManagedInvitationResponse(BaseModel):
     intended_email: str
     expires_at: str
     role: FamilyRole
+
+
+class SecurityEventResponse(BaseModel):
+    id: int
+    event_type: str
+    user_email: str | None
+    created_at: str
 
 
 class FamilyMemberRoleUpdate(BaseModel):

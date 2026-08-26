@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
-import { listFamilyMembers, listManagedInvitations, removeFamilyMember, revokeInvitation, revokeMemberSessions, updateFamilyMemberRole, type FamilyMember, type FamilyRole, type ManagedInvitation } from '../api/auth'
+import { listFamilyMembers, listManagedInvitations, listSecurityEvents, removeFamilyMember, revokeInvitation, revokeMemberSessions, updateFamilyMemberRole, type FamilyMember, type FamilyRole, type ManagedInvitation, type SecurityEvent } from '../api/auth'
 import { useAuth } from '../auth/AuthContext'
 import { localeTag, translator } from '../i18n'
 import { Navigate } from 'react-router-dom'
@@ -10,13 +10,14 @@ export function AdminPage() {
   const t = translator(account?.locale); const locale = localeTag(account?.locale)
   const [members, setMembers] = useState<FamilyMember[]>([])
   const [invitations, setInvitations] = useState<ManagedInvitation[]>([])
+  const [securityEvents, setSecurityEvents] = useState<SecurityEvent[]>([])
   const [error, setError] = useState('')
   const [busy, setBusy] = useState('')
 
   const refresh = useCallback(async () => {
     try {
-      const [nextMembers, nextInvitations] = await Promise.all([listFamilyMembers(), listManagedInvitations()])
-      setMembers(nextMembers); setInvitations(nextInvitations)
+      const [nextMembers, nextInvitations, nextSecurityEvents] = await Promise.all([listFamilyMembers(), listManagedInvitations(), listSecurityEvents()])
+      setMembers(nextMembers); setInvitations(nextInvitations); setSecurityEvents(nextSecurityEvents)
     } catch (reason) { setError(reason instanceof Error ? reason.message : t('adminLoadFailed')) }
   // oxlint-disable-next-line react-hooks/exhaustive-deps -- Refresh when the signed-in user's locale changes.
   }, [account?.locale])
@@ -61,6 +62,7 @@ export function AdminPage() {
     <div className="admin-stack">
       <section className="family-panel"><h2>{t('familyLogins')}</h2><div className="admin-list">{members.map((member) => <article key={member.id}><span className="member-avatar">{member.display_name.charAt(0).toUpperCase()}</span><div><strong>{member.display_name}</strong><small>{member.email} · {member.active_sessions} {member.active_sessions === 1 ? t('activeLogin') : t('activeLogins')}</small></div>{member.role === 'owner' ? <span className="tag">{t('owner')}</span> : <select aria-label={`${member.display_name} ${t('permission')}`} value={member.role} disabled={Boolean(busy)} onChange={(event) => void changeRole(member, event.target.value as Exclude<FamilyRole, 'owner'>)}><option value="editor">{t('editor')}</option><option value="planner">{t('plannerRole')}</option><option value="viewer">{t('viewer')}</option></select>}{member.role !== 'owner' && <div className="admin-actions"><button className="button" disabled={Boolean(busy)} onClick={() => void revokeSessions(member)}>{t('signOutEverywhere')}</button><button className="button button--danger" disabled={Boolean(busy)} onClick={() => void removeMember(member)}>{t('removeAccess')}</button></div>}</article>)}</div></section>
       <section className="family-panel"><h2>{t('pendingInvitations')}</h2>{invitations.length === 0 ? <p>{t('noPendingInvitations')}</p> : <div className="admin-list">{invitations.map((invitation) => <article key={invitation.id}><div><strong>{invitation.intended_email}</strong><small>{invitation.role} · {t('expires')} {new Date(invitation.expires_at).toLocaleDateString(locale)}</small></div><div className="admin-actions"><button className="button button--danger" disabled={Boolean(busy)} onClick={() => void cancelInvitation(invitation)}>{t('revokeInvitation')}</button></div></article>)}</div>}</section>
+      <section className="family-panel"><h2>{t('securityHistory')}</h2><p>{t('securityHistoryHelp')}</p>{securityEvents.length === 0 ? <p>{t('noSecurityEvents')}</p> : <div className="security-event-list">{securityEvents.map((event) => <article key={event.id}><span className={`security-event-dot security-event-dot--${event.event_type === 'login_succeeded' ? 'success' : 'warning'}`} aria-hidden="true" /><div><strong>{event.event_type === 'login_succeeded' ? t('loginSucceeded') : event.event_type === 'login_failed' ? t('loginFailed') : event.event_type}</strong><small>{event.user_email || t('unknownAccount')}</small></div><time dateTime={event.created_at}>{new Date(event.created_at).toLocaleString(locale)}</time></article>)}</div>}</section>
     </div>
   </section>
 }

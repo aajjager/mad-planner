@@ -1,12 +1,16 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react'
-import { ApiError, getCurrentAccount, getSetupStatus, login as loginRequest, logout as logoutRequest, setupOwner as setupRequest, updatePersonalLocale, type Account } from '../api/auth'
+import { ApiError, completeMfaLogin as completeMfaLoginRequest, confirmMfaEnrollment as confirmMfaRequest, disableMfa as disableMfaRequest, getCurrentAccount, getSetupStatus, login as loginRequest, logout as logoutRequest, setupOwner as setupRequest, startMfaEnrollment as startMfaRequest, updatePersonalLocale, type Account, type MfaChallenge, type MfaEnrollment } from '../api/auth'
 import { rememberLocale } from '../i18n'
 
 interface AuthValue {
   account: Account | null
   loading: boolean
   setupRequired: boolean
-  login: (email: string, password: string) => Promise<void>
+  login: (email: string, password: string) => Promise<MfaChallenge | null>
+  completeMfaLogin: (challengeToken: string, code: string) => Promise<void>
+  startMfaEnrollment: () => Promise<MfaEnrollment>
+  confirmMfaEnrollment: (code: string) => Promise<string[]>
+  disableMfa: (password: string) => Promise<void>
   setupOwner: (data: { email: string; display_name: string; password: string; family_name: string }) => Promise<void>
   acceptAccount: (account: Account) => void
   logout: () => Promise<void>
@@ -37,7 +41,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     account,
     loading,
     setupRequired,
-    login: async (email, password) => { setAccount(await loginRequest({ email, password })) },
+    login: async (email, password) => { const result = await loginRequest({ email, password }); if ('mfa_required' in result) return result; setAccount(result); return null },
+    completeMfaLogin: async (challengeToken, code) => { setAccount(await completeMfaLoginRequest(challengeToken, code)) },
+    startMfaEnrollment: startMfaRequest,
+    confirmMfaEnrollment: async (code) => { const result = await confirmMfaRequest(code); setAccount(await getCurrentAccount()); return result.recovery_codes },
+    disableMfa: async (password) => { setAccount(await disableMfaRequest(password)) },
     setupOwner: async (data) => { setAccount(await setupRequest(data)); setSetupRequired(false) },
     acceptAccount: (nextAccount) => { setAccount(nextAccount); setSetupRequired(false) },
     logout: async () => { await logoutRequest(); setAccount(null) },

@@ -12,6 +12,7 @@ class Settings(BaseSettings):
     session_cookie_name: str = "madplanner_session"
     session_cookie_secure: bool = False
     media_root: Path = Path("/data/media")
+    mfa_encryption_key: SecretStr | None = None
 
     model_config = SettingsConfigDict(
         env_file=".env",

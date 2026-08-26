@@ -92,12 +92,13 @@
 
 - [ ] Phase 14 — Personal languages
   - [x] Add per-user locale settings
-  - [ ] Translate the interface into English, Danish, and Dutch
-  - [ ] Localize dates, quantities, and units
+  - [x] Translate the interface into English, Danish, and Dutch
+  - [x] Localize dates, quantities, and units
 
 - [ ] Phase 15 — MFA and passkeys
-  - [ ] Add account recovery and security-event logging
-  - [ ] Add TOTP MFA and recovery codes
+  - [x] Add family-scoped security-event logging
+  - [ ] Add account recovery
+  - [x] Add TOTP MFA and recovery codes
   - [ ] Add WebAuthn/passkeys after HTTPS and hostname setup
 
 - [ ] Phase 16 — Deployment resilience
