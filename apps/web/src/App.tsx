@@ -12,6 +12,7 @@ import { FamilyPage } from './pages/FamilyPage'
 import { InvitationPage } from './pages/InvitationPage'
 import { AdminPage } from './pages/AdminPage'
 import { ScanRecipePage } from './pages/ScanRecipePage'
+import { PasswordResetPage } from './pages/PasswordResetPage'
 import { translator } from './i18n'
 
 function ApplicationShell() {
@@ -52,7 +53,7 @@ function AuthenticatedRoutes() {
 }
 
 function App() {
-  return <BrowserRouter><AuthProvider><Routes><Route path="/invite/:token" element={<InvitationPage />} /><Route path="*" element={<AuthenticatedRoutes />} /></Routes></AuthProvider></BrowserRouter>
+  return <BrowserRouter><AuthProvider><Routes><Route path="/invite/:token" element={<InvitationPage />} /><Route path="/password-reset/:token" element={<PasswordResetPage />} /><Route path="*" element={<AuthenticatedRoutes />} /></Routes></AuthProvider></BrowserRouter>
 }
 
 export default App

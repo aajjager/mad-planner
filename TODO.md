@@ -97,13 +97,15 @@
 
 - [ ] Phase 15 — MFA and passkeys
   - [x] Add family-scoped security-event logging
-  - [ ] Add account recovery
+  - [x] Add owner-issued account recovery links
   - [x] Add TOTP MFA and recovery codes
   - [ ] Add WebAuthn/passkeys after HTTPS and hostname setup
 
 - [ ] Phase 16 — Deployment resilience
-  - [ ] Add persistent media storage
-  - [ ] Add and test PostgreSQL backup/restore tooling
-  - [ ] Pin production versions and document rollback
+  - [x] Add persistent media storage
+  - [x] Add PostgreSQL backup/restore tooling
+  - [x] Verify a portable backup against the live development database
+  - [ ] Verify restore against a disposable TrueNAS database
+  - [x] Pin production versions and document rollback
 
 See [docs/product-roadmap.md](docs/product-roadmap.md) for design notes and dependency ordering.

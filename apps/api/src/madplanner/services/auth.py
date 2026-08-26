@@ -10,7 +10,7 @@ from sqlalchemy.orm import Session, joinedload
 from cryptography.fernet import Fernet
 import pyotp
 
-from madplanner.models import Family, FamilyInvitation, FamilyMembership, FamilyRole, MealPlanEntry, MfaLoginChallenge, Recipe, RecipeType, SecurityEvent, User, UserSession
+from madplanner.models import Family, FamilyInvitation, FamilyMembership, FamilyRole, MealPlanEntry, MfaLoginChallenge, PasswordResetToken, Recipe, RecipeType, SecurityEvent, User, UserSession
 
 
 DEFAULT_RECIPE_TYPES = (
@@ -184,6 +184,40 @@ class AuthService:
         self.session.add(SecurityEvent(family_id=context.family.id, user_id=context.user.id, event_type="mfa_disabled"))
         self.session.commit()
         return True
+
+    def create_password_reset(self, context: AuthContext, user_id: int) -> tuple[PasswordResetToken, str] | None:
+        membership = self.session.scalar(select(FamilyMembership).options(joinedload(FamilyMembership.user)).where(FamilyMembership.family_id == context.family.id, FamilyMembership.user_id == user_id))
+        if membership is None:
+            return None
+        self.session.execute(delete(PasswordResetToken).where(PasswordResetToken.user_id == user_id))
+        token = secrets.token_urlsafe(32)
+        reset = PasswordResetToken(user_id=user_id, family_id=context.family.id, created_by_user_id=context.user.id, token_hash=hash_token(token), expires_at=utc_now() + timedelta(minutes=30))
+        self.session.add(reset)
+        self.session.add(SecurityEvent(family_id=context.family.id, user_id=user_id, event_type="password_reset_created"))
+        self.session.commit()
+        return reset, token
+
+    def get_password_reset(self, token: str) -> PasswordResetToken | None:
+        reset = self.session.scalar(select(PasswordResetToken).options(joinedload(PasswordResetToken.user)).where(PasswordResetToken.token_hash == hash_token(token)))
+        if reset is None or is_expired(reset.expires_at):
+            if reset is not None:
+                self.session.delete(reset); self.session.commit()
+            return None
+        return reset
+
+    def complete_password_reset(self, token: str, password: str) -> User | None:
+        reset = self.get_password_reset(token)
+        if reset is None:
+            return None
+        user = reset.user
+        user.password_hash = hash_password(password)
+        user.mfa_enabled = False; user.mfa_secret_encrypted = None; user.mfa_recovery_code_hashes = []
+        self.session.execute(delete(UserSession).where(UserSession.user_id == user.id))
+        self.session.execute(delete(MfaLoginChallenge).where(MfaLoginChallenge.user_id == user.id))
+        self.session.delete(reset)
+        self.session.add(SecurityEvent(family_id=reset.family_id, user_id=user.id, event_type="password_reset_completed"))
+        self.session.commit()
+        return user
 
     def authenticate(self, token: str | None) -> AuthContext | None:
         if not token:

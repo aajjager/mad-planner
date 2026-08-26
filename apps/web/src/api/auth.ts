@@ -12,6 +12,8 @@ export interface Account {
 }
 export interface MfaChallenge { mfa_required: true; challenge_token: string }
 export interface MfaEnrollment { secret: string; provisioning_uri: string }
+export interface PasswordResetLink { token: string; intended_email: string; expires_at: string }
+export interface PasswordResetPreview { intended_email: string }
 
 export interface FamilyMember {
   id: number
@@ -83,6 +85,9 @@ export const listManagedInvitations = () => request<ManagedInvitation[]>('/api/v
 export const listSecurityEvents = () => request<SecurityEvent[]>('/api/v1/auth/admin/security-events')
 export const revokeInvitation = (id: number) => request<void>(`/api/v1/auth/admin/invitations/${id}`, { method: 'DELETE' })
 export const revokeMemberSessions = (id: number) => request<void>(`/api/v1/auth/admin/members/${id}/revoke-sessions`, { method: 'POST' })
+export const createPasswordReset = (id: number) => request<PasswordResetLink>(`/api/v1/auth/admin/members/${id}/password-reset`, { method: 'POST' })
+export const getPasswordReset = (token: string) => request<PasswordResetPreview>(`/api/v1/auth/password-resets/${encodeURIComponent(token)}`)
+export const completePasswordReset = (token: string, password: string) => request<void>(`/api/v1/auth/password-resets/${encodeURIComponent(token)}`, jsonOptions('POST', { password }))
 export const removeFamilyMember = (id: number) => request<void>(`/api/v1/auth/admin/members/${id}`, { method: 'DELETE' })
 export const getFamilySettings = () => request<FamilySettings>('/api/v1/auth/family/settings')
 export const updateFamilySettings = (settings: FamilySettings) => request<FamilySettings>('/api/v1/auth/family/settings', jsonOptions('PUT', settings))

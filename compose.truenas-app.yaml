@@ -1,5 +1,5 @@
 # Standalone configuration for TrueNAS SCALE 24.10+ "Install via YAML".
-# Before installing, replace both CHANGE_THIS_PASSWORD values and the dataset path.
+# Before installing, replace all CHANGE_THIS values, the image SHA, and dataset paths.
 name: madplanner
 
 services:
@@ -31,11 +31,12 @@ services:
         target: /var/lib/postgresql
 
   api:
-    image: ghcr.io/aajjager/mad-planner-api:latest
+    image: ghcr.io/aajjager/mad-planner-api:sha-REPLACE_WITH_GITHUB_SHA
     restart: unless-stopped
     environment:
       DATABASE_URL: "postgresql+psycopg://madplanner:CHANGE_THIS_PASSWORD@db:5432/madplanner"
       MEDIA_ROOT: /data/media
+      MFA_ENCRYPTION_KEY: "CHANGE_THIS_FERNET_KEY"
     volumes:
       - type: bind
         source: /mnt/tank/apps/mad-planner/media
@@ -57,7 +58,7 @@ services:
       start_period: 10s
 
   web:
-    image: ghcr.io/aajjager/mad-planner-web:latest
+    image: ghcr.io/aajjager/mad-planner-web:sha-REPLACE_WITH_GITHUB_SHA
     restart: unless-stopped
     depends_on:
       api:

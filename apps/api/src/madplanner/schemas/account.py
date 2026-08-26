@@ -63,6 +63,20 @@ class MfaDisableRequest(BaseModel):
     password: str = Field(min_length=1, max_length=200)
 
 
+class PasswordResetLinkResponse(BaseModel):
+    token: str
+    intended_email: str
+    expires_at: str
+
+
+class PasswordResetPreviewResponse(BaseModel):
+    intended_email: str
+
+
+class PasswordResetRequest(BaseModel):
+    password: str = Field(min_length=10, max_length=200)
+
+
 class FamilyMemberResponse(BaseModel):
     id: int
     email: str

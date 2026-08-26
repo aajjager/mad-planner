@@ -129,6 +129,19 @@ def test_domain_endpoints_require_authentication(client: TestClient) -> None:
     assert client.get("/api/v1/grocery-lists/week", params={"week_start": "2026-08-17"}).status_code == 401
 
 
+def test_owner_can_issue_single_use_password_reset(client: TestClient) -> None:
+    owner = setup_owner(client)
+    reset = client.post(f"/api/v1/auth/admin/members/{owner['id']}/password-reset")
+    assert reset.status_code == 200
+    token = reset.json()["token"]
+    assert client.get(f"/api/v1/auth/password-resets/{token}").json()["intended_email"] == "owner@example.com"
+    assert client.post(f"/api/v1/auth/password-resets/{token}", json={"password": "new-secure-password"}).status_code == 204
+    assert client.get("/api/v1/auth/me").status_code == 401
+    assert client.post(f"/api/v1/auth/password-resets/{token}", json={"password": "another-secure-password"}).status_code == 404
+    assert client.post("/api/v1/auth/login", json={"email": "owner@example.com", "password": "correct-horse-battery-staple"}).status_code == 401
+    assert client.post("/api/v1/auth/login", json={"email": "owner@example.com", "password": "new-secure-password"}).status_code == 200
+
+
 def test_owner_can_enroll_totp_mfa(client: TestClient) -> None:
     get_settings().mfa_encryption_key = SecretStr(Fernet.generate_key().decode())
     setup_owner(client)

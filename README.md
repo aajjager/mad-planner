@@ -38,6 +38,8 @@ The `.env` file is ignored by Git. Change its password before deploying outside 
 
 The production override stores PostgreSQL in a TrueNAS dataset and makes the network bind address configurable. Follow the complete [TrueNAS deployment guide](docs/truenas-deployment.md) for setup, backups, restores, and updates.
 
+Create a portable local database backup with `.\scripts\backup-database.ps1` on Windows or `sh scripts/backup-database.sh` on Linux/TrueNAS.
+
 ## Database migrations
 
 Run schema migrations from `apps/api` with:

@@ -25,6 +25,9 @@ from madplanner.schemas.account import (
     MfaRecoveryCodesResponse,
     ManagedInvitationResponse,
     OwnerSetupRequest,
+    PasswordResetLinkResponse,
+    PasswordResetPreviewResponse,
+    PasswordResetRequest,
     PersonalPreferencesUpdate,
     RecipeTypeCreate,
     RecipeTypeResponse,
@@ -260,6 +263,30 @@ def revoke_invitation(invitation_id: int, context: Annotated[AuthContext, Depend
 def revoke_member_sessions(user_id: int, context: Annotated[AuthContext, Depends(require_owner)], service: Annotated[AuthService, Depends(get_auth_service)]) -> Response:
     if not service.revoke_member_sessions(context.family.id, user_id):
         raise HTTPException(status_code=404, detail="Family member not found")
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
+@router.post("/admin/members/{user_id}/password-reset", response_model=PasswordResetLinkResponse)
+def create_password_reset(user_id: int, context: Annotated[AuthContext, Depends(require_owner)], service: Annotated[AuthService, Depends(get_auth_service)]):
+    result = service.create_password_reset(context, user_id)
+    if result is None:
+        raise HTTPException(status_code=404, detail="Family member not found")
+    reset, token = result
+    return PasswordResetLinkResponse(token=token, intended_email=reset.user.email, expires_at=reset.expires_at.isoformat())
+
+
+@router.get("/password-resets/{token}", response_model=PasswordResetPreviewResponse)
+def password_reset_preview(token: str, service: Annotated[AuthService, Depends(get_auth_service)]):
+    reset = service.get_password_reset(token)
+    if reset is None:
+        raise HTTPException(status_code=404, detail="Password reset link is invalid or expired")
+    return PasswordResetPreviewResponse(intended_email=reset.user.email)
+
+
+@router.post("/password-resets/{token}", status_code=status.HTTP_204_NO_CONTENT)
+def complete_password_reset(token: str, data: PasswordResetRequest, service: Annotated[AuthService, Depends(get_auth_service)]):
+    if service.complete_password_reset(token, data.password) is None:
+        raise HTTPException(status_code=404, detail="Password reset link is invalid or expired")
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
