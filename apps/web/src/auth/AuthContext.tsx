@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react'
 import { ApiError, getCurrentAccount, getSetupStatus, login as loginRequest, logout as logoutRequest, setupOwner as setupRequest, updatePersonalLocale, type Account } from '../api/auth'
+import { rememberLocale } from '../i18n'
 
 interface AuthValue {
   account: Account | null
@@ -30,7 +31,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       })
       .finally(() => setLoading(false))
   }, [])
-  useEffect(() => { document.documentElement.lang = account?.locale || 'en' }, [account?.locale])
+  useEffect(() => { if (account?.locale) rememberLocale(account.locale) }, [account?.locale])
 
   const value: AuthValue = {
     account,
