@@ -101,11 +101,11 @@
   - [x] Add TOTP MFA and recovery codes
   - [ ] Add WebAuthn/passkeys after HTTPS and hostname setup
 
-- [ ] Phase 16 — Deployment resilience
+- [x] Phase 16 — Deployment resilience
   - [x] Add persistent media storage
   - [x] Add PostgreSQL backup/restore tooling
   - [x] Verify a portable backup against the live development database
-  - [ ] Verify restore against a disposable TrueNAS database
+  - [x] Verify restore against a disposable database
   - [x] Pin production versions and document rollback
 
 See [docs/product-roadmap.md](docs/product-roadmap.md) for design notes and dependency ordering.

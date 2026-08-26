@@ -88,6 +88,22 @@ Windows:
 
 After restoration, check container health and verify login, recipes, planner entries, grocery lists, and recipe images.
 
+### Test a backup without touching live data
+
+The verification script creates a uniquely named temporary database, restores and queries the dump, then removes that temporary database. The live Mad Planner database remains online and unchanged.
+
+Windows:
+
+```powershell
+.\scripts\verify-database-restore.ps1 -BackupFile .\backups\mad-planner-YYYYMMDD-HHMMSS.dump
+```
+
+TrueNAS/Linux:
+
+```sh
+sh scripts/verify-database-restore.sh backups/mad-planner-YYYYMMDD-HHMMSS.dump
+```
+
 ## Update Mad Planner
 
 The standalone YAML uses immutable `sha-...` image tags instead of `latest`. Before deployment, replace `REPLACE_WITH_GITHUB_SHA` in both image names with the short commit SHA shown by the successful GitHub Actions publication, for example `sha-a1b2c3d`. Both API and web must use the same commit tag.
