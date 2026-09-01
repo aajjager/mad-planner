@@ -9,6 +9,8 @@ export interface Account {
   role: FamilyRole
   locale: 'en' | 'da' | 'nl'
   show_nutrition: boolean
+  dark_mode: boolean
+  accent_theme: 'sage' | 'ocean' | 'berry' | 'gold'
   browser_notifications_enabled: boolean
   mfa_enabled: boolean
 }
@@ -34,6 +36,12 @@ export interface FamilySettings {
   cooking_mode_enabled: boolean
   plan_reminders_enabled: boolean
   plan_reminder_weeks: number
+  planning_suggestion_mode: 'review' | 'auto'
+  rating_filter_enabled: boolean
+  rating_minimum: number
+  rating_target_percent: number
+  rated_recipe_count: number
+  rating_filter_eligible: boolean
   enabled_meal_types: Array<'breakfast' | 'lunch' | 'dinner'>
 }
 
@@ -99,4 +107,4 @@ export const updateFamilyMemberRole = (id: number, role: Exclude<FamilyRole, 'ow
 export const listRecipeTypes = () => request<RecipeType[]>('/api/v1/auth/family/recipe-types')
 export const createRecipeType = (name: string, meal_type: RecipeType['meal_type']) => request<RecipeType>('/api/v1/auth/family/recipe-types', jsonOptions('POST', { name, meal_type }))
 export const deleteRecipeType = (id: number) => request<void>(`/api/v1/auth/family/recipe-types/${id}`, { method: 'DELETE' })
-export const updatePersonalPreferences = (preferences: { locale?: Account['locale']; show_nutrition?: boolean; browser_notifications_enabled?: boolean }) => request<Account>('/api/v1/auth/me/preferences', jsonOptions('PATCH', preferences))
+export const updatePersonalPreferences = (preferences: { locale?: Account['locale']; show_nutrition?: boolean; dark_mode?: boolean; accent_theme?: Account['accent_theme']; browser_notifications_enabled?: boolean }) => request<Account>('/api/v1/auth/me/preferences', jsonOptions('PATCH', preferences))

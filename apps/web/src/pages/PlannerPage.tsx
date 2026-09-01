@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
-import { assignMeal, excludeMeal, getMealPlanWeek, includeMeal, planLeftovers, removeMeal, suggestMealPlanWeek, type MealPlanEntry, type MealPlanExclusion, type MealSuggestionOption, type MealType } from '../api/planner'
+import { assignMeal, excludeMeal, getMealPlanWeek, includeMeal, planLeftovers, removeMeal, suggestMealPlanWeek, type MealPlanEntry, type MealPlanExclusion, type MealSuggestion, type MealSuggestionOption, type MealType } from '../api/planner'
 import { listRecipes, type Recipe } from '../api/recipes'
 import { getFamilySettings, type FamilySettings } from '../api/auth'
 import { useAuth } from '../auth/AuthContext'
 import { localeTag, translator } from '../i18n'
 import { RecipePicker } from '../components/RecipePicker'
+import { PlanningPreferencePicker } from '../components/PlanningPreferencePicker'
 import './PlannerPage.css'
 
 const allMealTypes: MealType[] = ['breakfast', 'lunch', 'dinner']
@@ -16,6 +17,23 @@ const mondayOf = (value: Date) => addDays(value, -((value.getDay() + 6) % 7))
 const parseWeek = (value: string | null) => { if (!value) return mondayOf(new Date()); const [year, month, day] = value.split('-').map(Number); return mondayOf(new Date(year, month - 1, day)) }
 const prettyDate = (value: Date, locale = document.documentElement.lang || 'en') => value.toLocaleDateString(locale, { day: 'numeric', month: 'short' })
 const signalPlanChanged = () => window.dispatchEvent(new Event('madplanner:plan-changed'))
+const hiddenPlanningFilters = new Set([
+  'aftensmad', 'dinner', 'frokost', 'lunch', 'morgenmad', 'breakfast', 'brunch', 'hovedret', 'hovedretter',
+  'forret', 'forretter', 'dessert', 'desserter', 'cake', 'kage', 'bake-off', 'bread', 'brød', 'snack', 'snacks',
+  'buffet', 'tilbehør', 'side dish', 'madpakke', 'mellemmåltid', 'dip og dressinger', 'salater', 'salad', 'soup', 'suppe',
+  'salt', 'groft salt', 'peber', 'friskkværnet peber', 'vand', 'water', 'olie', 'oil', 'smør', 'butter', 'sukker', 'sugar',
+])
+const planningQuantity = '[0-9.,½¼¾⅓⅔⅛/-]+'
+const planningUnit = '(?:mg|g|kg|ml|cl|dl|l|tsk|teskefulde?|spsk|spk|spiseskefulde?|stk|styk(?:ker)?|fed|dåser?|ds|pakker?|pk|bundter?|knivspids(?:er)?)'
+const cleanPlanningIngredient = (value: string) => value
+  .replace(new RegExp(`^\\s*${planningQuantity}(?:\\s*[-–]\\s*${planningQuantity})?\\s*(?:${planningUnit})?\\.?\\s+`, 'iu'), '')
+  .replace(new RegExp(`[,;]?\\s+${planningQuantity}(?:\\s*[-–]\\s*${planningQuantity})?\\s*${planningUnit}\\.?\\s*$`, 'iu'), '')
+  .replace(/\s*\([^)]*(?:\d|\b(?:g|kg|ml|dl|tsk|spsk|stk)\b)[^)]*\)\s*$/iu, '')
+  .replace(/^[,;\s]+|[,;\s]+$/g, '')
+const usefulPlanningFilter = (value: string) => {
+  const normalized = value.trim().toLocaleLowerCase()
+  return normalized.length > 2 && normalized.length < 35 && normalized.split(/\s+/).length <= 4 && !hiddenPlanningFilters.has(normalized)
+}
 
 export function PlannerPage() {
   const { account } = useAuth()
@@ -39,10 +57,9 @@ export function PlannerPage() {
   const dayNames = days.map((day) => day.toLocaleDateString(locale, { weekday: 'long' }))
   const availableTags = useMemo(() => [...new Set(recipes.flatMap((recipe) => [
     ...recipe.tags,
-    ...recipe.recipe_types,
     ...(recipe.cuisine ? recipe.cuisine.split(',').map((value) => value.trim()) : []),
-    ...(recipe.category ? recipe.category.split(',').map((value) => value.trim()) : []),
-  ]).filter(Boolean))].sort((a, b) => a.localeCompare(b)), [recipes])
+    ...recipe.ingredients.map((ingredient) => cleanPlanningIngredient(ingredient.ingredient_name || '')).filter(Boolean),
+  ]).filter(usefulPlanningFilter))].sort((a, b) => a.localeCompare(b)), [recipes])
   const optionTitle = (id: string) => id === 'option-1' ? t('bestMatch') : id === 'option-2' ? t('moreVariety') : t('seasonalMix')
   const optionFocus = (id: string) => id === 'option-1' ? t('bestMatchHelp') : id === 'option-2' ? t('moreVarietyHelp') : t('seasonalMixHelp')
 
@@ -85,8 +102,18 @@ export function PlannerPage() {
   async function generateSuggestions() {
     if (!canEditPlanner) return
     setSaving('suggestions')
-    try { const result = await suggestMealPlanWeek(dateKey(weekStart), { meal_types: selectedMealTypes, preferred_tags: preferredTags, max_cooking_time_minutes: maxTime ? Number(maxTime) : undefined, include_leftover_lunches: Boolean(familySettings?.leftovers_enabled) }); setSuggestionOptions(result.options); setSelectedOptionId(result.options[0]?.id || '') }
+    try {
+      const result = await suggestMealPlanWeek(dateKey(weekStart), { meal_types: selectedMealTypes, preferred_tags: preferredTags, max_cooking_time_minutes: maxTime ? Number(maxTime) : undefined, include_leftover_lunches: Boolean(familySettings?.leftovers_enabled) })
+      if (familySettings?.planning_suggestion_mode === 'auto' && result.options[0]) await applySuggestionItems(result.options[0].suggestions)
+      else { setSuggestionOptions(result.options); setSelectedOptionId(result.options[0]?.id || '') }
+    }
     catch { setState('error') } finally { setSaving('') }
+  }
+
+  async function applySuggestionItems(suggestions: MealSuggestion[]) {
+    for (const item of suggestions.filter((suggestion) => !suggestion.is_leftover)) await assignMeal(item.meal_date, item.meal_type, item.recipe.id)
+    for (const item of suggestions.filter((suggestion) => suggestion.is_leftover && suggestion.source_date)) await planLeftovers(item.source_date!, 'dinner')
+    const plan = await getMealPlanWeek(dateKey(weekStart)); setEntries(plan.entries); setExclusions(plan.exclusions || []); setSuggestionOptions(null); signalPlanChanged()
   }
 
   async function applySuggestions() {
@@ -94,9 +121,7 @@ export function PlannerPage() {
     const suggestions = suggestionOptions?.find((option) => option.id === selectedOptionId)?.suggestions
     if (!suggestions) return; setSaving('suggestions')
     try {
-      for (const item of suggestions.filter((suggestion) => !suggestion.is_leftover)) await assignMeal(item.meal_date, item.meal_type, item.recipe.id)
-      for (const item of suggestions.filter((suggestion) => suggestion.is_leftover && suggestion.source_date)) await planLeftovers(item.source_date!, 'dinner')
-      const plan = await getMealPlanWeek(dateKey(weekStart)); setEntries(plan.entries); setExclusions(plan.exclusions || []); setSuggestionOptions(null); signalPlanChanged()
+      await applySuggestionItems(suggestions)
     } catch { setState('error') } finally { setSaving('') }
   }
 
@@ -104,7 +129,7 @@ export function PlannerPage() {
     <div className="page-heading"><div><p className="eyebrow">{t('weeklyPlanner')}</p><h1>{t('planYourWeek')}</h1><p>{t('plannerIntro')}</p></div></div>
     {!canEditPlanner && <p className="notice">You have read-only access to this family planner.</p>}
     <div className="week-toolbar"><button className="button" onClick={() => changeWeek(addDays(weekStart, -7))}>← {t('previous')}</button><div><strong>{prettyDate(days[0], locale)} – {prettyDate(days[6], locale)}</strong><button className="text-button" onClick={() => changeWeek(mondayOf(new Date()))}>{t('thisWeek')}</button><Link className="text-button" to={`/grocery-list?week=${dateKey(weekStart)}`}>{t('groceryList')}</Link></div><button className="button" onClick={() => changeWeek(addDays(weekStart, 7))}>{t('next')} →</button></div>
-    {state === 'ready' && recipes.length > 0 && <section className="smart-planner"><div className="smart-planner__heading"><div><p className="eyebrow">{t('smartPlanning')}</p><h2>{t('variedWeek')}</h2></div><button className="button button--primary" disabled={saving === 'suggestions'} onClick={generateSuggestions}>{saving === 'suggestions' ? t('working') : t('suggestWeek')}</button></div><div className="preference-group"><span>{t('familyPlannerSettings')}</span><div className="choice-chips">{selectedMealTypes.map((mealType) => <span className="choice-chip choice-chip--selected" key={mealType}>{t(mealType)}</span>)}</div><small>{familySettings?.household_size} {t('people')} · {t('leftovers')} {familySettings?.leftovers_enabled ? t('enabled') : t('disabled')} · {t('changeInFamily')}</small></div><div className="preference-group"><span>{t('preferredTags')}</span>{availableTags.length > 0 ? <div className="choice-chips">{availableTags.map((tag) => <button type="button" className={`choice-chip${preferredTags.includes(tag) ? ' choice-chip--selected' : ''}`} aria-pressed={preferredTags.includes(tag)} onClick={() => toggleTag(tag)} key={tag}>{tag}</button>)}</div> : <small>{t('addTagsHelp')}</small>}</div><div className="smart-preferences"><label className="field"><span>{t('maximumTime')}</span><select value={maxTime} onChange={(event) => setMaxTime(event.target.value)}><option value="30">30 {t('minutes')}</option><option value="45">45 {t('minutes')}</option><option value="60">60 {t('minutes')}</option><option value="">{t('noLimit')}</option></select></label></div>{suggestionOptions && <div className="suggestion-review"><div className="suggestion-review__heading"><div><strong>{t('chooseWeekPlan')}</strong><span>{t('existingMealsSafe')}</span></div><div><button className="button" onClick={() => setSuggestionOptions(null)}>{t('cancel')}</button><button className="button button--primary" disabled={!selectedOptionId} onClick={applySuggestions}>{t('applySuggestions')}</button></div></div><div className="suggestion-options">{suggestionOptions.map((option, index) => <button type="button" className={`suggestion-option${selectedOptionId === option.id ? ' suggestion-option--selected' : ''}`} aria-pressed={selectedOptionId === option.id} onClick={() => setSelectedOptionId(option.id)} key={option.id}><span>{t('option')} {index + 1}</span><strong>{optionTitle(option.id)}</strong><small>{optionFocus(option.id)}</small><b>{option.suggestions.filter((item) => !item.is_leftover).length} {t('plannedMeals')}</b></button>)}</div><div className="suggestion-list">{(suggestionOptions.find((option) => option.id === selectedOptionId)?.suggestions || []).map((item) => <div className={`suggestion-item${item.is_leftover ? ' suggestion-item--leftover' : ''}`} key={`${item.meal_date}-${item.meal_type}`}><span>{item.meal_date.slice(5)}</span><strong>{item.recipe.name}</strong><small>{item.is_leftover ? t('leftoverLunch') : item.reasons.join(' · ')}</small></div>)}</div></div>}</section>}
+    {state === 'ready' && recipes.length > 0 && <section className="smart-planner"><div className="smart-planner__heading"><div><p className="eyebrow">{t('smartPlanning')}</p><h2>{t('variedWeek')}</h2></div><button className="button button--primary" disabled={saving === 'suggestions'} onClick={generateSuggestions}>{saving === 'suggestions' ? t('working') : t('suggestWeek')}</button></div><div className="preference-group"><span>{t('familyPlannerSettings')}</span><div className="choice-chips">{selectedMealTypes.map((mealType) => <span className="choice-chip choice-chip--selected" key={mealType}>{t(mealType)}</span>)}</div><small>{familySettings?.household_size} {t('people')} · {t('leftovers')} {familySettings?.leftovers_enabled ? t('enabled') : t('disabled')} · {t('changeInFamily')}</small></div><PlanningPreferencePicker available={availableTags} selected={preferredTags} onToggle={toggleTag} labels={{ title: t('preferredTags'), search: t('searchPlanningPreferences'), suggestions: t('randomSuggestions'), selected: t('selectedPreferences'), showDifferent: t('showDifferentSuggestions'), noMatches: t('noPreferenceMatches') }} /><div className="smart-preferences"><label className="field"><span>{t('maximumTime')}</span><select value={maxTime} onChange={(event) => setMaxTime(event.target.value)}><option value="30">30 {t('minutes')}</option><option value="45">45 {t('minutes')}</option><option value="60">60 {t('minutes')}</option><option value="">{t('noLimit')}</option></select></label></div>{suggestionOptions && <div className="suggestion-review"><div className="suggestion-review__heading"><div><strong>{t('chooseWeekPlan')}</strong><span>{t('existingMealsSafe')}</span></div><div><button className="button" onClick={() => setSuggestionOptions(null)}>{t('cancel')}</button><button className="button button--primary" disabled={!selectedOptionId} onClick={applySuggestions}>{t('applySuggestions')}</button></div></div><div className="suggestion-options">{suggestionOptions.map((option, index) => <button type="button" className={`suggestion-option${selectedOptionId === option.id ? ' suggestion-option--selected' : ''}`} aria-pressed={selectedOptionId === option.id} onClick={() => setSelectedOptionId(option.id)} key={option.id}><span>{t('option')} {index + 1}</span><strong>{optionTitle(option.id)}</strong><small>{optionFocus(option.id)}</small><b>{option.suggestions.filter((item) => !item.is_leftover).length} {t('plannedMeals')}</b></button>)}</div><div className="suggestion-list">{(suggestionOptions.find((option) => option.id === selectedOptionId)?.suggestions || []).map((item) => <div className={`suggestion-item${item.is_leftover ? ' suggestion-item--leftover' : ''}`} key={`${item.meal_date}-${item.meal_type}`}><span>{item.meal_date.slice(5)}</span><strong>{item.recipe.name}</strong><small>{item.is_leftover ? t('leftoverLunch') : item.reasons.join(' · ')}</small></div>)}</div></div>}</section>}
     {state === 'loading' && <p className="notice" role="status">{t('loadingPlan')}</p>}
     {state === 'error' && <p className="notice notice--error" role="alert">{t('planError')}</p>}
     {state === 'ready' && recipes.length === 0 && <div className="empty-state"><h2>Add recipes before planning</h2><p>Your saved recipes will appear as choices for each meal.</p><Link className="button button--primary" to="/recipes/import">Import a recipe</Link></div>}

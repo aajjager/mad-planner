@@ -6,3 +6,8 @@
 @media (max-width:600px) { .manual-grocery-form { grid-template-columns:1fr; } }
 .grocery-item { grid-template-columns:24px 34px 90px 1fr; }.grocery-icon { font-size:1.45rem; line-height:1; text-align:center; }.grocery-history article > .grocery-icon { flex:0 0 34px; }
 @media (max-width:600px) { .grocery-item { grid-template-columns:24px 30px 65px 1fr; } }
+.grocery-summary,.manual-grocery-form,.grocery-history { border:0; border-radius:22px; }
+.grocery-group { border:0; border-radius:24px; }
+.grocery-group h2 { font-family:inherit; font-size:1.25rem; }
+.grocery-item--checked { background:#eef2e9; }
+:root[data-mode="dark"] .grocery-item--checked { background:#354238; }

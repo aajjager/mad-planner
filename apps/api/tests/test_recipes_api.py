@@ -54,6 +54,22 @@ def test_recipe_crud(client: TestClient) -> None:
     assert classified.status_code == 200
     assert classified.json()["meal_types"] == ["breakfast", "lunch"]
 
+    tagged = client.patch(f"/api/v1/recipes/{recipe_id}/tags", json={"tags": ["Mexican", "potato", " mexican "]})
+    assert tagged.status_code == 200
+    assert tagged.json()["tags"] == ["Mexican", "potato"]
+    assert client.get(f"/api/v1/recipes/{recipe_id}").json()["tags"] == ["Mexican", "potato"]
+
+    rated = client.put(f"/api/v1/recipes/{recipe_id}/rating", json={"rating": 5})
+    assert rated.status_code == 200
+    assert rated.json()["my_rating"] == 5
+    assert rated.json()["family_rating"] == 5
+    assert rated.json()["rating_count"] == 1
+
+    cleared = client.put(f"/api/v1/recipes/{recipe_id}/rating", json={"rating": None})
+    assert cleared.status_code == 200
+    assert cleared.json()["my_rating"] is None
+    assert cleared.json()["family_rating"] is None
+
     assert client.delete(f"/api/v1/recipes/{recipe_id}").status_code == 204
     assert client.get(f"/api/v1/recipes/{recipe_id}").status_code == 404
 

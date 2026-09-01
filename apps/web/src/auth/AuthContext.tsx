@@ -16,6 +16,8 @@ interface AuthValue {
   logout: () => Promise<void>
   setLocale: (locale: Account['locale']) => Promise<void>
   setShowNutrition: (show: boolean) => Promise<void>
+  setDarkMode: (enabled: boolean) => Promise<void>
+  setAccentTheme: (theme: Account['accent_theme']) => Promise<void>
   setBrowserNotifications: (enabled: boolean) => Promise<void>
 }
 
@@ -38,6 +40,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       .finally(() => setLoading(false))
   }, [])
   useEffect(() => { if (account?.locale) rememberLocale(account.locale) }, [account?.locale])
+  useEffect(() => { document.documentElement.dataset.mode = account?.dark_mode ? 'dark' : 'light'; document.documentElement.dataset.accent = account?.accent_theme || 'sage' }, [account?.dark_mode, account?.accent_theme])
 
   const value: AuthValue = {
     account,
@@ -53,6 +56,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     logout: async () => { await logoutRequest(); setAccount(null) },
     setLocale: async (locale) => { setAccount(await updatePersonalPreferences({ locale })) },
     setShowNutrition: async (show) => { setAccount(await updatePersonalPreferences({ show_nutrition: show })) },
+    setDarkMode: async (enabled) => { setAccount(await updatePersonalPreferences({ dark_mode: enabled })) },
+    setAccentTheme: async (theme) => { setAccount(await updatePersonalPreferences({ accent_theme: theme })) },
     setBrowserNotifications: async (enabled) => { setAccount(await updatePersonalPreferences({ browser_notifications_enabled: enabled })) },
   }
 

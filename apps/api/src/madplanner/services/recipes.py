@@ -6,6 +6,8 @@ from madplanner.schemas.recipe import (
     RecipeIngredientResponse,
     RecipeInstructionResponse,
     RecipeMealTypesUpdate,
+    RecipeRatingUpdate,
+    RecipeTagsUpdate,
     RecipeResponse,
     RecipeWrite,
     UnitInput,
@@ -13,8 +15,9 @@ from madplanner.schemas.recipe import (
 
 
 class RecipeService:
-    def __init__(self, repository: RecipeRepository) -> None:
+    def __init__(self, repository: RecipeRepository, user_id: int) -> None:
         self.repository = repository
+        self.user_id = user_id
 
     def list_recipes(self) -> list[RecipeResponse]:
         return [self._to_response(recipe) for recipe in self.repository.list()]
@@ -48,6 +51,22 @@ class RecipeService:
             return None
         recipe.meal_types = data.meal_types
         return self._to_response(self.repository.save(recipe))
+
+    def update_tags(self, recipe_id: int, data: RecipeTagsUpdate) -> RecipeResponse | None:
+        recipe = self.repository.get(recipe_id)
+        if recipe is None:
+            return None
+        recipe.tags.clear()
+        recipe.tags.extend(self.repository.get_or_create_tag(tag) for tag in data.tags)
+        return self._to_response(self.repository.save(recipe))
+
+    def update_rating(self, recipe_id: int, data: RecipeRatingUpdate) -> RecipeResponse | None:
+        recipe = self.repository.get(recipe_id)
+        if recipe is None:
+            return None
+        self.repository.set_rating(recipe, self.user_id, data.rating)
+        stored = self.repository.get(recipe_id)
+        return self._to_response(stored) if stored else None
 
     def update_image(self, recipe_id: int, image_url: str) -> RecipeResponse | None:
         recipe = self.repository.get(recipe_id)
@@ -97,8 +116,8 @@ class RecipeService:
             raise ValueError("Unknown recipe type")
         recipe.recipe_types.extend(recipe_types)
 
-    @staticmethod
-    def _to_response(recipe: Recipe) -> RecipeResponse:
+    def _to_response(self, recipe: Recipe) -> RecipeResponse:
+        ratings = [item.rating for item in recipe.ratings]
         return RecipeResponse(
             id=recipe.id, name=recipe.name, description=recipe.description,
             image_url=recipe.image_url, source_url=recipe.source_url, author=recipe.author,
@@ -108,6 +127,9 @@ class RecipeService:
             tags=sorted((tag.name for tag in recipe.tags), key=str.casefold),
             meal_types=recipe.meal_types or [],
             recipe_types=[item.name for item in recipe.recipe_types],
+            family_rating=round(sum(ratings) / len(ratings), 2) if ratings else None,
+            rating_count=len(ratings),
+            my_rating=next((item.rating for item in recipe.ratings if item.user_id == self.user_id), None),
             ingredients=[RecipeIngredientResponse(
                 id=item.id, position=item.position, raw_text=item.raw_text,
                 ingredient_name=item.ingredient.name if item.ingredient else None,

@@ -20,10 +20,13 @@ _SEASON_WORDS = {
 
 
 class MealSuggestionService:
-    def __init__(self, planner: MealPlanRepository, recipes: RecipeRepository, household_size: int) -> None:
+    def __init__(self, planner: MealPlanRepository, recipes: RecipeRepository, household_size: int, rating_filter_enabled: bool = False, rating_minimum: int = 3, rating_target_percent: int = 50) -> None:
         self.planner = planner
         self.recipes = recipes
         self.household_size = household_size
+        self.rating_filter_enabled = rating_filter_enabled
+        self.rating_minimum = rating_minimum
+        self.rating_target_percent = rating_target_percent
 
     def suggest_week(self, requested_date: date, preferences: MealSuggestionPreferences) -> WeeklyMealSuggestionsResponse:
         week_start = requested_date - timedelta(days=requested_date.weekday())
@@ -46,6 +49,9 @@ class MealSuggestionService:
         selected_ingredients: set[str] = set()
         preferred = {tag.casefold() for tag in preferences.preferred_tags}
         dinner_by_date: dict[date, MealSuggestion] = {}
+        planned_slots = sum(1 for offset in range(7) for meal_type in preferences.meal_types if (week_start + timedelta(days=offset), meal_type) not in existing)
+        favorite_target = round(planned_slots * self.rating_target_percent / 100) if self.rating_filter_enabled else 0
+        favorite_selected = 0
         for offset in range(7):
             meal_date = week_start + timedelta(days=offset)
             for meal_type in preferences.meal_types:
@@ -54,11 +60,30 @@ class MealSuggestionService:
                 eligible = [recipe for recipe in recipes if self._allows_meal_type(recipe, meal_type)]
                 if not eligible:
                     continue
+                if favorite_selected < favorite_target:
+                    favorites = [recipe for recipe in eligible if self._family_rating(recipe) >= self.rating_minimum]
+                    if favorites:
+                        eligible = favorites
                 ranked = [self._rank(recipe, meal_type, preferred, usage[recipe.id], selected_ingredients, season, variant, offset) for recipe in eligible]
-                score, _, recipe, reasons = max(ranked, key=lambda value: (value[0], value[1]))
+                ranked.sort(key=lambda value: (value[0], value[1]), reverse=True)
+                best_score = ranked[0][0]
+                # Keep every choice close to the best score, but rotate the two
+                # alternative plans through that strong candidate pool. This
+                # prevents "variety" and "seasonal" from collapsing into the
+                # same week when recipe metadata has few seasonal labels.
+                strong_candidates = [item for item in ranked if item[0] >= best_score - 30]
+                if variant == 0 or len(strong_candidates) == 1:
+                    selected_index = 0
+                elif variant == 1:
+                    selected_index = (offset + 1) % len(strong_candidates)
+                else:
+                    selected_index = (offset * 2 + 2) % len(strong_candidates)
+                score, _, recipe, reasons = strong_candidates[selected_index]
                 suggestion = MealSuggestion(meal_date=meal_date, meal_type=meal_type, recipe=PlannedRecipe(id=recipe.id, name=recipe.name, image_url=recipe.image_url), score=score, reasons=reasons)
                 suggestions.append(suggestion)
                 usage[recipe.id] += 1
+                if self._family_rating(recipe) >= self.rating_minimum:
+                    favorite_selected += 1
                 selected_ingredients.update(self._ingredients(recipe))
                 if meal_type is MealType.DINNER:
                     dinner_by_date[meal_date] = suggestion
@@ -83,6 +108,9 @@ class MealSuggestionService:
         labels.update(part.strip().casefold() for part in (recipe.category or "").split(",") if part.strip())
         labels.update(part.strip().casefold() for part in (recipe.cuisine or "").split(",") if part.strip())
         labels.update(recipe_type.name.casefold() for recipe_type in recipe.recipe_types)
+        for ingredient in self._ingredients(recipe):
+            labels.add(ingredient)
+            labels.update(word for word in ingredient.replace("-", " ").split() if len(word) > 2)
         reasons: list[str] = []
         score = 100 - repeats * 60
         if labels & _MEAL_WORDS[meal_type]:
@@ -103,8 +131,16 @@ class MealSuggestionService:
             reasons.append(f"Fits {season}")
         if variant == 1:
             score -= repeats * 40
+        family_rating = self._family_rating(recipe)
+        if self.rating_filter_enabled and family_rating >= self.rating_minimum:
+            score += 25
+            reasons.append(f"Family rating {family_rating:.1f} stars")
         tie_break = -((recipe.id - day_offset - variant * 2) % 10000)
         return score, tie_break, recipe, reasons
+
+    @staticmethod
+    def _family_rating(recipe: Recipe) -> float:
+        return sum(item.rating for item in recipe.ratings) / len(recipe.ratings) if recipe.ratings else 0
 
     @staticmethod
     def _season(value: date) -> str:

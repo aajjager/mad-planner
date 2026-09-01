@@ -10,7 +10,7 @@ from madplanner.core.config import get_settings
 from madplanner.api.routes.auth import require_auth, require_recipe_editor
 from madplanner.services.auth import AuthContext
 from madplanner.repositories.recipes import RecipeRepository
-from madplanner.schemas.recipe import RecipeMealTypesUpdate, RecipeResponse, RecipeWrite
+from madplanner.schemas.recipe import RecipeMealTypesUpdate, RecipeRatingUpdate, RecipeResponse, RecipeTagsUpdate, RecipeWrite
 from madplanner.services.recipes import RecipeService
 
 router = APIRouter(prefix="/recipes", tags=["recipes"])
@@ -18,7 +18,7 @@ _IMAGE_TYPES = {"image/jpeg": (".jpg", b"\xff\xd8\xff"), "image/png": (".png", b
 
 
 def get_recipe_service(session: Annotated[Session, Depends(get_session)], context: Annotated[AuthContext, Depends(require_auth)]) -> RecipeService:
-    return RecipeService(RecipeRepository(session, context.family.id))
+    return RecipeService(RecipeRepository(session, context.family.id), context.user.id)
 
 
 @router.get("", response_model=list[RecipeResponse])
@@ -56,6 +56,22 @@ def replace_recipe(recipe_id: int, data: RecipeWrite, service: Annotated[RecipeS
 @router.patch("/{recipe_id}/meal-types", response_model=RecipeResponse)
 def update_recipe_meal_types(recipe_id: int, data: RecipeMealTypesUpdate, service: Annotated[RecipeService, Depends(get_recipe_service)], _permission: Annotated[AuthContext, Depends(require_recipe_editor)]):
     recipe = service.update_meal_types(recipe_id, data)
+    if recipe is None:
+        raise HTTPException(status_code=404, detail="Recipe not found")
+    return recipe
+
+
+@router.patch("/{recipe_id}/tags", response_model=RecipeResponse)
+def update_recipe_tags(recipe_id: int, data: RecipeTagsUpdate, service: Annotated[RecipeService, Depends(get_recipe_service)], _permission: Annotated[AuthContext, Depends(require_recipe_editor)]):
+    recipe = service.update_tags(recipe_id, data)
+    if recipe is None:
+        raise HTTPException(status_code=404, detail="Recipe not found")
+    return recipe
+
+
+@router.put("/{recipe_id}/rating", response_model=RecipeResponse)
+def update_recipe_rating(recipe_id: int, data: RecipeRatingUpdate, service: Annotated[RecipeService, Depends(get_recipe_service)], _context: Annotated[AuthContext, Depends(require_auth)]):
+    recipe = service.update_rating(recipe_id, data)
     if recipe is None:
         raise HTTPException(status_code=404, detail="Recipe not found")
     return recipe

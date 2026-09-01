@@ -125,12 +125,12 @@
   - [x] Add compact mobile navigation and responsive planner/recipe cards
   - [x] Verify Recipes, Planner, Groceries, Family, and recipe details at phone and tablet widths
 
-- [ ] Phase 20 — Planning automation
+- [x] Phase 20 — Planning automation
   - [x] Add family-configurable in-app incomplete-plan reminders for 1–4 weeks ahead
   - [x] Add installable phone-app support and per-user browser notification permission
   - [ ] Add server-sent background push delivery after the HTTPS TrueNAS hostname is configured
   - [x] Generate three alternative weekly plans from tags, cuisines, meal types, seasons, and cooking time
-  - [ ] Let families choose three-plan review or immediate automatic filling
+  - [x] Let families choose three-plan review or immediate automatic filling
 
 - [ ] Phase 21 — Cross-family recipe sharing
   - [ ] Add a simple family-to-family sharing invitation and recipe picker

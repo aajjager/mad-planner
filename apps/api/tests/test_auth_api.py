@@ -51,21 +51,26 @@ def test_owner_setup_login_and_logout(client: TestClient) -> None:
     assert owner["browser_notifications_enabled"] is False
     preferences = client.patch(
         "/api/v1/auth/me/preferences",
-        json={"show_nutrition": False, "browser_notifications_enabled": True},
+        json={"show_nutrition": False, "dark_mode": True, "accent_theme": "ocean", "browser_notifications_enabled": True},
     )
     assert preferences.status_code == 200
     assert preferences.json()["show_nutrition"] is False
+    assert preferences.json()["dark_mode"] is True
+    assert preferences.json()["accent_theme"] == "ocean"
     assert preferences.json()["browser_notifications_enabled"] is True
     assert client.get("/api/v1/auth/status").json() == {"setup_required": False}
     assert client.get("/api/v1/auth/me").json()["family_name"] == "Example family"
     settings = client.get("/api/v1/auth/family/settings")
-    assert settings.json() == {"household_size": 2, "leftovers_enabled": True, "cooking_mode_enabled": True, "plan_reminders_enabled": True, "plan_reminder_weeks": 1, "enabled_meal_types": ["breakfast", "lunch", "dinner"]}
-    updated = client.put("/api/v1/auth/family/settings", json={"household_size": 3, "leftovers_enabled": False, "cooking_mode_enabled": False, "plan_reminders_enabled": False, "plan_reminder_weeks": 3, "enabled_meal_types": ["dinner"]})
+    assert settings.json() == {"household_size": 2, "leftovers_enabled": True, "cooking_mode_enabled": True, "plan_reminders_enabled": True, "plan_reminder_weeks": 1, "planning_suggestion_mode": "review", "rating_filter_enabled": False, "rating_minimum": 3, "rating_target_percent": 50, "rated_recipe_count": 0, "rating_filter_eligible": False, "enabled_meal_types": ["breakfast", "lunch", "dinner"]}
+    rating_locked = client.put("/api/v1/auth/family/settings", json={"household_size": 2, "leftovers_enabled": True, "cooking_mode_enabled": True, "plan_reminders_enabled": True, "plan_reminder_weeks": 1, "planning_suggestion_mode": "review", "rating_filter_enabled": True, "rating_minimum": 3, "rating_target_percent": 50, "enabled_meal_types": ["dinner"]})
+    assert rating_locked.status_code == 422
+    updated = client.put("/api/v1/auth/family/settings", json={"household_size": 3, "leftovers_enabled": False, "cooking_mode_enabled": False, "plan_reminders_enabled": False, "plan_reminder_weeks": 3, "planning_suggestion_mode": "auto", "enabled_meal_types": ["dinner"]})
     assert updated.status_code == 200
     assert updated.json()["household_size"] == 3
     assert updated.json()["enabled_meal_types"] == ["dinner"]
     assert updated.json()["plan_reminders_enabled"] is False
     assert updated.json()["plan_reminder_weeks"] == 3
+    assert updated.json()["planning_suggestion_mode"] == "auto"
     recipe_types = client.get("/api/v1/auth/family/recipe-types")
     assert recipe_types.status_code == 200
     assert {item["name"] for item in recipe_types.json()} >= {"Breakfast", "Dinner", "Cake", "Bake-off"}

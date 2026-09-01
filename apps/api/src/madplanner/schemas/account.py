@@ -40,6 +40,8 @@ class AccountResponse(BaseModel):
     role: FamilyRole
     locale: Literal["en", "da", "nl"]
     show_nutrition: bool
+    dark_mode: bool
+    accent_theme: Literal["sage", "ocean", "berry", "gold"]
     browser_notifications_enabled: bool
     mfa_enabled: bool
 
@@ -47,6 +49,8 @@ class AccountResponse(BaseModel):
 class PersonalPreferencesUpdate(BaseModel):
     locale: Literal["en", "da", "nl"] | None = None
     show_nutrition: bool | None = None
+    dark_mode: bool | None = None
+    accent_theme: Literal["sage", "ocean", "berry", "gold"] | None = None
     browser_notifications_enabled: bool | None = None
 
 
@@ -124,6 +128,12 @@ class FamilySettingsResponse(BaseModel):
     cooking_mode_enabled: bool
     plan_reminders_enabled: bool
     plan_reminder_weeks: int
+    planning_suggestion_mode: Literal["review", "auto"]
+    rating_filter_enabled: bool
+    rating_minimum: int
+    rating_target_percent: int
+    rated_recipe_count: int
+    rating_filter_eligible: bool
     enabled_meal_types: list[Literal["breakfast", "lunch", "dinner"]]
 
 
@@ -133,6 +143,10 @@ class FamilySettingsUpdate(BaseModel):
     cooking_mode_enabled: bool
     plan_reminders_enabled: bool
     plan_reminder_weeks: int = Field(ge=1, le=4)
+    planning_suggestion_mode: Literal["review", "auto"] = "review"
+    rating_filter_enabled: bool = False
+    rating_minimum: int = Field(default=3, ge=1, le=5)
+    rating_target_percent: int = Field(default=50, ge=0, le=100)
     enabled_meal_types: list[Literal["breakfast", "lunch", "dinner"]] = Field(min_length=1)
 
 

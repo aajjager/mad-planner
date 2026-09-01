@@ -174,4 +174,20 @@ def test_suggestions_return_three_different_review_options(client: TestClient) -
     options = response.json()["options"]
     assert [option["id"] for option in options] == ["option-1", "option-2", "option-3"]
     sequences = [tuple(item["recipe"]["id"] for item in option["suggestions"]) for option in options]
-    assert len(set(sequences)) >= 2
+    assert len(set(sequences)) == 3
+
+
+def test_suggestions_match_main_ingredient_preferences(client: TestClient) -> None:
+    rice = client.post("/api/v1/recipes", json={"name": "Rice bowl", "meal_types": ["dinner"], "ingredients": [{"raw_text": "200 g ris", "ingredient_name": "ris"}]}).json()
+    client.post("/api/v1/recipes", json={"name": "Pasta bowl", "meal_types": ["dinner"], "ingredients": [{"raw_text": "200 g pasta", "ingredient_name": "pasta"}]})
+
+    response = client.post(
+        "/api/v1/meal-plans/week/suggestions",
+        params={"week_start": "2026-08-17"},
+        json={"meal_types": ["dinner"], "preferred_tags": ["ris"], "include_leftover_lunches": False},
+    )
+
+    assert response.status_code == 200
+    first_meal = next(item for item in response.json()["options"][0]["suggestions"] if item["meal_type"] == "dinner")
+    assert first_meal["recipe"]["id"] == rice["id"]
+    assert "ris" in " ".join(first_meal["reasons"]).lower()

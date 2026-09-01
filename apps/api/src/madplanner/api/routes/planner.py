@@ -22,7 +22,7 @@ def get_meal_plan_service(session: Annotated[Session, Depends(get_session)], con
 
 
 def get_suggestion_service(session: Annotated[Session, Depends(get_session)], context: Annotated[AuthContext, Depends(require_auth)]) -> MealSuggestionService:
-    return MealSuggestionService(MealPlanRepository(session, context.family.id), RecipeRepository(session, context.family.id), context.family.household_size)
+    return MealSuggestionService(MealPlanRepository(session, context.family.id), RecipeRepository(session, context.family.id), context.family.household_size, context.family.rating_filter_enabled, context.family.rating_minimum, context.family.rating_target_percent)
 
 
 @router.get("/week", response_model=WeeklyMealPlanResponse)

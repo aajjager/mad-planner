@@ -31,3 +31,42 @@ h2 { color: var(--ink); }.button { display: inline-flex; justify-content: center
 @media (max-width:600px) { .plan-reminder { align-items:flex-start; flex-wrap:wrap; }.plan-reminder > div { flex:1; }.plan-reminder a { width:100%; margin-left:47px; } }
 .recipe-stepper { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin:-20px 0 28px; }.recipe-step { display:flex; align-items:center; gap:9px; padding:12px; border:1px solid var(--border); border-radius:12px; color:var(--muted); background:var(--paper); font:inherit; font-weight:700; text-align:left; }.recipe-step span { display:grid; width:26px; height:26px; place-items:center; border-radius:50%; background:#eee8dc; }.recipe-step--current { color:var(--ink); border-color:var(--green); }.recipe-step--current span,.recipe-step--complete span { color:white; background:var(--green); }.recipe-step--complete { cursor:pointer; }.form-page fieldset[hidden] { display:none; }.recipe-review { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin:22px 0; }.recipe-review div { display:grid; gap:5px; padding:16px; border-radius:12px; background:#f6f1e7; }.recipe-review small { color:var(--muted); }.recipe-review strong { text-transform:capitalize; }
 @media (max-width:800px) { .recipe-stepper { grid-template-columns:1fr 1fr; }.recipe-review { grid-template-columns:1fr; } }
+
+/* Meal Planner visual system: calm digital family kitchen */
+.brand-mark { width:44px; height:44px; border-radius:15px; color:var(--dark-sage); background:var(--cream); }
+.brand-mark svg { width:34px; height:34px; }
+.primary-link { padding:11px 17px; color:var(--surface); background:var(--dark-sage); }
+.library-tools { padding:20px; border:0; border-radius:22px; }
+.choice-chip { padding:9px 14px; border-color:transparent; background:var(--cream); }
+.choice-chip--selected { color:var(--surface); border-color:var(--dark-sage); background:var(--dark-sage); }
+.tag { padding:6px 10px; color:var(--dark-sage); background:#e8efe3; }
+.page { padding:64px 0; }
+h1 { font-family:inherit; font-size:clamp(2.25rem,5vw,3.75rem); font-weight:750; letter-spacing:-.035em; line-height:1.04; }
+.button { min-height:48px; align-items:center; padding:11px 18px; border-color:transparent; border-radius:16px; background:var(--cream); }
+.button--primary { color:var(--surface); border-color:var(--dark-sage); background:var(--dark-sage); }
+.button--danger { color:#9a4938; border-color:transparent; background:#f9ddd2; }
+.notice,.empty-state { border:0; border-radius:24px; }
+.notice--error { color:#9a4938; background:#fbe5dd; }
+.recipe-card { border:0; border-radius:24px; }
+.recipe-card:hover { box-shadow:0 12px 30px rgb(83 107 88 / 10%); }
+.recipe-card__image { height:185px; color:var(--surface); background:var(--sage); font-family:inherit; }
+.recipe-card h2 { font-size:1.15rem; }
+.form-page fieldset { border:0; border-radius:24px; }
+.form-page legend { font-family:inherit; font-size:1.4rem; font-weight:700; }
+.field input,.field textarea,.field select,.instruction-row textarea { padding:13px 14px; border-radius:15px; background:var(--surface); }
+.ingredient-row,.recipe-review div { border-radius:18px; background:var(--background); }
+.recipe-step { border-color:transparent; border-radius:16px; }
+.recipe-step span { background:var(--cream); }
+@media (max-width:800px) {
+  .mobile-navigation { border-color:var(--border); border-radius:24px; background:rgb(255 250 240 / 96%); box-shadow:0 12px 34px rgb(83 107 88 / 16%); }
+  .mobile-navigation a { color:var(--muted); border-radius:17px; }
+  .mobile-navigation a.active { color:var(--dark-sage); background:#e8efe3; }
+  .mobile-navigation .mobile-navigation__add,.mobile-navigation .mobile-navigation__add.active { color:var(--surface); background:var(--dark-sage); }
+}
+.library-tools { grid-template-columns:repeat(auto-fit,minmax(170px,1fr)); }
+.library-tools > .field:first-child { grid-column:span 2; }
+.recipe-card .rating-block { justify-items:start; margin:4px 0 8px; }.recipe-card .rating-stars span { font-size:1rem; }.recipe-card .rating-block small { font-size:.68rem; }
+:root[data-mode="dark"] .api-status,:root[data-mode="dark"] .choice-chip,:root[data-mode="dark"] .suggestion-option,:root[data-mode="dark"] .recipe-picker__results,:root[data-mode="dark"] .mobile-navigation { color:var(--ink); background:var(--surface); }
+:root[data-mode="dark"] .choice-chip--selected,:root[data-mode="dark"] .primary-link,:root[data-mode="dark"] .button--primary { color:#202521; background:var(--dark-sage); }
+:root[data-mode="dark"] .plan-reminder { border-color:#645b3d; background:#3a3526; }
+:root[data-mode="dark"] .notice--error,:root[data-mode="dark"] .button--danger { color:#f1aa98; background:#4a2e28; }

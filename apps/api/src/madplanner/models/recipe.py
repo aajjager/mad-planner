@@ -89,6 +89,21 @@ class Recipe(Base):
     recipe_types: Mapped[list[RecipeType]] = relationship(
         secondary=recipe_recipe_types, back_populates="recipes", order_by="RecipeType.name"
     )
+    ratings: Mapped[list["RecipeRating"]] = relationship(back_populates="recipe", cascade="all, delete-orphan")
+
+
+class RecipeRating(Base):
+    __tablename__ = "recipe_ratings"
+    __table_args__ = (UniqueConstraint("recipe_id", "user_id", name="uq_recipe_ratings_recipe_user"),)
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    recipe_id: Mapped[int] = mapped_column(ForeignKey("recipes.id", ondelete="CASCADE"), index=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
+    rating: Mapped[int] = mapped_column(Integer)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+
+    recipe: Mapped[Recipe] = relationship(back_populates="ratings")
 
 
 class RecipeIngredient(Base):

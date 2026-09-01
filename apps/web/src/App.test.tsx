@@ -4,8 +4,8 @@ import App from './App'
 import { inferMealTypes, parseServingCount } from './api/recipes'
 
 const jsonResponse = (value: unknown) => new Response(JSON.stringify(value), { status: 200, headers: { 'Content-Type': 'application/json' } })
-const account = { id: 1, email: 'owner@example.com', display_name: 'Owner', family_id: 1, family_name: 'Test family', role: 'owner', locale: 'en', show_nutrition: true, browser_notifications_enabled: false, mfa_enabled: false }
-const familySettings = { household_size: 2, leftovers_enabled: true, cooking_mode_enabled: true, plan_reminders_enabled: true, plan_reminder_weeks: 1, enabled_meal_types: ['breakfast', 'lunch', 'dinner'] }
+const account = { id: 1, email: 'owner@example.com', display_name: 'Owner', family_id: 1, family_name: 'Test family', role: 'owner', locale: 'en', show_nutrition: true, dark_mode: false, accent_theme: 'sage', browser_notifications_enabled: false, mfa_enabled: false }
+const familySettings = { household_size: 2, leftovers_enabled: true, cooking_mode_enabled: true, plan_reminders_enabled: true, plan_reminder_weeks: 1, planning_suggestion_mode: 'review', rating_filter_enabled: false, rating_minimum: 3, rating_target_percent: 50, rated_recipe_count: 0, rating_filter_eligible: false, enabled_meal_types: ['breakfast', 'lunch', 'dinner'] }
 const recipeTypes = [{ id: 1, name: 'Breakfast', meal_type: 'breakfast' }, { id: 2, name: 'Lunch', meal_type: 'lunch' }, { id: 3, name: 'Dinner', meal_type: 'dinner' }]
 const authResponse = (input: RequestInfo | URL) => {
   const url = String(input)
@@ -89,7 +89,7 @@ describe('App', () => {
     })
     render(<App />)
 
-    expect(await screen.findByRole('heading', { name: 'Join Test family.' })).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: 'Join family Test family.' })).toBeInTheDocument()
     fireEvent.change(screen.getByLabelText('Your name'), { target: { value: 'Member' } })
     fireEvent.change(screen.getByLabelText('Password'), { target: { value: 'member-password-123' } })
     fireEvent.click(screen.getByRole('button', { name: 'Join family' }))
@@ -116,7 +116,7 @@ describe('App', () => {
     expect(await screen.findByText('member@example.com · 2 active logins')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Sign out everywhere' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Remove access' })).toBeInTheDocument()
-    expect(screen.getByLabelText('Member permission')).toHaveValue('editor')
+    expect(screen.getByLabelText('Member Permission')).toHaveValue('editor')
     expect(screen.getByText('pending@example.com')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Revoke invitation' })).toBeInTheDocument()
   })
@@ -160,7 +160,6 @@ describe('App', () => {
     expect(screen.getByLabelText('Name *')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Continue' })).toBeInTheDocument()
     expect(screen.getByRole('navigation', { name: 'Recipe creation progress' })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Dinner recipe type' })).toHaveAttribute('aria-pressed', 'true')
     expect(screen.getByRole('button', { name: 'dinner' })).toHaveAttribute('aria-pressed', 'true')
     expect(screen.getByRole('button', { name: 'breakfast' })).toHaveAttribute('aria-pressed', 'false')
   })
@@ -182,10 +181,10 @@ describe('App', () => {
     expect(screen.getAllByRole('combobox')).toHaveLength(22)
     expect(screen.getByRole('button', { name: 'Suggest my week' })).toBeInTheDocument()
     expect(screen.getByText('2 people · Leftovers enabled · Change these in Family.')).toBeInTheDocument()
-    fireEvent.click(screen.getByRole('button', { name: 'Quick' }))
-    fireEvent.click(screen.getByRole('button', { name: 'Vegetarian' }))
-    expect(screen.getByRole('button', { name: 'Quick' })).toHaveAttribute('aria-pressed', 'true')
-    expect(screen.getByRole('button', { name: 'Vegetarian' })).toHaveAttribute('aria-pressed', 'true')
+    fireEvent.click(screen.getByRole('button', { name: '+ Quick' }))
+    fireEvent.click(screen.getByRole('button', { name: '+ Vegetarian' }))
+    expect(screen.getByRole('button', { name: 'Quick ×' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Vegetarian ×' })).toBeInTheDocument()
   })
 
   it('shows a generated weekly grocery checklist', async () => {

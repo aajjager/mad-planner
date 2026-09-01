@@ -103,6 +103,9 @@ class RecipeResponse(BaseModel):
     tags: list[str]
     meal_types: list[RecipeMealType]
     recipe_types: list[str]
+    family_rating: float | None
+    rating_count: int
+    my_rating: int | None
     ingredients: list[RecipeIngredientResponse]
     instructions: list[RecipeInstructionResponse]
     created_at: datetime
@@ -116,3 +119,24 @@ class RecipeMealTypesUpdate(BaseModel):
     def remove_duplicates(self) -> "RecipeMealTypesUpdate":
         self.meal_types = list(dict.fromkeys(self.meal_types))
         return self
+
+
+class RecipeTagsUpdate(BaseModel):
+    tags: list[str] = Field(default_factory=list, max_length=20)
+
+    @model_validator(mode="after")
+    def normalize_tags(self) -> "RecipeTagsUpdate":
+        unique: dict[str, str] = {}
+        for tag in self.tags:
+            cleaned = " ".join(tag.strip().split())
+            if not cleaned:
+                continue
+            if len(cleaned) > 60:
+                raise ValueError("tags must be 60 characters or fewer")
+            unique.setdefault(cleaned.casefold(), cleaned)
+        self.tags = list(unique.values())
+        return self
+
+
+class RecipeRatingUpdate(BaseModel):
+    rating: int | None = Field(default=None, ge=1, le=5)

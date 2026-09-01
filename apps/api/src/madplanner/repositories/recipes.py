@@ -3,7 +3,7 @@ from __future__ import annotations
 from sqlalchemy import select
 from sqlalchemy.orm import Session, selectinload
 
-from madplanner.models import Ingredient, Recipe, RecipeIngredient, RecipeType, Tag, Unit
+from madplanner.models import Ingredient, Recipe, RecipeIngredient, RecipeRating, RecipeType, Tag, Unit
 from madplanner.models.ingredient import UnitDimension
 
 
@@ -38,6 +38,18 @@ class RecipeRepository:
     def delete(self, recipe: Recipe) -> None:
         self.session.delete(recipe)
         self.session.commit()
+
+    def set_rating(self, recipe: Recipe, user_id: int, rating: int | None) -> None:
+        existing = self.session.scalar(select(RecipeRating).where(RecipeRating.recipe_id == recipe.id, RecipeRating.user_id == user_id))
+        if rating is None:
+            if existing is not None:
+                self.session.delete(existing)
+        elif existing is None:
+            self.session.add(RecipeRating(recipe_id=recipe.id, user_id=user_id, rating=rating))
+        else:
+            existing.rating = rating
+        self.session.commit()
+        self.session.expire(recipe, ["ratings"])
 
     def clear_contents(self, recipe: Recipe) -> None:
         recipe.ingredients.clear()
@@ -98,4 +110,5 @@ class RecipeRepository:
             selectinload(Recipe.instructions),
             selectinload(Recipe.tags),
             selectinload(Recipe.recipe_types),
+            selectinload(Recipe.ratings),
         )

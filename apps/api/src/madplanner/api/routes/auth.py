@@ -67,6 +67,8 @@ def account_response(context: AuthContext) -> AccountResponse:
         role=context.role,
         locale=context.user.locale,
         show_nutrition=context.user.show_nutrition,
+        dark_mode=context.user.dark_mode,
+        accent_theme=context.user.accent_theme,
         browser_notifications_enabled=context.user.browser_notifications_enabled,
         mfa_enabled=context.user.mfa_enabled,
     )
@@ -143,6 +145,8 @@ def update_personal_preferences(data: PersonalPreferencesUpdate, context: Annota
         context.user,
         locale=data.locale,
         show_nutrition=data.show_nutrition,
+        dark_mode=data.dark_mode,
+        accent_theme=data.accent_theme,
         browser_notifications_enabled=data.browser_notifications_enabled,
     )
     return account_response(context)
@@ -201,26 +205,36 @@ def require_planner_editor(context: Annotated[AuthContext, Depends(require_auth)
     return context
 
 
-def family_settings_response(context: AuthContext) -> FamilySettingsResponse:
+def family_settings_response(context: AuthContext, service: AuthService) -> FamilySettingsResponse:
+    rated_count = service.rated_recipe_count(context.family.id)
     return FamilySettingsResponse(
         household_size=context.family.household_size,
         leftovers_enabled=context.family.leftovers_enabled,
         cooking_mode_enabled=context.family.cooking_mode_enabled,
         plan_reminders_enabled=context.family.plan_reminders_enabled,
         plan_reminder_weeks=context.family.plan_reminder_weeks,
+        planning_suggestion_mode=context.family.planning_suggestion_mode,
+        rating_filter_enabled=context.family.rating_filter_enabled,
+        rating_minimum=context.family.rating_minimum,
+        rating_target_percent=context.family.rating_target_percent,
+        rated_recipe_count=rated_count,
+        rating_filter_eligible=rated_count >= 10,
         enabled_meal_types=context.family.enabled_meal_types,
     )
 
 
 @router.get("/family/settings", response_model=FamilySettingsResponse)
-def family_settings(context: Annotated[AuthContext, Depends(require_auth)]):
-    return family_settings_response(context)
+def family_settings(context: Annotated[AuthContext, Depends(require_auth)], service: Annotated[AuthService, Depends(get_auth_service)]):
+    return family_settings_response(context, service)
 
 
 @router.put("/family/settings", response_model=FamilySettingsResponse)
 def update_family_settings(data: FamilySettingsUpdate, context: Annotated[AuthContext, Depends(require_owner)], service: Annotated[AuthService, Depends(get_auth_service)]):
-    service.update_family_settings(context.family, **data.model_dump())
-    return family_settings_response(context)
+    try:
+        service.update_family_settings(context.family, **data.model_dump())
+    except ValueError as error:
+        raise HTTPException(status_code=422, detail=str(error)) from error
+    return family_settings_response(context, service)
 
 
 @router.get("/family/recipe-types", response_model=list[RecipeTypeResponse])

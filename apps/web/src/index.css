@@ -1,17 +1,37 @@
 :root {
-  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  color: #1f2f28;
-  background: radial-gradient(circle at 82% 13%, rgb(223 235 218 / 68%), transparent 27rem), #f6f1e7;
+  font-family: Nunito, Aptos, ui-rounded, 'Segoe UI', system-ui, sans-serif;
+  color: #30363a;
+  background: #fff5e4;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
-  --ink: #1f2f28;
-  --muted: #667069;
-  --green: #285c49;
-  --terracotta: #a9523f;
-  --paper: #fffdf8;
-  --border: #dcd5c7;
+  --background: #fff5e4;
+  --surface: #fffaf0;
+  --sage: #9caf91;
+  --dark-sage: #536b58;
+  --charcoal: #30363a;
+  --peach: #e77d58;
+  --gold: #f1b642;
+  --cream: #f7e5c5;
+  --muted-text: #72766f;
+  --ink: var(--charcoal);
+  --muted: var(--muted-text);
+  --green: var(--dark-sage);
+  --terracotta: var(--peach);
+  --rust: var(--peach);
+  --paper: var(--surface);
+  --border: #e8dcc7;
 }
 * { box-sizing: border-box; }
-body { min-width: 320px; min-height: 100vh; margin: 0; }
+body { min-width: 320px; min-height: 100vh; margin: 0; background: var(--background); }
 button, a { font: inherit; }
+::selection { color: var(--charcoal); background: var(--cream); }
+:root[data-accent="ocean"] { --sage:#8faeb6; --dark-sage:#426d78; --peach:#d98368; --cream:#dfeaed; }
+:root[data-accent="berry"] { --sage:#b49aaa; --dark-sage:#76516a; --peach:#dd8069; --cream:#eadde4; }
+:root[data-accent="gold"] { --sage:#b8a674; --dark-sage:#75642f; --peach:#db7658; --cream:#f3e4b8; }
+:root[data-mode="dark"] { --background:#202521; --surface:#292f2a; --charcoal:#f7ead3; --muted-text:#b9b9ae; --cream:#3b4038; --border:#41483f; color:var(--ink); color-scheme:dark; }
+:root[data-mode="dark"][data-accent="sage"] { --sage:#9caf91; --dark-sage:#b6c9ac; }
+:root[data-mode="dark"][data-accent="ocean"] { --sage:#8faeb6; --dark-sage:#9ecbd5; }
+:root[data-mode="dark"][data-accent="berry"] { --sage:#b49aaa; --dark-sage:#d4aac4; }
+:root[data-mode="dark"][data-accent="gold"] { --sage:#b8a674; --dark-sage:#e1c975; }
+:root[data-mode="dark"] input,:root[data-mode="dark"] textarea,:root[data-mode="dark"] select { color:var(--ink); background:var(--surface) !important; }

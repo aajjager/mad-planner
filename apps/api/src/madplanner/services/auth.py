@@ -269,12 +269,18 @@ class AuthService:
         *,
         locale: str | None = None,
         show_nutrition: bool | None = None,
+        dark_mode: bool | None = None,
+        accent_theme: str | None = None,
         browser_notifications_enabled: bool | None = None,
     ) -> User:
         if locale is not None:
             user.locale = locale
         if show_nutrition is not None:
             user.show_nutrition = show_nutrition
+        if dark_mode is not None:
+            user.dark_mode = dark_mode
+        if accent_theme is not None:
+            user.accent_theme = accent_theme
         if browser_notifications_enabled is not None:
             user.browser_notifications_enabled = browser_notifications_enabled
         self.session.add(user)
@@ -299,6 +305,10 @@ class AuthService:
         cooking_mode_enabled: bool,
         plan_reminders_enabled: bool,
         plan_reminder_weeks: int,
+        planning_suggestion_mode: str,
+        rating_filter_enabled: bool,
+        rating_minimum: int,
+        rating_target_percent: int,
         enabled_meal_types: list[str],
     ) -> Family:
         family.household_size = household_size
@@ -306,10 +316,20 @@ class AuthService:
         family.cooking_mode_enabled = cooking_mode_enabled
         family.plan_reminders_enabled = plan_reminders_enabled
         family.plan_reminder_weeks = plan_reminder_weeks
+        family.planning_suggestion_mode = planning_suggestion_mode
+        if rating_filter_enabled and self.rated_recipe_count(family.id) < 10:
+            raise ValueError("At least 10 recipes need a family rating before rating-based planning can be enabled")
+        family.rating_filter_enabled = rating_filter_enabled
+        family.rating_minimum = rating_minimum
+        family.rating_target_percent = rating_target_percent
         family.enabled_meal_types = list(dict.fromkeys(enabled_meal_types))
         self.session.add(family)
         self.session.commit()
         return family
+
+    def rated_recipe_count(self, family_id: int) -> int:
+        from madplanner.models import RecipeRating
+        return self.session.scalar(select(func.count(func.distinct(RecipeRating.recipe_id))).join(Recipe).where(Recipe.family_id == family_id)) or 0
 
     def list_recipe_types(self, family_id: int) -> list[RecipeType]:
         return list(self.session.scalars(select(RecipeType).where(RecipeType.family_id == family_id).order_by(RecipeType.name)))

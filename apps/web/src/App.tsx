@@ -15,6 +15,7 @@ import { ScanRecipePage } from './pages/ScanRecipePage'
 import { PasswordResetPage } from './pages/PasswordResetPage'
 import { translator } from './i18n'
 import { PlanReminderBanner } from './components/PlanReminderBanner'
+import { BrandMark } from './components/BrandMark'
 
 function ApplicationShell() {
   const { account, logout } = useAuth()
@@ -23,7 +24,7 @@ function ApplicationShell() {
   return (
       <div className="app-shell">
         <header className="site-header">
-          <Link className="brand" to="/recipes"><span className="brand-mark">M</span>Mad Planner</Link>
+          <Link className="brand" to="/recipes"><BrandMark /><span>Mad Planner</span></Link>
           <nav aria-label="Main navigation"><Link to="/recipes">{t('recipes')}</Link><Link to="/planner">{t('planner')}</Link><Link to="/grocery-list">{t('groceries')}</Link>{canEditRecipes && <Link to="/recipes/import">{t('import')}</Link>}{canEditRecipes && <Link className="primary-link" to="/recipes/new">{t('addRecipe')}</Link>}</nav>
           <div className="account-menu"><Link className="account-link" to="/family">{account?.display_name} · {account?.family_name}</Link>{account?.role === 'owner' && <Link className="account-link" to="/admin">{t('admin')}</Link>}<button className="text-button" onClick={() => void logout()}>{t('signOut')}</button></div>
         </header>

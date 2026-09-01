@@ -17,3 +17,18 @@
 @media (max-width:800px) { .security-event-list article { grid-template-columns:auto 1fr; }.security-event-list time { grid-column:2; } }
 .mfa-settings { margin-bottom:24px; }.mfa-enrollment,.mfa-disable,.recovery-codes { display:grid; gap:14px; max-width:520px; }.mfa-enrollment img { width:220px; max-width:100%; border:10px solid white; border-radius:12px; }.recovery-codes code { display:block; padding:18px; white-space:pre-wrap; letter-spacing:.1em; line-height:1.7; border-radius:12px; background:#f4f0e7; }
 .setting-row__control > select { min-width:150px; padding:10px 12px; border:1px solid var(--border); border-radius:9px; background:white; font:inherit; }
+.account-card { border:0; border-radius:28px; box-shadow:0 18px 50px rgb(83 107 88 / 10%); }
+.family-panel { border:0; border-radius:24px; }
+.family-settings footer { background:var(--background); }
+.member-avatar { color:var(--surface); background:var(--sage); }
+.setting-row__control > input[type="number"],.setting-row__control > select,.invite-result input { padding:12px 14px; border-radius:15px; background:var(--surface); }
+.switch-input { border-color:var(--sage); background:var(--cream); }
+.switch-input:checked { border-color:var(--dark-sage); background:var(--dark-sage); }
+:root[data-mode="dark"] .family-panel,
+:root[data-mode="dark"] .setting-row,
+:root[data-mode="dark"] .setting-row__label strong,
+:root[data-mode="dark"] .setting-toggle strong { color:var(--ink); }
+:root[data-mode="dark"] .switch-input { border:2px solid #89938b; background:#444b45 !important; }
+:root[data-mode="dark"] .switch-input::after { top:2px; left:2px; background:#f7ead3; box-shadow:0 1px 5px rgb(0 0 0 / 45%); }
+:root[data-mode="dark"] .switch-input:checked { border-color:var(--dark-sage); background:var(--dark-sage) !important; }
+:root[data-mode="dark"] .switch-input:checked::after { background:#202521; }
