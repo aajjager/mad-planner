@@ -75,6 +75,14 @@ Original scans should be retained only when the user chooses to keep them. OCR o
 - Pin production image versions so updates are deliberate and reversible.
 - Verify authentication, family isolation, media, backups, and restore on TrueNAS SCALE.
 
+## Phase 21 — Cross-family recipe sharing
+
+- Let the installation administrator create private setup invitations for separate families and safely delete them from Administration.
+- Share selected recipes through links to one canonical recipe rather than copying data.
+- Show clear source and recipient badges in recipe lists and details.
+- Allow recipient families to read, rate, and plan shared recipes without editing the source.
+- Keep ratings scoped to each family and automatically remove all shares when the source recipe is deleted.
+
 ## Data compatibility rules
 
 - Every schema change uses a reviewed Alembic migration.

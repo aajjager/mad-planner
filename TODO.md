@@ -132,10 +132,12 @@
   - [x] Generate three alternative weekly plans from tags, cuisines, meal types, seasons, and cooking time
   - [x] Let families choose three-plan review or immediate automatic filling
 
-- [ ] Phase 21 — Cross-family recipe sharing
-  - [ ] Add a simple family-to-family sharing invitation and recipe picker
-  - [ ] Show source/shared badges in recipe lists and details
-  - [ ] Keep shared recipes linked to their source and remove access when the source is deleted
-  - [ ] Enforce family permissions and read-only shared-recipe behavior
+- [x] Phase 21 — Cross-family recipe sharing
+  - [x] Let the installation administrator create and delete independent family spaces
+  - [x] Move family-wide administration out of the individual family settings page
+  - [x] Share one canonical recipe with selected families without copying it
+  - [x] Show shared-recipe ownership indicators and enforce recipient read-only access
+  - [x] Allow shared recipes in planning while keeping family ratings separate
+  - [x] Remove shared access everywhere when the owning family deletes the recipe
 
 See [docs/product-roadmap.md](docs/product-roadmap.md) for design notes and dependency ordering.

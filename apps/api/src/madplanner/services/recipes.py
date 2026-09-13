@@ -1,4 +1,6 @@
-from madplanner.models import Recipe, RecipeIngredient, RecipeInstruction
+from sqlalchemy import select
+
+from madplanner.models import Family, Recipe, RecipeIngredient, RecipeInstruction
 from madplanner.ingredients import parse_ingredient
 from madplanner.repositories.recipes import RecipeRepository
 from madplanner.services.nutrition import nutrition_for_recipe
@@ -7,6 +9,8 @@ from madplanner.schemas.recipe import (
     RecipeInstructionResponse,
     RecipeMealTypesUpdate,
     RecipeRatingUpdate,
+    RecipeShareTarget,
+    RecipeSharesUpdate,
     RecipeTagsUpdate,
     RecipeResponse,
     RecipeWrite,
@@ -32,28 +36,28 @@ class RecipeService:
         return self._to_response(self.repository.add(recipe))
 
     def replace_recipe(self, recipe_id: int, data: RecipeWrite) -> RecipeResponse | None:
-        recipe = self.repository.get(recipe_id)
+        recipe = self.repository.get_owned(recipe_id)
         if recipe is None:
             return None
         self._apply(recipe, data)
         return self._to_response(self.repository.save(recipe))
 
     def delete_recipe(self, recipe_id: int) -> bool:
-        recipe = self.repository.get(recipe_id)
+        recipe = self.repository.get_owned(recipe_id)
         if recipe is None:
             return False
         self.repository.delete(recipe)
         return True
 
     def update_meal_types(self, recipe_id: int, data: RecipeMealTypesUpdate) -> RecipeResponse | None:
-        recipe = self.repository.get(recipe_id)
+        recipe = self.repository.get_owned(recipe_id)
         if recipe is None:
             return None
         recipe.meal_types = data.meal_types
         return self._to_response(self.repository.save(recipe))
 
     def update_tags(self, recipe_id: int, data: RecipeTagsUpdate) -> RecipeResponse | None:
-        recipe = self.repository.get(recipe_id)
+        recipe = self.repository.get_owned(recipe_id)
         if recipe is None:
             return None
         recipe.tags.clear()
@@ -69,11 +73,20 @@ class RecipeService:
         return self._to_response(stored) if stored else None
 
     def update_image(self, recipe_id: int, image_url: str) -> RecipeResponse | None:
-        recipe = self.repository.get(recipe_id)
+        recipe = self.repository.get_owned(recipe_id)
         if recipe is None:
             return None
         recipe.image_url = image_url
         return self._to_response(self.repository.save(recipe))
+
+    def list_share_targets(self) -> list[RecipeShareTarget]:
+        return [RecipeShareTarget(id=family.id, name=family.name) for family in self.repository.list_share_targets()]
+
+    def update_shares(self, recipe_id: int, data: RecipeSharesUpdate) -> RecipeResponse | None:
+        recipe = self.repository.get_owned(recipe_id)
+        if recipe is None:
+            return None
+        return self._to_response(self.repository.replace_shares(recipe, data.family_ids, self.user_id))
 
     def _apply(self, recipe: Recipe, data: RecipeWrite) -> None:
         if recipe.id is not None:
@@ -117,7 +130,10 @@ class RecipeService:
         recipe.recipe_types.extend(recipe_types)
 
     def _to_response(self, recipe: Recipe) -> RecipeResponse:
-        ratings = [item.rating for item in recipe.ratings]
+        ratings = [item.rating for item in recipe.ratings if item.family_id == self.repository.family_id]
+        owner_name = self.repository.session.scalar(select(Family.name).where(Family.id == recipe.family_id))
+        shared_family_ids = [share.recipient_family_id for share in recipe.shares]
+        shared_family_names = list(self.repository.session.scalars(select(Family.name).where(Family.id.in_(shared_family_ids)).order_by(Family.name))) if shared_family_ids else []
         return RecipeResponse(
             id=recipe.id, name=recipe.name, description=recipe.description,
             image_url=recipe.image_url, source_url=recipe.source_url, author=recipe.author,
@@ -129,7 +145,11 @@ class RecipeService:
             recipe_types=[item.name for item in recipe.recipe_types],
             family_rating=round(sum(ratings) / len(ratings), 2) if ratings else None,
             rating_count=len(ratings),
-            my_rating=next((item.rating for item in recipe.ratings if item.user_id == self.user_id), None),
+            my_rating=next((item.rating for item in recipe.ratings if item.user_id == self.user_id and item.family_id == self.repository.family_id), None),
+            owned_by_current_family=recipe.family_id == self.repository.family_id,
+            owner_family_name=owner_name,
+            shared_with_family_ids=shared_family_ids,
+            shared_with_families=shared_family_names,
             ingredients=[RecipeIngredientResponse(
                 id=item.id, position=item.position, raw_text=item.raw_text,
                 ingredient_name=item.ingredient.name if item.ingredient else None,

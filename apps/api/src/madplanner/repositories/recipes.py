@@ -1,9 +1,9 @@
 from __future__ import annotations
 
-from sqlalchemy import select
+from sqlalchemy import delete, or_, select
 from sqlalchemy.orm import Session, selectinload
 
-from madplanner.models import Ingredient, Recipe, RecipeIngredient, RecipeRating, RecipeType, Tag, Unit
+from madplanner.models import Family, Ingredient, Recipe, RecipeIngredient, RecipeRating, RecipeShare, RecipeType, Tag, Unit
 from madplanner.models.ingredient import UnitDimension
 
 
@@ -13,10 +13,14 @@ class RecipeRepository:
         self.family_id = family_id
 
     def list(self) -> list[Recipe]:
-        statement = select(Recipe).where(Recipe.family_id == self.family_id).options(*self._load_options()).order_by(Recipe.name)
+        statement = select(Recipe).where(or_(Recipe.family_id == self.family_id, Recipe.shares.any(RecipeShare.recipient_family_id == self.family_id))).options(*self._load_options()).order_by(Recipe.name)
         return list(self.session.scalars(statement).all())
 
     def get(self, recipe_id: int) -> Recipe | None:
+        statement = select(Recipe).where(Recipe.id == recipe_id, or_(Recipe.family_id == self.family_id, Recipe.shares.any(RecipeShare.recipient_family_id == self.family_id))).options(*self._load_options())
+        return self.session.scalar(statement)
+
+    def get_owned(self, recipe_id: int) -> Recipe | None:
         statement = select(Recipe).where(Recipe.id == recipe_id, Recipe.family_id == self.family_id).options(*self._load_options())
         return self.session.scalar(statement)
 
@@ -40,16 +44,32 @@ class RecipeRepository:
         self.session.commit()
 
     def set_rating(self, recipe: Recipe, user_id: int, rating: int | None) -> None:
-        existing = self.session.scalar(select(RecipeRating).where(RecipeRating.recipe_id == recipe.id, RecipeRating.user_id == user_id))
+        existing = self.session.scalar(select(RecipeRating).where(RecipeRating.recipe_id == recipe.id, RecipeRating.user_id == user_id, RecipeRating.family_id == self.family_id))
         if rating is None:
             if existing is not None:
                 self.session.delete(existing)
         elif existing is None:
-            self.session.add(RecipeRating(recipe_id=recipe.id, user_id=user_id, rating=rating))
+            self.session.add(RecipeRating(recipe_id=recipe.id, user_id=user_id, family_id=self.family_id, rating=rating))
         else:
             existing.rating = rating
         self.session.commit()
         self.session.expire(recipe, ["ratings"])
+
+    def list_share_targets(self) -> list[Family]:
+        return list(self.session.scalars(select(Family).where(Family.id != self.family_id).order_by(Family.name, Family.id)))
+
+    def replace_shares(self, recipe: Recipe, family_ids: list[int], user_id: int) -> Recipe:
+        valid_ids = set(self.session.scalars(select(Family.id).where(Family.id.in_(family_ids), Family.id != self.family_id))) if family_ids else set()
+        if valid_ids != set(family_ids):
+            raise ValueError("One or more families could not be found")
+        self.session.execute(delete(RecipeShare).where(RecipeShare.recipe_id == recipe.id, RecipeShare.recipient_family_id.not_in(valid_ids)))
+        existing_ids = set(self.session.scalars(select(RecipeShare.recipient_family_id).where(RecipeShare.recipe_id == recipe.id)))
+        self.session.add_all(RecipeShare(recipe_id=recipe.id, recipient_family_id=family_id, created_by_user_id=user_id) for family_id in valid_ids - existing_ids)
+        self.session.commit()
+        self.session.expire(recipe, ["shares"])
+        stored = self.get_owned(recipe.id)
+        assert stored is not None
+        return stored
 
     def clear_contents(self, recipe: Recipe) -> None:
         recipe.ingredients.clear()
@@ -111,4 +131,5 @@ class RecipeRepository:
             selectinload(Recipe.tags),
             selectinload(Recipe.recipe_types),
             selectinload(Recipe.ratings),
+            selectinload(Recipe.shares),
         )

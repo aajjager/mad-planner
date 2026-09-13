@@ -47,6 +47,7 @@ def test_owner_setup_login_and_logout(client: TestClient) -> None:
     assert client.get("/api/v1/auth/status").json() == {"setup_required": True}
     owner = setup_owner(client)
     assert owner["role"] == "owner"
+    assert owner["is_system_admin"] is True
     assert owner["show_nutrition"] is True
     assert owner["browser_notifications_enabled"] is False
     preferences = client.patch(
@@ -137,6 +138,19 @@ def test_owner_can_invite_a_family_member(client: TestClient) -> None:
 
     assert client.delete(f"/api/v1/auth/admin/members/{member_id}").status_code == 204
     assert client.post("/api/v1/auth/login", json={"email": "member@example.com", "password": "member-password-123"}).status_code == 401
+
+
+def test_system_administrator_can_create_and_delete_families(client: TestClient) -> None:
+    owner = setup_owner(client)
+    invitation = client.post("/api/v1/auth/families/invitations", json={"family_name": "Vibe family", "email": "vibe@example.com"})
+    assert invitation.status_code == 201
+    families = client.get("/api/v1/auth/admin/families")
+    assert families.status_code == 200
+    assert {family["name"] for family in families.json()} == {"Example family", "Vibe family"}
+    assert client.delete(f"/api/v1/auth/admin/families/{owner['family_id']}").status_code == 409
+    vibe_id = next(family["id"] for family in families.json() if family["name"] == "Vibe family")
+    assert client.delete(f"/api/v1/auth/admin/families/{vibe_id}").status_code == 204
+    assert [family["name"] for family in client.get("/api/v1/auth/admin/families").json()] == ["Example family"]
 
 
 def test_domain_endpoints_require_authentication(client: TestClient) -> None:

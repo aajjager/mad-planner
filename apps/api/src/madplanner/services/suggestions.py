@@ -138,9 +138,9 @@ class MealSuggestionService:
         tie_break = -((recipe.id - day_offset - variant * 2) % 10000)
         return score, tie_break, recipe, reasons
 
-    @staticmethod
-    def _family_rating(recipe: Recipe) -> float:
-        return sum(item.rating for item in recipe.ratings) / len(recipe.ratings) if recipe.ratings else 0
+    def _family_rating(self, recipe: Recipe) -> float:
+        ratings = [item.rating for item in recipe.ratings if item.family_id == self.recipes.family_id]
+        return sum(ratings) / len(ratings) if ratings else 0
 
     @staticmethod
     def _season(value: date) -> str:

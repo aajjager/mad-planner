@@ -1,9 +1,9 @@
 from datetime import date
 
-from sqlalchemy import select
+from sqlalchemy import or_, select
 from sqlalchemy.orm import Session, selectinload
 
-from madplanner.models import MealPlanEntry, MealPlanExclusion, MealType, Recipe, RecipeIngredient
+from madplanner.models import MealPlanEntry, MealPlanExclusion, MealType, Recipe, RecipeIngredient, RecipeShare
 
 
 class MealPlanRepository:
@@ -37,7 +37,7 @@ class MealPlanRepository:
         return self.session.scalar(select(MealPlanExclusion).where(MealPlanExclusion.family_id == self.family_id, MealPlanExclusion.meal_date == meal_date, MealPlanExclusion.meal_type == meal_type))
 
     def get_recipe(self, recipe_id: int) -> Recipe | None:
-        return self.session.scalar(select(Recipe).where(Recipe.id == recipe_id, Recipe.family_id == self.family_id))
+        return self.session.scalar(select(Recipe).where(Recipe.id == recipe_id, or_(Recipe.family_id == self.family_id, Recipe.shares.any(RecipeShare.recipient_family_id == self.family_id))))
 
     def save(self, entry: MealPlanEntry) -> MealPlanEntry:
         exclusion = self.get_exclusion(entry.meal_date, entry.meal_type)

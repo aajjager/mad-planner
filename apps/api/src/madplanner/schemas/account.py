@@ -44,6 +44,7 @@ class AccountResponse(BaseModel):
     accent_theme: Literal["sage", "ocean", "berry", "gold"]
     browser_notifications_enabled: bool
     mfa_enabled: bool
+    is_system_admin: bool
 
 
 class PersonalPreferencesUpdate(BaseModel):
@@ -153,6 +154,18 @@ class FamilySettingsUpdate(BaseModel):
 class InvitationCreateRequest(BaseModel):
     email: str = Field(min_length=3, max_length=320, pattern=r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
     role: Literal["editor", "planner", "viewer"] = "editor"
+
+
+class NewFamilyInvitationCreateRequest(BaseModel):
+    family_name: str = Field(min_length=1, max_length=120)
+    email: str = Field(min_length=3, max_length=320, pattern=r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
+
+
+class AdminFamilyResponse(BaseModel):
+    id: int
+    name: str
+    members: int
+    recipes: int
 
 
 class InvitationResponse(BaseModel):

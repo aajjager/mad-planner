@@ -88,6 +88,7 @@ class AuthService:
             normalized_email=normalize_email(email),
             display_name=display_name.strip(),
             password_hash=hash_password(password),
+            is_system_admin=True,
         )
         family = Family(name=family_name.strip())
         membership = FamilyMembership(user=user, family=family, role=FamilyRole.OWNER)
@@ -329,7 +330,7 @@ class AuthService:
 
     def rated_recipe_count(self, family_id: int) -> int:
         from madplanner.models import RecipeRating
-        return self.session.scalar(select(func.count(func.distinct(RecipeRating.recipe_id))).join(Recipe).where(Recipe.family_id == family_id)) or 0
+        return self.session.scalar(select(func.count(func.distinct(RecipeRating.recipe_id))).where(RecipeRating.family_id == family_id)) or 0
 
     def list_recipe_types(self, family_id: int) -> list[RecipeType]:
         return list(self.session.scalars(select(RecipeType).where(RecipeType.family_id == family_id).order_by(RecipeType.name)))
@@ -458,6 +459,48 @@ class AuthService:
         self.session.add(invitation)
         self.session.commit()
         return invitation, token
+
+    def create_new_family_invitation(self, context: AuthContext, family_name: str, email: str) -> tuple[Family, FamilyInvitation, str]:
+        normalized = normalize_email(email)
+        if self.session.scalar(select(User.id).where(User.normalized_email == normalized)) is not None:
+            raise ValueError("account_exists")
+        family = Family(name=family_name.strip())
+        self.session.add(family)
+        self.session.flush()
+        self.session.add_all(
+            [RecipeType(family_id=family.id, name=name, normalized_name=name.casefold(), meal_type=meal_type) for name, meal_type in DEFAULT_RECIPE_TYPES]
+        )
+        token = secrets.token_urlsafe(32)
+        invitation = FamilyInvitation(
+            family_id=family.id,
+            created_by_user_id=context.user.id,
+            intended_email=normalized,
+            token_hash=hash_token(token),
+            role=FamilyRole.OWNER,
+            expires_at=utc_now() + timedelta(days=7),
+        )
+        self.session.add(invitation)
+        self.session.commit()
+        return family, invitation, token
+
+    def list_families(self) -> list[tuple[Family, int, int]]:
+        families = list(self.session.scalars(select(Family).order_by(Family.name, Family.id)))
+        return [(family, self.session.scalar(select(func.count(FamilyMembership.id)).where(FamilyMembership.family_id == family.id)) or 0, self.session.scalar(select(func.count(Recipe.id)).where(Recipe.family_id == family.id)) or 0) for family in families]
+
+    def delete_family(self, family_id: int) -> bool:
+        family = self.session.get(Family, family_id)
+        if family is None:
+            return False
+        user_ids = list(self.session.scalars(select(FamilyMembership.user_id).where(FamilyMembership.family_id == family_id)))
+        self.session.delete(family)
+        self.session.flush()
+        for user_id in user_ids:
+            if not self.session.scalar(select(FamilyMembership.id).where(FamilyMembership.user_id == user_id).limit(1)):
+                user = self.session.get(User, user_id)
+                if user is not None:
+                    self.session.delete(user)
+        self.session.commit()
+        return True
 
     def get_invitation(self, token: str) -> FamilyInvitation | None:
         invitation = self.session.scalar(

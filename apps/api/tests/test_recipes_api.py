@@ -128,3 +128,37 @@ def test_metadata_only_nutrition_uses_ingredient_estimate(client: TestClient) ->
     assert response.status_code == 201
     assert response.json()["nutrition"]["estimated"] is True
     assert response.json()["nutrition"]["coveragePercent"] == 100
+
+
+def test_recipe_can_be_shared_without_copying_it(client: TestClient) -> None:
+    created = client.post("/api/v1/recipes", json={"name": "Family pasta"})
+    recipe_id = created.json()["id"]
+
+    provisioned = client.post("/api/v1/auth/families/invitations", json={"family_name": "Vibe family", "email": "vibe@example.com"})
+    assert provisioned.status_code == 201
+    recipient_client = TestClient(app)
+    accepted = recipient_client.post(f"/api/v1/auth/invitations/{provisioned.json()['token']}/accept", json={"display_name": "Vibe", "password": "test-password-456"})
+    assert accepted.status_code == 201
+    assert accepted.json()["is_system_admin"] is False
+    assert recipient_client.get("/api/v1/auth/admin/families").status_code == 403
+
+    targets = client.get("/api/v1/recipes/sharing/families")
+    assert targets.status_code == 200
+    assert len(targets.json()) == 1
+    recipient_id = targets.json()[0]["id"]
+    assert targets.json()[0]["name"] == "Vibe family"
+
+    shared = client.put(f"/api/v1/recipes/{recipe_id}/shares", json={"family_ids": [recipient_id]})
+    assert shared.status_code == 200
+    assert shared.json()["shared_with_family_ids"] == [recipient_id]
+    assert shared.json()["shared_with_families"] == ["Vibe family"]
+    received = recipient_client.get(f"/api/v1/recipes/{recipe_id}")
+    assert received.status_code == 200
+    assert received.json()["owned_by_current_family"] is False
+    assert received.json()["owner_family_name"] == "Test family"
+    assert recipient_client.put(f"/api/v1/recipes/{recipe_id}", json={"name": "Changed"}).status_code == 404
+    assert recipient_client.put(f"/api/v1/recipes/{recipe_id}/rating", json={"rating": 4}).json()["family_rating"] == 4
+    assert client.get(f"/api/v1/recipes/{recipe_id}").json()["family_rating"] is None
+
+    assert client.delete(f"/api/v1/recipes/{recipe_id}").status_code == 204
+    assert recipient_client.get(f"/api/v1/recipes/{recipe_id}").status_code == 404

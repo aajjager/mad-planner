@@ -20,6 +20,10 @@ export interface Recipe {
   family_rating: number | null;
   rating_count: number;
   my_rating: number | null;
+  owned_by_current_family: boolean;
+  owner_family_name: string | null;
+  shared_with_family_ids: number[];
+  shared_with_families: string[];
   ingredients: RecipeIngredient[]; instructions: RecipeInstruction[]; created_at: string; updated_at: string
 }
 export interface ImportedRecipePreview { name: string; description: string | null; image_url: string | null; source_url: string; author: string | null; servings: string | null; preparation_time_minutes: number | null; cooking_time_minutes: number | null; total_time_minutes: number | null; cuisine: string | null; category: string | null; nutrition: Record<string, unknown> | null; ingredients: string[]; instructions: string[]; parser: string; warnings: string[]; suggested_recipe_types: string[]; recipe_type_confidence: 'low' | 'medium' | 'high' }
@@ -46,6 +50,9 @@ export const deleteRecipe = (id: number) => request<void>(`/api/v1/recipes/${id}
 export const updateRecipeMealTypes = (id: number, mealTypes: RecipeMealType[]) => request<Recipe>(`/api/v1/recipes/${id}/meal-types`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ meal_types: mealTypes }) })
 export const updateRecipeTags = (id: number, tags: string[]) => request<Recipe>(`/api/v1/recipes/${id}/tags`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ tags }) })
 export const updateRecipeRating = (id: number, rating: number | null) => request<Recipe>(`/api/v1/recipes/${id}/rating`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ rating }) })
+export interface RecipeShareTarget { id: number; name: string }
+export const listRecipeShareTargets = () => request<RecipeShareTarget[]>('/api/v1/recipes/sharing/families')
+export const updateRecipeShares = (id: number, familyIds: number[]) => request<Recipe>(`/api/v1/recipes/${id}/shares`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ family_ids: familyIds }) })
 export const uploadRecipeImage = (id: number, file: File) => request<Recipe>(`/api/v1/recipes/${id}/image`, { method: 'POST', headers: { 'Content-Type': file.type }, body: file })
 export const previewRecipeImport = (url: string) => request<ImportedRecipePreview>('/api/v1/recipe-imports/preview', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ url }) })
 export const scanRecipeImage = (file: File) => request<RecipeScanPreview>('/api/v1/recipe-scans/preview', { method: 'POST', headers: { 'Content-Type': file.type }, body: file })

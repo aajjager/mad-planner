@@ -13,6 +13,7 @@ export interface Account {
   accent_theme: 'sage' | 'ocean' | 'berry' | 'gold'
   browser_notifications_enabled: boolean
   mfa_enabled: boolean
+  is_system_admin: boolean
 }
 export interface MfaChallenge { mfa_required: true; challenge_token: string }
 export interface MfaEnrollment { secret: string; provisioning_uri: string }
@@ -28,6 +29,7 @@ export interface FamilyMember {
 }
 
 export interface ManagedInvitation { id: number; intended_email: string; expires_at: string; role: FamilyRole }
+export interface AdminFamily { id: number; name: string; members: number; recipes: number }
 export interface SecurityEvent { id: number; event_type: 'login_succeeded' | 'login_failed' | string; user_email: string | null; created_at: string }
 export interface RecipeType { id: number; name: string; meal_type: 'breakfast' | 'lunch' | 'dinner' | null }
 export interface FamilySettings {
@@ -91,6 +93,9 @@ export const disableMfa = (password: string) => request<Account>('/api/v1/auth/m
 export const logout = () => request<void>('/api/v1/auth/logout', { method: 'POST' })
 export const listFamilyMembers = () => request<FamilyMember[]>('/api/v1/auth/family/members')
 export const createFamilyInvitation = (email: string, role: Exclude<FamilyRole, 'owner'>) => request<Invitation>('/api/v1/auth/family/invitations', jsonOptions('POST', { email, role }))
+export const createNewFamilyInvitation = (familyName: string, email: string) => request<Invitation>('/api/v1/auth/families/invitations', jsonOptions('POST', { family_name: familyName, email }))
+export const listAdminFamilies = () => request<AdminFamily[]>('/api/v1/auth/admin/families')
+export const deleteAdminFamily = (id: number) => request<void>(`/api/v1/auth/admin/families/${id}`, { method: 'DELETE' })
 export const getInvitation = (token: string) => request<InvitationPreview>(`/api/v1/auth/invitations/${encodeURIComponent(token)}`)
 export const acceptInvitation = (token: string, data: { display_name: string; password: string }) => request<Account>(`/api/v1/auth/invitations/${encodeURIComponent(token)}/accept`, jsonOptions('POST', data))
 export const listManagedInvitations = () => request<ManagedInvitation[]>('/api/v1/auth/admin/invitations')

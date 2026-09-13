@@ -8,6 +8,7 @@ from madplanner.db.session import get_session
 from madplanner.models import FamilyRole
 from madplanner.schemas.account import (
     AccountResponse,
+    AdminFamilyResponse,
     FamilyMemberResponse,
     FamilyMemberRoleUpdate,
     FamilySettingsResponse,
@@ -24,6 +25,7 @@ from madplanner.schemas.account import (
     MfaDisableRequest,
     MfaRecoveryCodesResponse,
     ManagedInvitationResponse,
+    NewFamilyInvitationCreateRequest,
     OwnerSetupRequest,
     PasswordResetLinkResponse,
     PasswordResetPreviewResponse,
@@ -71,6 +73,7 @@ def account_response(context: AuthContext) -> AccountResponse:
         accent_theme=context.user.accent_theme,
         browser_notifications_enabled=context.user.browser_notifications_enabled,
         mfa_enabled=context.user.mfa_enabled,
+        is_system_admin=context.user.is_system_admin,
     )
 
 
@@ -190,6 +193,12 @@ def family_members(context: Annotated[AuthContext, Depends(require_auth)], servi
 def require_owner(context: Annotated[AuthContext, Depends(require_auth)]) -> AuthContext:
     if context.role is not FamilyRole.OWNER:
         raise HTTPException(status_code=403, detail="Only a family owner can manage logins")
+    return context
+
+
+def require_system_admin(context: Annotated[AuthContext, Depends(require_auth)]) -> AuthContext:
+    if not context.user.is_system_admin:
+        raise HTTPException(status_code=403, detail="System administrator permission required")
     return context
 
 
@@ -349,6 +358,29 @@ def create_invitation(data: InvitationCreateRequest, context: Annotated[AuthCont
         expires_at=invitation.expires_at.isoformat(),
         role=invitation.role,
     )
+
+
+@router.post("/families/invitations", response_model=InvitationResponse, status_code=status.HTTP_201_CREATED)
+def create_new_family_invitation(data: NewFamilyInvitationCreateRequest, context: Annotated[AuthContext, Depends(require_system_admin)], service: Annotated[AuthService, Depends(get_auth_service)]):
+    try:
+        family, invitation, token = service.create_new_family_invitation(context, data.family_name, data.email)
+    except ValueError:
+        raise HTTPException(status_code=409, detail="An account already exists for this email") from None
+    return InvitationResponse(token=token, family_name=family.name, intended_email=invitation.intended_email or "", expires_at=invitation.expires_at.isoformat(), role=invitation.role)
+
+
+@router.get("/admin/families", response_model=list[AdminFamilyResponse])
+def list_admin_families(_context: Annotated[AuthContext, Depends(require_system_admin)], service: Annotated[AuthService, Depends(get_auth_service)]):
+    return [AdminFamilyResponse(id=family.id, name=family.name, members=members, recipes=recipes) for family, members, recipes in service.list_families()]
+
+
+@router.delete("/admin/families/{family_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_admin_family(family_id: int, context: Annotated[AuthContext, Depends(require_system_admin)], service: Annotated[AuthService, Depends(get_auth_service)]) -> Response:
+    if family_id == context.family.id:
+        raise HTTPException(status_code=409, detail="You cannot delete the family you are currently using")
+    if not service.delete_family(family_id):
+        raise HTTPException(status_code=404, detail="Family not found")
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
 @router.get("/invitations/{token}", response_model=InvitationPreviewResponse)

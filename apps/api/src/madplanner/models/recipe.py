@@ -90,15 +90,30 @@ class Recipe(Base):
         secondary=recipe_recipe_types, back_populates="recipes", order_by="RecipeType.name"
     )
     ratings: Mapped[list["RecipeRating"]] = relationship(back_populates="recipe", cascade="all, delete-orphan")
+    shares: Mapped[list["RecipeShare"]] = relationship(back_populates="recipe", cascade="all, delete-orphan")
+
+
+class RecipeShare(Base):
+    __tablename__ = "recipe_shares"
+    __table_args__ = (UniqueConstraint("recipe_id", "recipient_family_id", name="uq_recipe_shares_recipe_family"),)
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    recipe_id: Mapped[int] = mapped_column(ForeignKey("recipes.id", ondelete="CASCADE"), index=True)
+    recipient_family_id: Mapped[int] = mapped_column(ForeignKey("families.id", ondelete="CASCADE"), index=True)
+    created_by_user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+    recipe: Mapped[Recipe] = relationship(back_populates="shares")
 
 
 class RecipeRating(Base):
     __tablename__ = "recipe_ratings"
-    __table_args__ = (UniqueConstraint("recipe_id", "user_id", name="uq_recipe_ratings_recipe_user"),)
+    __table_args__ = (UniqueConstraint("recipe_id", "user_id", "family_id", name="uq_recipe_ratings_recipe_user_family"),)
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     recipe_id: Mapped[int] = mapped_column(ForeignKey("recipes.id", ondelete="CASCADE"), index=True)
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
+    family_id: Mapped[int] = mapped_column(ForeignKey("families.id", ondelete="CASCADE"), index=True)
     rating: Mapped[int] = mapped_column(Integer)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())

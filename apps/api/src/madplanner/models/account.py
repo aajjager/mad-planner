@@ -55,6 +55,7 @@ class User(Base):
     dark_mode: Mapped[bool] = mapped_column(Boolean, default=False, server_default="false")
     accent_theme: Mapped[str] = mapped_column(String(20), default="sage", server_default="sage")
     browser_notifications_enabled: Mapped[bool] = mapped_column(Boolean, default=False, server_default="false")
+    is_system_admin: Mapped[bool] = mapped_column(Boolean, default=False, server_default="false")
     mfa_enabled: Mapped[bool] = mapped_column(Boolean, default=False, server_default="false")
     mfa_secret_encrypted: Mapped[str | None] = mapped_column(String(500))
     mfa_recovery_code_hashes: Mapped[list[str]] = mapped_column(JSON, default=list, server_default="[]")

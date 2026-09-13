@@ -10,7 +10,7 @@ from madplanner.core.config import get_settings
 from madplanner.api.routes.auth import require_auth, require_recipe_editor
 from madplanner.services.auth import AuthContext
 from madplanner.repositories.recipes import RecipeRepository
-from madplanner.schemas.recipe import RecipeMealTypesUpdate, RecipeRatingUpdate, RecipeResponse, RecipeTagsUpdate, RecipeWrite
+from madplanner.schemas.recipe import RecipeMealTypesUpdate, RecipeRatingUpdate, RecipeResponse, RecipeShareTarget, RecipeSharesUpdate, RecipeTagsUpdate, RecipeWrite
 from madplanner.services.recipes import RecipeService
 
 router = APIRouter(prefix="/recipes", tags=["recipes"])
@@ -32,6 +32,11 @@ def create_recipe(data: RecipeWrite, service: Annotated[RecipeService, Depends(g
         return service.create_recipe(data)
     except ValueError as error:
         raise HTTPException(status_code=422, detail=str(error)) from error
+
+
+@router.get("/sharing/families", response_model=list[RecipeShareTarget])
+def list_recipe_share_targets(service: Annotated[RecipeService, Depends(get_recipe_service)], _permission: Annotated[AuthContext, Depends(require_recipe_editor)]):
+    return service.list_share_targets()
 
 
 @router.get("/{recipe_id}", response_model=RecipeResponse)
@@ -72,6 +77,17 @@ def update_recipe_tags(recipe_id: int, data: RecipeTagsUpdate, service: Annotate
 @router.put("/{recipe_id}/rating", response_model=RecipeResponse)
 def update_recipe_rating(recipe_id: int, data: RecipeRatingUpdate, service: Annotated[RecipeService, Depends(get_recipe_service)], _context: Annotated[AuthContext, Depends(require_auth)]):
     recipe = service.update_rating(recipe_id, data)
+    if recipe is None:
+        raise HTTPException(status_code=404, detail="Recipe not found")
+    return recipe
+
+
+@router.put("/{recipe_id}/shares", response_model=RecipeResponse)
+def update_recipe_shares(recipe_id: int, data: RecipeSharesUpdate, service: Annotated[RecipeService, Depends(get_recipe_service)], _permission: Annotated[AuthContext, Depends(require_recipe_editor)]):
+    try:
+        recipe = service.update_shares(recipe_id, data)
+    except ValueError as error:
+        raise HTTPException(status_code=422, detail=str(error)) from error
     if recipe is None:
         raise HTTPException(status_code=404, detail="Recipe not found")
     return recipe
