@@ -11,6 +11,7 @@ from cryptography.fernet import Fernet
 import pyotp
 
 from madplanner.models import Family, FamilyInvitation, FamilyMembership, FamilyRole, MealPlanEntry, MfaLoginChallenge, PasswordResetToken, Recipe, RecipeType, SecurityEvent, User, UserSession
+from madplanner.services.starter_recipes import add_starter_recipes
 
 
 DEFAULT_RECIPE_TYPES = (
@@ -80,7 +81,7 @@ class AuthService:
     def setup_required(self) -> bool:
         return self.session.scalar(select(User.id).limit(1)) is None
 
-    def create_owner(self, *, email: str, display_name: str, password: str, family_name: str) -> tuple[AuthContext, str]:
+    def create_owner(self, *, email: str, display_name: str, password: str, family_name: str, include_starter_recipes: bool = False) -> tuple[AuthContext, str]:
         if not self.setup_required():
             raise ValueError("setup_complete")
         user = User(
@@ -101,6 +102,8 @@ class AuthService:
         self.session.execute(update(MealPlanEntry).where(MealPlanEntry.family_id.is_(None)).values(family_id=family.id))
         auth_context, token = self._create_session(user, family, FamilyRole.OWNER)
         self.session.commit()
+        if include_starter_recipes and not self.session.scalar(select(Recipe.id).where(Recipe.family_id == family.id).limit(1)):
+            add_starter_recipes(self.session, family.id, user.id)
         return auth_context, token
 
     def login(self, email: str, password: str) -> tuple[AuthContext, str] | MfaChallenge | None:

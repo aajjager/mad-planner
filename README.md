@@ -20,6 +20,8 @@ docker compose up --build -d
 
 Open <http://localhost:8080>. The web container serves the React application and proxies `/api` requests internally to FastAPI. PostgreSQL data is retained in the named `postgres_data` volume.
 
+On a brand-new database, the first-owner screen asks how the recipe collection should begin. Choose **Start with example recipes** to add five editable recipes for trying the planner and grocery list, or **Start with an empty collection** for a clean installation. This choice appears only during initial setup and never replaces recipes in an existing database.
+
 Check container health with:
 
 ```powershell

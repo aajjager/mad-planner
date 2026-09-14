@@ -84,7 +84,7 @@ const jsonOptions = (method: string, body: unknown): RequestInit => ({
 
 export const getSetupStatus = () => request<{ setup_required: boolean }>('/api/v1/auth/status')
 export const getCurrentAccount = () => request<Account>('/api/v1/auth/me')
-export const setupOwner = (data: { email: string; display_name: string; password: string; family_name: string }) => request<Account>('/api/v1/auth/setup', jsonOptions('POST', data))
+export const setupOwner = (data: { email: string; display_name: string; password: string; family_name: string; include_starter_recipes: boolean }) => request<Account>('/api/v1/auth/setup', jsonOptions('POST', data))
 export const login = (data: { email: string; password: string }) => request<Account | MfaChallenge>('/api/v1/auth/login', jsonOptions('POST', data))
 export const completeMfaLogin = (challenge_token: string, code: string) => request<Account>('/api/v1/auth/login/mfa', jsonOptions('POST', { challenge_token, code }))
 export const startMfaEnrollment = () => request<MfaEnrollment>('/api/v1/auth/me/mfa/enroll', { method: 'POST' })

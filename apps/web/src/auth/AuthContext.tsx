@@ -11,7 +11,7 @@ interface AuthValue {
   startMfaEnrollment: () => Promise<MfaEnrollment>
   confirmMfaEnrollment: (code: string) => Promise<string[]>
   disableMfa: (password: string) => Promise<void>
-  setupOwner: (data: { email: string; display_name: string; password: string; family_name: string }) => Promise<void>
+  setupOwner: (data: { email: string; display_name: string; password: string; family_name: string; include_starter_recipes: boolean }) => Promise<void>
   acceptAccount: (account: Account) => void
   logout: () => Promise<void>
   setLocale: (locale: Account['locale']) => Promise<void>

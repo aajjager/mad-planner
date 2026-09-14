@@ -33,6 +33,7 @@ describe('App', () => {
     fireEvent.change(screen.getByLabelText('Family name'), { target: { value: 'Test family' } })
     fireEvent.change(screen.getByLabelText('Email'), { target: { value: 'owner@example.com' } })
     fireEvent.change(screen.getByLabelText('Password'), { target: { value: 'test-password-123' } })
+    expect(screen.getByRole('radio', { name: /Start with example recipes/ })).toBeChecked()
     fireEvent.click(screen.getByRole('button', { name: 'Create family' }))
 
     expect(await screen.findByRole('heading', { name: 'Your recipes' })).toBeInTheDocument()

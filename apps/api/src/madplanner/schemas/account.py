@@ -14,6 +14,7 @@ class OwnerSetupRequest(BaseModel):
     display_name: str = Field(min_length=1, max_length=120)
     password: str = Field(min_length=10, max_length=200)
     family_name: str = Field(min_length=1, max_length=120)
+    include_starter_recipes: bool = False
 
 
 class LoginRequest(BaseModel):

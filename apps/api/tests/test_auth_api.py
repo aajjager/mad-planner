@@ -91,6 +91,29 @@ def test_owner_setup_login_and_logout(client: TestClient) -> None:
     assert all(item["user_email"] == "owner@example.com" for item in events.json())
 
 
+def test_owner_can_choose_starter_recipes(client: TestClient) -> None:
+    response = client.post(
+        "/api/v1/auth/setup",
+        json={
+            "email": "owner@example.com",
+            "display_name": "Owner",
+            "password": "correct-horse-battery-staple",
+            "family_name": "Example family",
+            "include_starter_recipes": True,
+        },
+    )
+    assert response.status_code == 201
+    recipes = client.get("/api/v1/recipes")
+    assert recipes.status_code == 200
+    assert {recipe["name"] for recipe in recipes.json()} == {
+        "Fluffy breakfast pancakes",
+        "Creamy tomato pasta",
+        "Sheet-pan salmon and potatoes",
+        "Mexican bean bowls",
+        "Apple oat crumble",
+    }
+
+
 def test_owner_can_invite_a_family_member(client: TestClient) -> None:
     setup_owner(client)
     invitation = client.post("/api/v1/auth/family/invitations", json={"email": "member@example.com"})
