@@ -52,6 +52,10 @@
 - [x] Classify recipes for breakfast, lunch, and/or dinner
 
 ## Later phases
+- [ ] Phase 22 — Feedback and release management
+  - [x] Add user feedback and administrator review workflow
+  - [x] Add a version and release-notes page
+  - [ ] Add deliberate administrator-triggered updates with backup and rollback guidance
 - [x] Phase 8 — Accounts and shared families
   - [x] Add family, user, membership, invitation, and session models
   - [x] Add owner setup, login, logout, and invitation APIs

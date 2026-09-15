@@ -14,6 +14,7 @@ import { AdminPage } from './pages/AdminPage'
 import { ScanRecipePage } from './pages/ScanRecipePage'
 import { PasswordResetPage } from './pages/PasswordResetPage'
 import { CookBookImportPage } from './pages/CookBookImportPage'
+import { UpdatesPage } from './pages/UpdatesPage'
 import { translator } from './i18n'
 import { PlanReminderBanner } from './components/PlanReminderBanner'
 import { BrandMark } from './components/BrandMark'
@@ -42,6 +43,7 @@ function ApplicationShell() {
             <Route path="/planner" element={<PlannerPage />} />
             <Route path="/grocery-list" element={<GroceryListPage />} />
             <Route path="/family" element={<FamilyPage />} />
+            <Route path="/updates" element={<UpdatesPage />} />
             <Route path="/admin" element={<AdminPage />} />
             <Route path="*" element={<Navigate to="/recipes" replace />} />
           </Routes>
