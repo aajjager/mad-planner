@@ -11,4 +11,5 @@ All notable user-visible changes to Mad Planner are recorded here. Releases will
 - Added combinable family-rating and calories-per-serving range filters to the recipe collection.
 - Added CookBook Manager YAML ZIP preview and bulk import with duplicate-name detection and recipe-type fallback.
 - Fixed CookBook imports failing when one recipe repeats the same ingredient in multiple sections.
+- Limited recipe-card descriptions to six lines so long imported text keeps the collection compact.
 - Added copyable Codex implementation prompts that require tests, a changelog update, and a final commit request.
