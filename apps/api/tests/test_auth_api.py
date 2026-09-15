@@ -120,6 +120,7 @@ def test_feedback_can_be_submitted_and_reviewed_by_system_admin(client: TestClie
     assert submitted.status_code == 201
     assert submitted.json()["status"] == "pending"
     assert submitted.json()["submitted_by"] == "Owner"
+    assert client.delete(f"/api/v1/auth/admin/feedback/{submitted.json()['id']}").status_code == 404
 
     inbox = client.get("/api/v1/auth/admin/feedback")
     assert inbox.status_code == 200
@@ -141,6 +142,8 @@ def test_feedback_can_be_submitted_and_reviewed_by_system_admin(client: TestClie
     acknowledged = client.post(f"/api/v1/auth/feedback/{submitted.json()['id']}/acknowledge")
     assert acknowledged.status_code == 200
     assert acknowledged.json()["completion_seen_at"] is not None
+    assert client.delete(f"/api/v1/auth/admin/feedback/{submitted.json()['id']}").status_code == 204
+    assert client.get("/api/v1/auth/admin/feedback").json() == []
 
 
 def test_owner_can_invite_a_family_member(client: TestClient) -> None:

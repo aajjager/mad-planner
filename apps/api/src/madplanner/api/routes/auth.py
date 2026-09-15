@@ -246,6 +246,12 @@ def review_feedback(feedback_id: int, data: FeedbackReviewRequest, context: Anno
     return feedback_response(item)
 
 
+@router.delete("/admin/feedback/{feedback_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_feedback(feedback_id: int, _context: Annotated[AuthContext, Depends(require_system_admin)], service: Annotated[AuthService, Depends(get_auth_service)]):
+    if not service.delete_archived_feedback(feedback_id):
+        raise HTTPException(status_code=404, detail="Archived feedback could not be found")
+
+
 def require_recipe_editor(context: Annotated[AuthContext, Depends(require_auth)]) -> AuthContext:
     if context.role not in {FamilyRole.OWNER, FamilyRole.EDITOR}:
         raise HTTPException(status_code=403, detail="Recipe editing permission required")

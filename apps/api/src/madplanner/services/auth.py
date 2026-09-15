@@ -526,6 +526,14 @@ class AuthService:
         self.session.commit()
         return item
 
+    def delete_archived_feedback(self, feedback_id: int) -> bool:
+        item = self.session.get(FeedbackSubmission, feedback_id)
+        if item is None or item.status not in {"done", "rejected"}:
+            return False
+        self.session.delete(item)
+        self.session.commit()
+        return True
+
     def delete_family(self, family_id: int) -> bool:
         family = self.session.get(Family, family_id)
         if family is None:
