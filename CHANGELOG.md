@@ -4,6 +4,11 @@ All notable user-visible changes to Mad Planner are recorded here. Releases will
 
 ## Unreleased
 
+- Added an opt-in public recipe library where families can browse and import independent recipe copies.
+- Added optional image, PDF, or text attachments to feedback and improvement requests.
+- Added private automatic recipe analysis that suggests useful tags and meal classifications from recipe text and ingredients.
+- Improved tag contrast across all accent colors when dark mode is enabled.
+
 - Added a first-install choice between example recipes and an empty collection.
 - Added user feedback submissions and an administrator approval backlog.
 - Added administrator completion tracking and in-app notifications for the user who requested an improvement.

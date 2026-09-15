@@ -110,6 +110,7 @@ class RecipeResponse(BaseModel):
     owner_family_name: str | None
     shared_with_family_ids: list[int]
     shared_with_families: list[str]
+    is_public: bool
     ingredients: list[RecipeIngredientResponse]
     instructions: list[RecipeInstructionResponse]
     created_at: datetime
@@ -158,3 +159,13 @@ class RecipeSharesUpdate(BaseModel):
     def remove_duplicates(self) -> "RecipeSharesUpdate":
         self.family_ids = list(dict.fromkeys(self.family_ids))
         return self
+
+
+class RecipeVisibilityUpdate(BaseModel):
+    is_public: bool
+
+
+class RecipeMetadataSuggestions(BaseModel):
+    tags: list[str]
+    meal_types: list[RecipeMealType]
+    cuisine: str | None = None

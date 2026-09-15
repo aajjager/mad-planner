@@ -10,7 +10,7 @@ from madplanner.core.config import get_settings
 from madplanner.api.routes.auth import require_auth, require_recipe_editor
 from madplanner.services.auth import AuthContext
 from madplanner.repositories.recipes import RecipeRepository
-from madplanner.schemas.recipe import RecipeMealTypesUpdate, RecipeRatingUpdate, RecipeResponse, RecipeShareTarget, RecipeSharesUpdate, RecipeTagsUpdate, RecipeWrite
+from madplanner.schemas.recipe import RecipeMealTypesUpdate, RecipeMetadataSuggestions, RecipeRatingUpdate, RecipeResponse, RecipeShareTarget, RecipeSharesUpdate, RecipeTagsUpdate, RecipeVisibilityUpdate, RecipeWrite
 from madplanner.services.recipes import RecipeService
 
 router = APIRouter(prefix="/recipes", tags=["recipes"])
@@ -37,6 +37,19 @@ def create_recipe(data: RecipeWrite, service: Annotated[RecipeService, Depends(g
 @router.get("/sharing/families", response_model=list[RecipeShareTarget])
 def list_recipe_share_targets(service: Annotated[RecipeService, Depends(get_recipe_service)], _permission: Annotated[AuthContext, Depends(require_recipe_editor)]):
     return service.list_share_targets()
+
+
+@router.get("/public", response_model=list[RecipeResponse])
+def list_public_recipes(service: Annotated[RecipeService, Depends(get_recipe_service)]):
+    return service.list_public_recipes()
+
+
+@router.post("/public/{recipe_id}/import", response_model=RecipeResponse, status_code=status.HTTP_201_CREATED)
+def import_public_recipe(recipe_id: int, service: Annotated[RecipeService, Depends(get_recipe_service)], _permission: Annotated[AuthContext, Depends(require_recipe_editor)]):
+    recipe = service.import_public_recipe(recipe_id)
+    if recipe is None:
+        raise HTTPException(status_code=404, detail="Public recipe not found")
+    return recipe
 
 
 @router.get("/{recipe_id}", response_model=RecipeResponse)
@@ -91,6 +104,22 @@ def update_recipe_shares(recipe_id: int, data: RecipeSharesUpdate, service: Anno
     if recipe is None:
         raise HTTPException(status_code=404, detail="Recipe not found")
     return recipe
+
+
+@router.put("/{recipe_id}/visibility", response_model=RecipeResponse)
+def update_recipe_visibility(recipe_id: int, data: RecipeVisibilityUpdate, service: Annotated[RecipeService, Depends(get_recipe_service)], _permission: Annotated[AuthContext, Depends(require_recipe_editor)]):
+    recipe = service.update_visibility(recipe_id, data)
+    if recipe is None:
+        raise HTTPException(status_code=404, detail="Recipe not found")
+    return recipe
+
+
+@router.post("/{recipe_id}/metadata-suggestions", response_model=RecipeMetadataSuggestions)
+def suggest_recipe_metadata(recipe_id: int, service: Annotated[RecipeService, Depends(get_recipe_service)], _permission: Annotated[AuthContext, Depends(require_recipe_editor)]):
+    suggestions = service.suggest_metadata(recipe_id)
+    if suggestions is None:
+        raise HTTPException(status_code=404, detail="Recipe not found")
+    return suggestions
 
 
 @router.post("/{recipe_id}/image", response_model=RecipeResponse)

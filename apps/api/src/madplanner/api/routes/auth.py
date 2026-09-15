@@ -1,4 +1,6 @@
 from typing import Annotated
+from pathlib import Path
+from uuid import uuid4
 
 from datetime import datetime, timezone
 from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
@@ -150,7 +152,7 @@ def current_account(context: Annotated[AuthContext, Depends(require_auth)]):
 
 
 def feedback_response(item) -> FeedbackResponse:
-    return FeedbackResponse(id=item.id, content=item.content, status=item.status, family_name=item.family.name, submitted_by=item.user.display_name, created_at=item.created_at.isoformat(), reviewed_at=item.reviewed_at.isoformat() if item.reviewed_at else None, completed_at=item.completed_at.isoformat() if item.completed_at else None, completion_seen_at=item.completion_seen_at.isoformat() if item.completion_seen_at else None)
+    return FeedbackResponse(id=item.id, content=item.content, status=item.status, family_name=item.family.name, submitted_by=item.user.display_name, created_at=item.created_at.isoformat(), reviewed_at=item.reviewed_at.isoformat() if item.reviewed_at else None, completed_at=item.completed_at.isoformat() if item.completed_at else None, completion_seen_at=item.completion_seen_at.isoformat() if item.completion_seen_at else None, attachment_url=item.attachment_url, attachment_name=item.attachment_name, attachment_content_type=item.attachment_content_type)
 
 
 @router.post("/feedback", response_model=FeedbackResponse, status_code=status.HTTP_201_CREATED)
@@ -158,6 +160,26 @@ def submit_feedback(data: FeedbackCreateRequest, context: Annotated[AuthContext,
     item = service.submit_feedback(context, data.content)
     item.family = context.family
     item.user = context.user
+    return feedback_response(item)
+
+
+@router.post("/feedback/{feedback_id}/attachment", response_model=FeedbackResponse)
+async def upload_feedback_attachment(feedback_id: int, request: Request, context: Annotated[AuthContext, Depends(require_auth)], service: Annotated[AuthService, Depends(get_auth_service)]):
+    content_type = request.headers.get("content-type", "").split(";", 1)[0].casefold()
+    allowed = {"image/jpeg": ".jpg", "image/png": ".png", "image/webp": ".webp", "application/pdf": ".pdf", "text/plain": ".txt"}
+    if content_type not in allowed:
+        raise HTTPException(status_code=415, detail="Use a JPEG, PNG, WebP, PDF, or text file")
+    content = await request.body()
+    if not content or len(content) > 10 * 1024 * 1024:
+        raise HTTPException(status_code=413, detail="Attachments must be 10 MB or smaller")
+    item = service.get_user_feedback(context, feedback_id)
+    if item is None:
+        raise HTTPException(status_code=404, detail="Feedback not found")
+    relative = Path("feedback") / str(context.family.id) / f"{uuid4().hex}{allowed[content_type]}"
+    target = get_settings().media_root / relative
+    target.parent.mkdir(parents=True, exist_ok=True); target.write_bytes(content)
+    name = request.headers.get("x-file-name", "attachment")[:255]
+    item = service.attach_feedback(item, f"/media/{relative.as_posix()}", name, content_type)
     return feedback_response(item)
 
 

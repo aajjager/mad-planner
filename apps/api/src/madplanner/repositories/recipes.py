@@ -17,12 +17,19 @@ class RecipeRepository:
         return list(self.session.scalars(statement).all())
 
     def get(self, recipe_id: int) -> Recipe | None:
-        statement = select(Recipe).where(Recipe.id == recipe_id, or_(Recipe.family_id == self.family_id, Recipe.shares.any(RecipeShare.recipient_family_id == self.family_id))).options(*self._load_options())
+        statement = select(Recipe).where(Recipe.id == recipe_id, or_(Recipe.family_id == self.family_id, Recipe.is_public.is_(True), Recipe.shares.any(RecipeShare.recipient_family_id == self.family_id))).options(*self._load_options())
         return self.session.scalar(statement)
 
     def get_owned(self, recipe_id: int) -> Recipe | None:
         statement = select(Recipe).where(Recipe.id == recipe_id, Recipe.family_id == self.family_id).options(*self._load_options())
         return self.session.scalar(statement)
+
+    def list_public(self) -> list[Recipe]:
+        statement = select(Recipe).where(Recipe.is_public.is_(True), Recipe.family_id != self.family_id).options(*self._load_options()).order_by(Recipe.name)
+        return list(self.session.scalars(statement).all())
+
+    def get_public(self, recipe_id: int) -> Recipe | None:
+        return self.session.scalar(select(Recipe).where(Recipe.id == recipe_id, Recipe.is_public.is_(True), Recipe.family_id != self.family_id).options(*self._load_options()))
 
     def add(self, recipe: Recipe) -> Recipe:
         recipe.family_id = self.family_id

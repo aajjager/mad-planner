@@ -187,6 +187,9 @@ class FeedbackResponse(BaseModel):
     reviewed_at: str | None
     completed_at: str | None
     completion_seen_at: str | None
+    attachment_url: str | None
+    attachment_name: str | None
+    attachment_content_type: str | None
 
 
 class InvitationResponse(BaseModel):

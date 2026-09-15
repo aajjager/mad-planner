@@ -1,7 +1,7 @@
 from datetime import datetime
 from decimal import Decimal
 
-from sqlalchemy import Column, DateTime, ForeignKey, Integer, JSON, Numeric, String, Table, Text, UniqueConstraint, func
+from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, JSON, Numeric, String, Table, Text, UniqueConstraint, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from madplanner.db.base import Base
@@ -66,6 +66,7 @@ class Recipe(Base):
     category: Mapped[str | None] = mapped_column(String(100), index=True)
     nutrition: Mapped[dict | None] = mapped_column(JSON)
     meal_types: Mapped[list[str]] = mapped_column(JSON, default=list, server_default="[]")
+    is_public: Mapped[bool] = mapped_column(Boolean, default=False, server_default="false", index=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now()
     )

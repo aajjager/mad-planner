@@ -181,3 +181,28 @@ def test_recipe_can_be_shared_without_copying_it(client: TestClient) -> None:
 
     assert client.delete(f"/api/v1/recipes/{recipe_id}").status_code == 204
     assert recipient_client.get(f"/api/v1/recipes/{recipe_id}").status_code == 404
+
+
+def test_public_recipe_can_be_browsed_and_imported_as_independent_copy(client: TestClient) -> None:
+    created = client.post("/api/v1/recipes", json={"name": "Public tacos", "tags": ["Mexican"], "meal_types": ["dinner"], "ingredients": [{"raw_text": "8 tortillas"}], "instructions": [{"text": "Fill tortillas."}]})
+    recipe_id = created.json()["id"]
+    assert client.put(f"/api/v1/recipes/{recipe_id}/visibility", json={"is_public": True}).json()["is_public"] is True
+    provisioned = client.post("/api/v1/auth/families/invitations", json={"family_name": "Import family", "email": "import@example.com"})
+    recipient = TestClient(app)
+    recipient.post(f"/api/v1/auth/invitations/{provisioned.json()['token']}/accept", json={"display_name": "Importer", "password": "test-password-456"})
+    assert [item["name"] for item in recipient.get("/api/v1/recipes/public").json()] == ["Public tacos"]
+    imported = recipient.post(f"/api/v1/recipes/public/{recipe_id}/import")
+    assert imported.status_code == 201
+    assert imported.json()["id"] != recipe_id
+    assert imported.json()["tags"] == ["Mexican"]
+    client.delete(f"/api/v1/recipes/{recipe_id}")
+    assert recipient.get(f"/api/v1/recipes/{imported.json()['id']}").status_code == 200
+
+
+def test_recipe_metadata_suggestions_understand_danish_ingredients(client: TestClient) -> None:
+    recipe = client.post("/api/v1/recipes", json={"name": "Kyllingetacos", "ingredients": [{"raw_text": "8 tortillas"}, {"raw_text": "400 g kylling"}]})
+    suggestions = client.post(f"/api/v1/recipes/{recipe.json()['id']}/metadata-suggestions")
+    assert suggestions.status_code == 200
+    assert "Mexican" in suggestions.json()["tags"]
+    assert "Chicken" in suggestions.json()["tags"]
+    assert "dinner" in suggestions.json()["meal_types"]

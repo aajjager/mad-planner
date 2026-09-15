@@ -31,7 +31,7 @@ export interface FamilyMember {
 export interface ManagedInvitation { id: number; intended_email: string; expires_at: string; role: FamilyRole }
 export interface AdminFamily { id: number; name: string; members: number; recipes: number }
 export interface SecurityEvent { id: number; event_type: 'login_succeeded' | 'login_failed' | string; user_email: string | null; created_at: string }
-export interface Feedback { id: number; content: string; status: 'pending' | 'approved' | 'rejected' | 'done'; family_name: string; submitted_by: string; created_at: string; reviewed_at: string | null; completed_at: string | null; completion_seen_at: string | null }
+export interface Feedback { id: number; content: string; status: 'pending' | 'approved' | 'rejected' | 'done'; family_name: string; submitted_by: string; created_at: string; reviewed_at: string | null; completed_at: string | null; completion_seen_at: string | null; attachment_url: string | null; attachment_name: string | null; attachment_content_type: string | null }
 export interface RecipeType { id: number; name: string; meal_type: 'breakfast' | 'lunch' | 'dinner' | null }
 export interface FamilySettings {
   household_size: number
@@ -102,6 +102,7 @@ export const acceptInvitation = (token: string, data: { display_name: string; pa
 export const listManagedInvitations = () => request<ManagedInvitation[]>('/api/v1/auth/admin/invitations')
 export const listSecurityEvents = () => request<SecurityEvent[]>('/api/v1/auth/admin/security-events')
 export const submitFeedback = (content: string) => request<Feedback>('/api/v1/auth/feedback', jsonOptions('POST', { content }))
+export const uploadFeedbackAttachment = (id: number, file: File) => request<Feedback>(`/api/v1/auth/feedback/${id}/attachment`, { method: 'POST', headers: { 'Content-Type': file.type, 'X-File-Name': file.name }, body: file })
 export const listMyFeedback = () => request<Feedback[]>('/api/v1/auth/feedback')
 export const acknowledgeFeedback = (id: number) => request<Feedback>(`/api/v1/auth/feedback/${id}/acknowledge`, { method: 'POST' })
 export const listFeedback = () => request<Feedback[]>('/api/v1/auth/admin/feedback')

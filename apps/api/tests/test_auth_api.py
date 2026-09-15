@@ -173,6 +173,18 @@ def test_feedback_can_be_submitted_and_reviewed_by_system_admin(client: TestClie
     assert client.get("/api/v1/auth/admin/feedback").json() == []
 
 
+def test_feedback_accepts_an_optional_attachment(client: TestClient, tmp_path) -> None:
+    setup_owner(client)
+    get_settings().media_root = tmp_path
+    submitted = client.post("/api/v1/auth/feedback", json={"content": "The planner layout needs a screenshot."})
+    assert submitted.status_code == 201, submitted.text
+    attached = client.post(f"/api/v1/auth/feedback/{submitted.json()['id']}/attachment", content=b"screenshot bytes", headers={"content-type": "image/png", "x-file-name": "planner.png"})
+    assert attached.status_code == 200
+    assert attached.json()["attachment_name"] == "planner.png"
+    assert attached.json()["attachment_url"].startswith("/media/feedback/")
+    assert client.get("/api/v1/auth/admin/feedback").json()[0]["attachment_content_type"] == "image/png"
+
+
 def test_owner_can_invite_a_family_member(client: TestClient) -> None:
     setup_owner(client)
     invitation = client.post("/api/v1/auth/family/invitations", json={"email": "member@example.com"})

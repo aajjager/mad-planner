@@ -497,6 +497,16 @@ class AuthService:
         self.session.refresh(item)
         return item
 
+    def get_user_feedback(self, context: AuthContext, feedback_id: int) -> FeedbackSubmission | None:
+        return self.session.scalar(select(FeedbackSubmission).options(joinedload(FeedbackSubmission.family), joinedload(FeedbackSubmission.user)).where(FeedbackSubmission.id == feedback_id, FeedbackSubmission.user_id == context.user.id))
+
+    def attach_feedback(self, item: FeedbackSubmission, url: str, name: str, content_type: str) -> FeedbackSubmission:
+        item.attachment_url = url
+        item.attachment_name = name
+        item.attachment_content_type = content_type
+        self.session.commit()
+        return item
+
     def list_feedback(self) -> list[FeedbackSubmission]:
         return list(self.session.scalars(select(FeedbackSubmission).options(joinedload(FeedbackSubmission.family), joinedload(FeedbackSubmission.user)).order_by(FeedbackSubmission.created_at.desc(), FeedbackSubmission.id.desc())))
 

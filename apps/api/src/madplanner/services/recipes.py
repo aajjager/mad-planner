@@ -11,6 +11,8 @@ from madplanner.schemas.recipe import (
     RecipeRatingUpdate,
     RecipeShareTarget,
     RecipeSharesUpdate,
+    RecipeVisibilityUpdate,
+    RecipeMetadataSuggestions,
     RecipeTagsUpdate,
     RecipeResponse,
     RecipeWrite,
@@ -88,6 +90,54 @@ class RecipeService:
             return None
         return self._to_response(self.repository.replace_shares(recipe, data.family_ids, self.user_id))
 
+    def list_public_recipes(self) -> list[RecipeResponse]:
+        return [self._to_response(recipe) for recipe in self.repository.list_public()]
+
+    def update_visibility(self, recipe_id: int, data: RecipeVisibilityUpdate) -> RecipeResponse | None:
+        recipe = self.repository.get_owned(recipe_id)
+        if recipe is None:
+            return None
+        recipe.is_public = data.is_public
+        return self._to_response(self.repository.save(recipe))
+
+    def import_public_recipe(self, recipe_id: int) -> RecipeResponse | None:
+        source = self.repository.get_public(recipe_id)
+        if source is None:
+            return None
+        copy = Recipe(name=source.name, description=source.description, image_url=source.image_url, source_url=source.source_url,
+                      author=source.author, servings=source.servings, preparation_time_minutes=source.preparation_time_minutes,
+                      cooking_time_minutes=source.cooking_time_minutes, total_time_minutes=source.total_time_minutes,
+                      cuisine=source.cuisine, category=source.category, nutrition=source.nutrition, meal_types=list(source.meal_types or []))
+        copy.tags.extend(self.repository.get_or_create_tag(tag.name) for tag in source.tags)
+        for position, item in enumerate(source.ingredients, 1):
+            ingredient = self.repository.get_or_create_ingredient(item.ingredient.name) if item.ingredient else None
+            unit = self.repository.get_or_create_unit(item.unit.name, item.unit.symbol, item.unit.dimension) if item.unit else None
+            copy.ingredients.append(RecipeIngredient(position=position, raw_text=item.raw_text, quantity=item.quantity, quantity_max=item.quantity_max, preparation=item.preparation, notes=item.notes, ingredient=ingredient, unit=unit))
+        copy.instructions.extend(RecipeInstruction(position=index, text=item.text) for index, item in enumerate(source.instructions, 1))
+        return self._to_response(self.repository.add(copy))
+
+    def suggest_metadata(self, recipe_id: int) -> RecipeMetadataSuggestions | None:
+        recipe = self.repository.get_owned(recipe_id)
+        if recipe is None:
+            return None
+        text = " ".join(filter(None, [recipe.name, recipe.description, recipe.category, recipe.cuisine, *(item.raw_text for item in recipe.ingredients)])).casefold()
+        groups = {
+            "Mexican": ("mexican", "mexicansk", "taco", "tortilla", "salsa"),
+            "Italian": ("italian", "italiensk", "pasta", "lasagne", "pizza", "risotto"),
+            "Asian": ("asian", "asiatisk", "soy", "soja", "wok", "curry", "karry"),
+            "Fish": ("fish", "fisk", "salmon", "laks", "tuna", "tun"),
+            "Vegetarian": ("vegetarian", "vegetar", "chickpea", "kikært", "tofu"),
+            "Quick": ("quick", "hurtig", "fast"),
+            "Rice": ("rice", "ris"), "Potato": ("potato", "kartoffel"), "Chicken": ("chicken", "kylling"),
+        }
+        tags = [label for label, keywords in groups.items() if any(keyword in text for keyword in keywords)]
+        meal_types = []
+        if any(word in text for word in ("breakfast", "morgenmad", "pancake", "pandekage", "oat", "havre")): meal_types.append("breakfast")
+        if any(word in text for word in ("lunch", "frokost", "sandwich", "salad", "salat")): meal_types.append("lunch")
+        if not meal_types or any(word in text for word in ("dinner", "aftensmad", "pasta", "curry", "karry", "stew", "gryde")): meal_types.append("dinner")
+        cuisine = next((name for name in ("Mexican", "Italian", "Asian") if name in tags), recipe.cuisine)
+        return RecipeMetadataSuggestions(tags=tags[:8], meal_types=list(dict.fromkeys(meal_types)), cuisine=cuisine)
+
     def _apply(self, recipe: Recipe, data: RecipeWrite) -> None:
         if recipe.id is not None:
             self.repository.clear_contents(recipe)
@@ -150,6 +200,7 @@ class RecipeService:
             owner_family_name=owner_name,
             shared_with_family_ids=shared_family_ids,
             shared_with_families=shared_family_names,
+            is_public=recipe.is_public,
             ingredients=[RecipeIngredientResponse(
                 id=item.id, position=item.position, raw_text=item.raw_text,
                 ingredient_name=item.ingredient.name if item.ingredient else None,

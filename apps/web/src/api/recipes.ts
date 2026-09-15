@@ -24,6 +24,7 @@ export interface Recipe {
   owner_family_name: string | null;
   shared_with_family_ids: number[];
   shared_with_families: string[];
+  is_public: boolean;
   ingredients: RecipeIngredient[]; instructions: RecipeInstruction[]; created_at: string; updated_at: string
 }
 export interface ImportedRecipePreview { name: string; description: string | null; image_url: string | null; source_url: string; author: string | null; servings: string | null; preparation_time_minutes: number | null; cooking_time_minutes: number | null; total_time_minutes: number | null; cuisine: string | null; category: string | null; nutrition: Record<string, unknown> | null; ingredients: string[]; instructions: string[]; parser: string; warnings: string[]; suggested_recipe_types: string[]; recipe_type_confidence: 'low' | 'medium' | 'high' }
@@ -55,6 +56,11 @@ export const updateRecipeRating = (id: number, rating: number | null) => request
 export interface RecipeShareTarget { id: number; name: string }
 export const listRecipeShareTargets = () => request<RecipeShareTarget[]>('/api/v1/recipes/sharing/families')
 export const updateRecipeShares = (id: number, familyIds: number[]) => request<Recipe>(`/api/v1/recipes/${id}/shares`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ family_ids: familyIds }) })
+export const listPublicRecipes = () => request<Recipe[]>('/api/v1/recipes/public')
+export const importPublicRecipe = (id: number) => request<Recipe>(`/api/v1/recipes/public/${id}/import`, { method: 'POST' })
+export const updateRecipeVisibility = (id: number, isPublic: boolean) => request<Recipe>(`/api/v1/recipes/${id}/visibility`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ is_public: isPublic }) })
+export interface RecipeMetadataSuggestions { tags: string[]; meal_types: RecipeMealType[]; cuisine: string | null }
+export const suggestRecipeMetadata = (id: number) => request<RecipeMetadataSuggestions>(`/api/v1/recipes/${id}/metadata-suggestions`, { method: 'POST' })
 export const uploadRecipeImage = (id: number, file: File) => request<Recipe>(`/api/v1/recipes/${id}/image`, { method: 'POST', headers: { 'Content-Type': file.type }, body: file })
 export const previewRecipeImport = (url: string) => request<ImportedRecipePreview>('/api/v1/recipe-imports/preview', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ url }) })
 export const previewCookBookArchive = (file: File) => request<CookBookArchivePreview>('/api/v1/recipe-imports/cookbook/preview', { method: 'POST', headers: { 'Content-Type': 'application/zip' }, body: file })
