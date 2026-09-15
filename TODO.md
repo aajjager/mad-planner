@@ -68,6 +68,11 @@
   - [x] Document installation, backup, restore, and update procedures
   - [ ] Deploy and verify the stack on the user's TrueNAS SCALE system
 
+- [ ] Phase 26 — Administrator backup controls
+  - [x] Download a database backup from the administrator page
+  - [ ] Export uploaded recipe media
+  - [ ] Add confirmation-protected restore with disposable validation
+
 - [x] Phase 10 — Family preferences and permissions
   - [x] Add household size and leftovers preferences
   - [x] Move enabled meal types into family settings

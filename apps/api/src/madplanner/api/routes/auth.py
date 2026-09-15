@@ -1,6 +1,9 @@
 from typing import Annotated
 
+from datetime import datetime, timezone
 from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
+from fastapi.responses import FileResponse
+from starlette.background import BackgroundTask
 from sqlalchemy.orm import Session
 
 from madplanner.core.config import get_settings
@@ -40,6 +43,7 @@ from madplanner.schemas.account import (
     SetupStatusResponse,
 )
 from madplanner.services.auth import AuthContext, AuthService, MfaChallenge
+from madplanner.services.backups import create_database_backup
 
 router = APIRouter(prefix="/auth", tags=["authentication"])
 
@@ -228,6 +232,16 @@ def require_system_admin(context: Annotated[AuthContext, Depends(require_auth)])
     if not context.user.is_system_admin:
         raise HTTPException(status_code=403, detail="System administrator permission required")
     return context
+
+
+@router.post("/admin/backups/database", response_class=FileResponse)
+def download_database_backup(_context: Annotated[AuthContext, Depends(require_system_admin)]):
+    try:
+        backup = create_database_backup(get_settings().database_url.get_secret_value())
+    except RuntimeError as error:
+        raise HTTPException(status_code=503, detail=str(error)) from error
+    filename = f"mad-planner-{datetime.now(timezone.utc):%Y%m%d-%H%M%S}.dump"
+    return FileResponse(backup, filename=filename, media_type="application/octet-stream", background=BackgroundTask(backup.unlink, missing_ok=True))
 
 
 @router.get("/admin/feedback", response_model=list[FeedbackResponse])

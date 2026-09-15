@@ -43,6 +43,19 @@ def setup_owner(client: TestClient) -> dict:
     return response.json()
 
 
+def test_system_admin_can_download_database_backup(client: TestClient, monkeypatch: pytest.MonkeyPatch, tmp_path) -> None:
+    setup_owner(client)
+    backup = tmp_path / "backup.dump"
+    backup.write_bytes(b"PGDMP-test")
+    monkeypatch.setattr("madplanner.api.routes.auth.create_database_backup", lambda _url: backup)
+
+    response = client.post("/api/v1/auth/admin/backups/database")
+
+    assert response.status_code == 200
+    assert response.content == b"PGDMP-test"
+    assert "attachment" in response.headers["content-disposition"]
+
+
 def test_owner_setup_login_and_logout(client: TestClient) -> None:
     assert client.get("/api/v1/auth/status").json() == {"setup_required": True}
     owner = setup_owner(client)
