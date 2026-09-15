@@ -153,6 +153,23 @@ describe('App', () => {
     expect(screen.getByText('1 recipe')).toBeInTheDocument()
   })
 
+  it('filters recipes by rating and calories ranges', async () => {
+    const recipes = [
+      { id: 1, name: 'Light favorite', description: 'Fresh', image_url: null, source_url: null, author: null, servings: '4', preparation_time_minutes: null, cooking_time_minutes: null, total_time_minutes: 20, cuisine: 'Nordic', category: 'Dinner', nutrition: { calories: 350 }, family_rating: 4, rating_count: 2, tags: [], recipe_types: [], ingredients: [], instructions: [], created_at: '', updated_at: '' },
+      { id: 2, name: 'Rich classic', description: 'Rich', image_url: null, source_url: null, author: null, servings: '4', preparation_time_minutes: null, cooking_time_minutes: null, total_time_minutes: 40, cuisine: 'French', category: 'Dinner', nutrition: { calories: 850 }, family_rating: 2, rating_count: 1, tags: [], recipe_types: [], ingredients: [], instructions: [], created_at: '', updated_at: '' },
+    ]
+    vi.spyOn(globalThis, 'fetch').mockImplementation((input) => Promise.resolve(authResponse(input) ?? jsonResponse(recipes)))
+    render(<App />)
+    await screen.findByRole('heading', { name: 'Light favorite' })
+
+    fireEvent.change(screen.getByLabelText('Family rating range minimum'), { target: { value: '3' } })
+    expect(screen.getByRole('heading', { name: 'Light favorite' })).toBeInTheDocument()
+    expect(screen.queryByRole('heading', { name: 'Rich classic' })).not.toBeInTheDocument()
+
+    fireEvent.change(screen.getByLabelText('Calories per serving maximum'), { target: { value: '300' } })
+    expect(screen.getByText('No matching recipes')).toBeInTheDocument()
+  })
+
   it('shows the manual recipe form', async () => {
     window.history.pushState({}, '', '/recipes/new')
     vi.spyOn(globalThis, 'fetch').mockImplementation((input) => Promise.resolve(authResponse(input) ?? jsonResponse({ status: 'ok' })))
