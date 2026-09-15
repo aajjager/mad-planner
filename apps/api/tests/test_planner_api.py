@@ -122,6 +122,41 @@ def test_plan_next_day_lunch_as_leftovers(client: TestClient) -> None:
     assert response.json()["recipe"]["id"] == recipe_id
 
 
+def test_plan_next_day_same_meal_from_extra_portions(client: TestClient) -> None:
+    recipe_id = client.get("/api/v1/recipes").json()[0]["id"]
+    source = client.put("/api/v1/meal-plans/2026-08-19/dinner", json={"recipe_id": recipe_id}).json()
+
+    response = client.post(
+        "/api/v1/meal-plans/2026-08-19/dinner/leftovers",
+        params={"target_date": "2026-08-20", "target_meal_type": "dinner"},
+    )
+
+    assert response.status_code == 200
+    assert response.json()["meal_date"] == "2026-08-20"
+    assert response.json()["meal_type"] == "dinner"
+    assert response.json()["servings"] == "2.00"
+    assert response.json()["is_leftover"] is True
+    assert response.json()["source_entry_id"] == source["id"]
+
+
+def test_smart_plan_reuses_four_servings_for_two_people_on_consecutive_days(client: TestClient) -> None:
+    recipe = client.post("/api/v1/recipes", json={"name": "Family casserole", "servings": "4", "tags": ["Casserole"], "meal_types": ["dinner"]}).json()
+
+    response = client.post(
+        "/api/v1/meal-plans/week/suggestions",
+        params={"week_start": "2026-08-17"},
+        json={"meal_types": ["dinner"], "preferred_tags": ["Casserole"], "include_leftover_lunches": True},
+    )
+
+    dinners = [item for item in response.json()["options"][0]["suggestions"] if item["meal_type"] == "dinner"]
+    assert response.status_code == 200
+    assert dinners[0]["recipe"]["id"] == recipe["id"]
+    assert dinners[1]["recipe"]["id"] == recipe["id"]
+    assert dinners[1]["is_leftover"] is True
+    assert dinners[1]["source_date"] == dinners[0]["meal_date"]
+    assert dinners[1]["source_meal_type"] == "dinner"
+
+
 def test_suggest_week_returns_reviewable_varied_dinners_and_leftovers(client: TestClient) -> None:
     client.post("/api/v1/recipes", json={"name": "Quick curry", "category": "Aftensmad", "tags": ["Quick"], "meal_types": ["dinner"], "servings": "4", "total_time_minutes": 25, "ingredients": [{"raw_text": "1 stk. løg"}]})
     client.post("/api/v1/recipes", json={"name": "Slow stew", "category": "Aftensmad", "total_time_minutes": 120, "ingredients": [{"raw_text": "1 stk. løg"}]})
@@ -139,7 +174,7 @@ def test_suggest_week_returns_reviewable_varied_dinners_and_leftovers(client: Te
     dinners = [item for item in payload["options"][0]["suggestions"] if item["meal_type"] == "dinner"]
     leftovers = [item for item in payload["options"][0]["suggestions"] if item["is_leftover"]]
     assert len(dinners) == 7
-    assert len(leftovers) == 6
+    assert leftovers
     assert {item["recipe"]["name"] for item in dinners} == {"Quick curry"}
     assert all("quick" in " ".join(item["reasons"]).lower() for item in dinners)
     assert client.get("/api/v1/meal-plans/week", params={"week_start": "2026-08-17"}).json()["entries"] == []

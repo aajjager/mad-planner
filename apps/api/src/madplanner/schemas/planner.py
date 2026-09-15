@@ -66,6 +66,7 @@ class MealSuggestion(BaseModel):
     reasons: list[str]
     is_leftover: bool = False
     source_date: date | None = None
+    source_meal_type: MealType | None = None
 
 
 class WeeklyMealSuggestionsResponse(BaseModel):

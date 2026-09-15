@@ -20,4 +20,6 @@ All notable user-visible changes to Mad Planner are recorded here. Releases will
 - Added non-destructive database-backup validation using a disposable PostgreSQL database.
 - Fixed web backup validation so the uploaded dump is applied to the disposable database before checks run.
 - Added guided HTTPS configuration for Debian and TrueNAS reverse proxies, including secure cookies and loopback binding.
+- Made smart planning reuse surplus recipe portions on the same meal across consecutive days without duplicating grocery quantities.
+- Fixed consecutive leftover meals falling back to lunch when applying a suggested plan.
 - Added copyable Codex implementation prompts that require tests, a changelog update, and a final commit request.

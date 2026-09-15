@@ -49,6 +49,8 @@ class MealSuggestionService:
         selected_ingredients: set[str] = set()
         preferred = {tag.casefold() for tag in preferences.preferred_tags}
         dinner_by_date: dict[date, MealSuggestion] = {}
+        carried_meals: dict[tuple[date, MealType], MealSuggestion] = {}
+        consecutive_sources: set[date] = set()
         planned_slots = sum(1 for offset in range(7) for meal_type in preferences.meal_types if (week_start + timedelta(days=offset), meal_type) not in existing)
         favorite_target = round(planned_slots * self.rating_target_percent / 100) if self.rating_filter_enabled else 0
         favorite_selected = 0
@@ -56,6 +58,12 @@ class MealSuggestionService:
             meal_date = week_start + timedelta(days=offset)
             for meal_type in preferences.meal_types:
                 if (meal_date, meal_type) in existing or not recipes:
+                    continue
+                carried = carried_meals.get((meal_date, meal_type))
+                if carried is not None:
+                    suggestions.append(carried)
+                    if meal_type is MealType.DINNER:
+                        dinner_by_date[meal_date] = carried
                     continue
                 eligible = [recipe for recipe in recipes if self._allows_meal_type(recipe, meal_type)]
                 if not eligible:
@@ -87,9 +95,18 @@ class MealSuggestionService:
                 selected_ingredients.update(self._ingredients(recipe))
                 if meal_type is MealType.DINNER:
                     dinner_by_date[meal_date] = suggestion
+                if preferences.include_leftover_lunches and recipe.servings and recipe.servings >= self.household_size * 2:
+                    next_date = meal_date + timedelta(days=1)
+                    next_slot = (next_date, meal_type)
+                    if next_date <= week_end and next_slot not in existing and next_slot not in carried_meals:
+                        carried_meals[next_slot] = MealSuggestion(meal_date=next_date, meal_type=meal_type, recipe=suggestion.recipe, score=score, reasons=[*reasons, "Uses extra portions from the previous day"], is_leftover=True, source_date=meal_date, source_meal_type=meal_type)
+                        if meal_type is MealType.DINNER:
+                            consecutive_sources.add(meal_date)
 
         if preferences.include_leftover_lunches:
             for source_date, dinner in dinner_by_date.items():
+                if dinner.is_leftover or source_date in consecutive_sources or MealType.LUNCH not in preferences.meal_types:
+                    continue
                 target_date = source_date + timedelta(days=1)
                 if target_date > week_end or (target_date, MealType.LUNCH) in existing:
                     continue

@@ -112,7 +112,7 @@ export function PlannerPage() {
 
   async function applySuggestionItems(suggestions: MealSuggestion[]) {
     for (const item of suggestions.filter((suggestion) => !suggestion.is_leftover)) await assignMeal(item.meal_date, item.meal_type, item.recipe.id)
-    for (const item of suggestions.filter((suggestion) => suggestion.is_leftover && suggestion.source_date)) await planLeftovers(item.source_date!, 'dinner')
+    for (const item of suggestions.filter((suggestion) => suggestion.is_leftover && suggestion.source_date)) await planLeftovers(item.source_date!, item.source_meal_type || 'dinner', item.meal_date, item.meal_type)
     const plan = await getMealPlanWeek(dateKey(weekStart)); setEntries(plan.entries); setExclusions(plan.exclusions || []); setSuggestionOptions(null); signalPlanChanged()
   }
 

@@ -49,16 +49,17 @@ class MealPlanService:
         entry.source_entry = None
         return self._to_response(self.repository.save(entry))
 
-    def plan_leftovers(self, source_date: date, source_type: MealType) -> MealPlanEntryResponse | None:
+    def plan_leftovers(self, source_date: date, source_type: MealType, target_date: date | None = None, target_type: MealType = MealType.LUNCH) -> MealPlanEntryResponse | None:
         source = self.repository.get(source_date, source_type)
         if source is None:
             return None
         prepared_servings = source.servings or source.recipe.servings or self.household_size
-        leftover_servings = prepared_servings - self.household_size
+        target_date = target_date or source_date + timedelta(days=1)
+        meals_consumed = max((target_date - source_date).days, 1)
+        leftover_servings = prepared_servings - self.household_size * meals_consumed
         if leftover_servings <= 0:
             return None
-        target_date = source_date + timedelta(days=1)
-        target = self.repository.get(target_date, MealType.LUNCH) or MealPlanEntry(meal_date=target_date, meal_type=MealType.LUNCH)
+        target = self.repository.get(target_date, target_type) or MealPlanEntry(meal_date=target_date, meal_type=target_type)
         target.recipe = source.recipe
         target.servings = leftover_servings
         target.notes = f"Leftovers from {source_date.isoformat()} {source_type.value}"

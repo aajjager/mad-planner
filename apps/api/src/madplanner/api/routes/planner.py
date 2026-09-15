@@ -41,8 +41,6 @@ def suggest_week(week_start: date, preferences: MealSuggestionPreferences, servi
     preferences.include_leftover_lunches = (
         preferences.include_leftover_lunches
         and context.family.leftovers_enabled
-        and MealType.LUNCH.value in context.family.enabled_meal_types
-        and MealType.DINNER.value in context.family.enabled_meal_types
     )
     return service.suggest_week(week_start, preferences)
 
@@ -65,10 +63,10 @@ def remove_meal(meal_date: date, meal_type: MealType, service: Annotated[MealPla
 
 
 @router.post("/{meal_date}/{meal_type}/leftovers", response_model=MealPlanEntryResponse)
-def plan_leftovers(meal_date: date, meal_type: MealType, service: Annotated[MealPlanService, Depends(get_meal_plan_service)], context: Annotated[AuthContext, Depends(require_planner_editor)]):
-    if not context.family.leftovers_enabled or MealType.LUNCH.value not in context.family.enabled_meal_types:
-        raise HTTPException(status_code=422, detail="Leftover lunches are disabled in family settings")
-    entry = service.plan_leftovers(meal_date, meal_type)
+def plan_leftovers(meal_date: date, meal_type: MealType, service: Annotated[MealPlanService, Depends(get_meal_plan_service)], context: Annotated[AuthContext, Depends(require_planner_editor)], target_date: date | None = None, target_meal_type: MealType = MealType.LUNCH):
+    if not context.family.leftovers_enabled or target_meal_type.value not in context.family.enabled_meal_types:
+        raise HTTPException(status_code=422, detail="Leftovers are disabled for this meal in family settings")
+    entry = service.plan_leftovers(meal_date, meal_type, target_date, target_meal_type)
     if entry is None:
         raise HTTPException(status_code=404, detail="Source meal not found")
     return entry
