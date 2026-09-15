@@ -16,4 +16,5 @@ All notable user-visible changes to Mad Planner are recorded here. Releases will
 - Moved the Updates link into Family settings to keep the main header uncluttered.
 - Added an installation-administrator control for downloading portable PostgreSQL database backups.
 - Matched the backup client to PostgreSQL 18 so administrator downloads work with the deployed database.
+- Added a separate administrator download for all uploaded recipe photos.
 - Added copyable Codex implementation prompts that require tests, a changelog update, and a final commit request.

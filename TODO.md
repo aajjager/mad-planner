@@ -70,7 +70,7 @@
 
 - [ ] Phase 26 — Administrator backup controls
   - [x] Download a database backup from the administrator page
-  - [ ] Export uploaded recipe media
+  - [x] Export uploaded recipe media
   - [ ] Add confirmation-protected restore with disposable validation
 
 - [x] Phase 10 — Family preferences and permissions

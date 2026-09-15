@@ -56,6 +56,20 @@ def test_system_admin_can_download_database_backup(client: TestClient, monkeypat
     assert "attachment" in response.headers["content-disposition"]
 
 
+def test_system_admin_can_download_recipe_photos(client: TestClient, monkeypatch: pytest.MonkeyPatch, tmp_path) -> None:
+    setup_owner(client)
+    backup = tmp_path / "media.zip"
+    backup.write_bytes(b"PK-test")
+    monkeypatch.setattr("madplanner.api.routes.auth.create_media_backup", lambda _root: backup)
+    monkeypatch.setattr("madplanner.api.routes.auth.remove_media_backup", lambda _path: None)
+
+    response = client.post("/api/v1/auth/admin/backups/media")
+
+    assert response.status_code == 200
+    assert response.content == b"PK-test"
+    assert response.headers["content-type"] == "application/zip"
+
+
 def test_owner_setup_login_and_logout(client: TestClient) -> None:
     assert client.get("/api/v1/auth/status").json() == {"setup_required": True}
     owner = setup_owner(client)

@@ -43,7 +43,7 @@ from madplanner.schemas.account import (
     SetupStatusResponse,
 )
 from madplanner.services.auth import AuthContext, AuthService, MfaChallenge
-from madplanner.services.backups import create_database_backup
+from madplanner.services.backups import create_database_backup, create_media_backup, remove_media_backup
 
 router = APIRouter(prefix="/auth", tags=["authentication"])
 
@@ -242,6 +242,16 @@ def download_database_backup(_context: Annotated[AuthContext, Depends(require_sy
         raise HTTPException(status_code=503, detail=str(error)) from error
     filename = f"mad-planner-{datetime.now(timezone.utc):%Y%m%d-%H%M%S}.dump"
     return FileResponse(backup, filename=filename, media_type="application/octet-stream", background=BackgroundTask(backup.unlink, missing_ok=True))
+
+
+@router.post("/admin/backups/media", response_class=FileResponse)
+def download_media_backup(_context: Annotated[AuthContext, Depends(require_system_admin)]):
+    try:
+        backup = create_media_backup(get_settings().media_root)
+    except RuntimeError as error:
+        raise HTTPException(status_code=503, detail=str(error)) from error
+    filename = f"mad-planner-media-{datetime.now(timezone.utc):%Y%m%d-%H%M%S}.zip"
+    return FileResponse(backup, filename=filename, media_type="application/zip", background=BackgroundTask(remove_media_backup, backup))
 
 
 @router.get("/admin/feedback", response_model=list[FeedbackResponse])
