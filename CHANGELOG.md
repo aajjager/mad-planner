@@ -17,4 +17,6 @@ All notable user-visible changes to Mad Planner are recorded here. Releases will
 - Added an installation-administrator control for downloading portable PostgreSQL database backups.
 - Matched the backup client to PostgreSQL 18 so administrator downloads work with the deployed database.
 - Added a separate administrator download for all uploaded recipe photos.
+- Added non-destructive database-backup validation using a disposable PostgreSQL database.
+- Fixed web backup validation so the uploaded dump is applied to the disposable database before checks run.
 - Added copyable Codex implementation prompts that require tests, a changelog update, and a final commit request.
