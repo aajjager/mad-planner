@@ -10,7 +10,7 @@ from madplanner.core.config import get_settings
 from madplanner.api.routes.auth import require_auth, require_recipe_editor
 from madplanner.services.auth import AuthContext
 from madplanner.repositories.recipes import RecipeRepository
-from madplanner.schemas.recipe import RecipeMealTypesUpdate, RecipeMetadataSuggestions, RecipeRatingUpdate, RecipeResponse, RecipeShareTarget, RecipeSharesUpdate, RecipeTagsUpdate, RecipeVisibilityUpdate, RecipeWrite
+from madplanner.schemas.recipe import RecipeBulkUpdate, RecipeMealTypesUpdate, RecipeMetadataSuggestions, RecipeRatingUpdate, RecipeResponse, RecipeShareTarget, RecipeSharesUpdate, RecipeTagsUpdate, RecipeVisibilityUpdate, RecipeWrite
 from madplanner.services.recipes import RecipeService
 
 router = APIRouter(prefix="/recipes", tags=["recipes"])
@@ -50,6 +50,14 @@ def import_public_recipe(recipe_id: int, service: Annotated[RecipeService, Depen
     if recipe is None:
         raise HTTPException(status_code=404, detail="Public recipe not found")
     return recipe
+
+
+@router.patch("/bulk", response_model=list[RecipeResponse])
+def bulk_update_recipes(data: RecipeBulkUpdate, service: Annotated[RecipeService, Depends(get_recipe_service)], _permission: Annotated[AuthContext, Depends(require_recipe_editor)]):
+    try:
+        return service.bulk_update(data)
+    except ValueError as error:
+        raise HTTPException(status_code=422, detail=str(error)) from error
 
 
 @router.get("/{recipe_id}", response_model=RecipeResponse)

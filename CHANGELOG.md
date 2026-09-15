@@ -4,6 +4,8 @@ All notable user-visible changes to Mad Planner are recorded here. Releases will
 
 ## Unreleased
 
+- Added multi-select recipe management for publishing or unpublishing recipes and adding or removing tags in one action.
+
 - Added an opt-in public recipe library where families can browse and import independent recipe copies.
 - Added optional image, PDF, or text attachments to feedback and improvement requests.
 - Added private automatic recipe analysis that suggests useful tags and meal classifications from recipe text and ingredients.

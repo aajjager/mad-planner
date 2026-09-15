@@ -206,3 +206,20 @@ def test_recipe_metadata_suggestions_understand_danish_ingredients(client: TestC
     assert "Mexican" in suggestions.json()["tags"]
     assert "Chicken" in suggestions.json()["tags"]
     assert "dinner" in suggestions.json()["meal_types"]
+
+
+def test_owned_recipes_can_be_updated_in_bulk(client: TestClient) -> None:
+    first = client.post("/api/v1/recipes", json={"name": "First", "tags": ["Old"]}).json()
+    second = client.post("/api/v1/recipes", json={"name": "Second", "tags": ["Old", "Keep"]}).json()
+    updated = client.patch("/api/v1/recipes/bulk", json={"recipe_ids": [first["id"], second["id"]], "is_public": True, "add_tags": ["Winter"], "remove_tags": ["Old"]})
+    assert updated.status_code == 200
+    assert {item["name"]: item["tags"] for item in updated.json()} == {"First": ["Winter"], "Second": ["Keep", "Winter"]}
+    assert all(item["is_public"] is True for item in updated.json())
+
+
+def test_bulk_update_rejects_a_recipe_not_owned_by_the_family(client: TestClient) -> None:
+    recipe = client.post("/api/v1/recipes", json={"name": "Owner only"}).json()
+    provisioned = client.post("/api/v1/auth/families/invitations", json={"family_name": "Other family", "email": "other@example.com"})
+    recipient = TestClient(app)
+    recipient.post(f"/api/v1/auth/invitations/{provisioned.json()['token']}/accept", json={"display_name": "Other", "password": "test-password-456"})
+    assert recipient.patch("/api/v1/recipes/bulk", json={"recipe_ids": [recipe["id"]], "is_public": True}).status_code == 422

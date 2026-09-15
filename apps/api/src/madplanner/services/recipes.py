@@ -13,6 +13,7 @@ from madplanner.schemas.recipe import (
     RecipeSharesUpdate,
     RecipeVisibilityUpdate,
     RecipeMetadataSuggestions,
+    RecipeBulkUpdate,
     RecipeTagsUpdate,
     RecipeResponse,
     RecipeWrite,
@@ -137,6 +138,27 @@ class RecipeService:
         if not meal_types or any(word in text for word in ("dinner", "aftensmad", "pasta", "curry", "karry", "stew", "gryde")): meal_types.append("dinner")
         cuisine = next((name for name in ("Mexican", "Italian", "Asian") if name in tags), recipe.cuisine)
         return RecipeMetadataSuggestions(tags=tags[:8], meal_types=list(dict.fromkeys(meal_types)), cuisine=cuisine)
+
+    def bulk_update(self, data: RecipeBulkUpdate) -> list[RecipeResponse]:
+        recipes = [self.repository.get_owned(recipe_id) for recipe_id in data.recipe_ids]
+        if any(recipe is None for recipe in recipes):
+            raise ValueError("One or more selected recipes cannot be changed")
+        remove = {tag.casefold() for tag in data.remove_tags}
+        for recipe in recipes:
+            assert recipe is not None
+            if data.is_public is not None:
+                recipe.is_public = data.is_public
+            if remove:
+                recipe.tags[:] = [tag for tag in recipe.tags if tag.name.casefold() not in remove]
+            existing = {tag.name.casefold() for tag in recipe.tags}
+            for tag in data.add_tags:
+                if tag.casefold() not in existing:
+                    recipe.tags.append(self.repository.get_or_create_tag(tag)); existing.add(tag.casefold())
+            if len(recipe.tags) > 20:
+                raise ValueError("A recipe cannot have more than 20 tags")
+        self.repository.session.commit()
+        updated = [self.repository.get_owned(recipe_id) for recipe_id in data.recipe_ids]
+        return [self._to_response(recipe) for recipe in updated if recipe is not None]
 
     def _apply(self, recipe: Recipe, data: RecipeWrite) -> None:
         if recipe.id is not None:

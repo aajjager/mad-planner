@@ -61,6 +61,8 @@ export const importPublicRecipe = (id: number) => request<Recipe>(`/api/v1/recip
 export const updateRecipeVisibility = (id: number, isPublic: boolean) => request<Recipe>(`/api/v1/recipes/${id}/visibility`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ is_public: isPublic }) })
 export interface RecipeMetadataSuggestions { tags: string[]; meal_types: RecipeMealType[]; cuisine: string | null }
 export const suggestRecipeMetadata = (id: number) => request<RecipeMetadataSuggestions>(`/api/v1/recipes/${id}/metadata-suggestions`, { method: 'POST' })
+export interface RecipeBulkUpdate { recipe_ids: number[]; is_public?: boolean; add_tags?: string[]; remove_tags?: string[] }
+export const bulkUpdateRecipes = (data: RecipeBulkUpdate) => request<Recipe[]>('/api/v1/recipes/bulk', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) })
 export const uploadRecipeImage = (id: number, file: File) => request<Recipe>(`/api/v1/recipes/${id}/image`, { method: 'POST', headers: { 'Content-Type': file.type }, body: file })
 export const previewRecipeImport = (url: string) => request<ImportedRecipePreview>('/api/v1/recipe-imports/preview', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ url }) })
 export const previewCookBookArchive = (file: File) => request<CookBookArchivePreview>('/api/v1/recipe-imports/cookbook/preview', { method: 'POST', headers: { 'Content-Type': 'application/zip' }, body: file })

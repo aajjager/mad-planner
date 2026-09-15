@@ -169,3 +169,26 @@ class RecipeMetadataSuggestions(BaseModel):
     tags: list[str]
     meal_types: list[RecipeMealType]
     cuisine: str | None = None
+
+
+class RecipeBulkUpdate(BaseModel):
+    recipe_ids: list[int] = Field(min_length=1, max_length=200)
+    is_public: bool | None = None
+    add_tags: list[str] = Field(default_factory=list, max_length=20)
+    remove_tags: list[str] = Field(default_factory=list, max_length=20)
+
+    @model_validator(mode="after")
+    def normalize(self) -> "RecipeBulkUpdate":
+        self.recipe_ids = list(dict.fromkeys(self.recipe_ids))
+        for field in ("add_tags", "remove_tags"):
+            unique: dict[str, str] = {}
+            for tag in getattr(self, field):
+                cleaned = " ".join(tag.strip().split())
+                if cleaned:
+                    if len(cleaned) > 60:
+                        raise ValueError("tags must be 60 characters or fewer")
+                    unique.setdefault(cleaned.casefold(), cleaned)
+            setattr(self, field, list(unique.values()))
+        if self.is_public is None and not self.add_tags and not self.remove_tags:
+            raise ValueError("Choose at least one bulk change")
+        return self
