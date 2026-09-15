@@ -19,4 +19,5 @@ All notable user-visible changes to Mad Planner are recorded here. Releases will
 - Added a separate administrator download for all uploaded recipe photos.
 - Added non-destructive database-backup validation using a disposable PostgreSQL database.
 - Fixed web backup validation so the uploaded dump is applied to the disposable database before checks run.
+- Added guided HTTPS configuration for Debian and TrueNAS reverse proxies, including secure cookies and loopback binding.
 - Added copyable Codex implementation prompts that require tests, a changelog update, and a final commit request.

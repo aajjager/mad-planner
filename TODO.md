@@ -73,6 +73,11 @@
   - [x] Export uploaded recipe media
   - [ ] Add confirmation-protected restore with disposable validation
 
+- [ ] Phase 25 — Guided HTTPS
+  - [x] Add secure-cookie and loopback-binding configuration
+  - [x] Document Caddy setup for Debian and reverse-proxy requirements for TrueNAS
+  - [ ] Verify the final hostname and certificate on TrueNAS
+
 - [x] Phase 10 — Family preferences and permissions
   - [x] Add household size and leftovers preferences
   - [x] Move enabled meal types into family settings

@@ -37,6 +37,7 @@ services:
       DATABASE_URL: "postgresql+psycopg://madplanner:CHANGE_THIS_PASSWORD@db:5432/madplanner"
       MEDIA_ROOT: /data/media
       MFA_ENCRYPTION_KEY: "CHANGE_THIS_FERNET_KEY"
+      SESSION_COOKIE_SECURE: "false"
     volumes:
       - type: bind
         source: /mnt/tank/apps/mad-planner/media
