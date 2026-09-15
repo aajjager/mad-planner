@@ -174,17 +174,19 @@ class FeedbackCreateRequest(BaseModel):
 
 
 class FeedbackReviewRequest(BaseModel):
-    status: Literal["approved", "rejected"]
+    status: Literal["approved", "rejected", "done"]
 
 
 class FeedbackResponse(BaseModel):
     id: int
     content: str
-    status: Literal["pending", "approved", "rejected"]
+    status: Literal["pending", "approved", "rejected", "done"]
     family_name: str
     submitted_by: str
     created_at: str
     reviewed_at: str | None
+    completed_at: str | None
+    completion_seen_at: str | None
 
 
 class InvitationResponse(BaseModel):

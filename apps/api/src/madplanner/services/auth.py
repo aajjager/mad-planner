@@ -500,13 +500,29 @@ class AuthService:
     def list_feedback(self) -> list[FeedbackSubmission]:
         return list(self.session.scalars(select(FeedbackSubmission).options(joinedload(FeedbackSubmission.family), joinedload(FeedbackSubmission.user)).order_by(FeedbackSubmission.created_at.desc(), FeedbackSubmission.id.desc())))
 
+    def list_user_feedback(self, context: AuthContext) -> list[FeedbackSubmission]:
+        return list(self.session.scalars(select(FeedbackSubmission).options(joinedload(FeedbackSubmission.family), joinedload(FeedbackSubmission.user)).where(FeedbackSubmission.user_id == context.user.id).order_by(FeedbackSubmission.created_at.desc(), FeedbackSubmission.id.desc())))
+
     def review_feedback(self, feedback_id: int, status: str, reviewer_id: int) -> FeedbackSubmission | None:
         item = self.session.scalar(select(FeedbackSubmission).options(joinedload(FeedbackSubmission.family), joinedload(FeedbackSubmission.user)).where(FeedbackSubmission.id == feedback_id))
         if item is None:
             return None
+        if status == "done" and item.status != "approved":
+            raise ValueError("Only an approved request can be marked done")
         item.status = status
         item.reviewed_by_user_id = reviewer_id
         item.reviewed_at = utc_now()
+        if status == "done":
+            item.completed_at = utc_now()
+            item.completion_seen_at = None
+        self.session.commit()
+        return item
+
+    def acknowledge_feedback_completion(self, context: AuthContext, feedback_id: int) -> FeedbackSubmission | None:
+        item = self.session.scalar(select(FeedbackSubmission).options(joinedload(FeedbackSubmission.family), joinedload(FeedbackSubmission.user)).where(FeedbackSubmission.id == feedback_id, FeedbackSubmission.user_id == context.user.id, FeedbackSubmission.status == "done"))
+        if item is None:
+            return None
+        item.completion_seen_at = utc_now()
         self.session.commit()
         return item
 

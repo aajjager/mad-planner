@@ -88,6 +88,8 @@ Original scans should be retained only when the user chooses to keep them. OCR o
 - Let every signed-in user submit feedback, suggestions, issues, or improvements from personal settings.
 - Give the installation administrator an inbox with approve and reject actions.
 - Keep approved requests as a persistent, copyable implementation backlog for Codex.
+- Let administrators mark approved requests done and notify the original requester in the app.
+- Require copied implementation prompts to update the changelog and finish by asking the administrator to commit and push.
 - Add a version and release-notes page showing what changed in each installed release.
 - Use deliberate, versioned releases with an administrator-triggered update, pre-update backup, migration, health check, and rollback guidance.
 

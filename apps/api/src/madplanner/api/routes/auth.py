@@ -146,7 +146,7 @@ def current_account(context: Annotated[AuthContext, Depends(require_auth)]):
 
 
 def feedback_response(item) -> FeedbackResponse:
-    return FeedbackResponse(id=item.id, content=item.content, status=item.status, family_name=item.family.name, submitted_by=item.user.display_name, created_at=item.created_at.isoformat(), reviewed_at=item.reviewed_at.isoformat() if item.reviewed_at else None)
+    return FeedbackResponse(id=item.id, content=item.content, status=item.status, family_name=item.family.name, submitted_by=item.user.display_name, created_at=item.created_at.isoformat(), reviewed_at=item.reviewed_at.isoformat() if item.reviewed_at else None, completed_at=item.completed_at.isoformat() if item.completed_at else None, completion_seen_at=item.completion_seen_at.isoformat() if item.completion_seen_at else None)
 
 
 @router.post("/feedback", response_model=FeedbackResponse, status_code=status.HTTP_201_CREATED)
@@ -154,6 +154,19 @@ def submit_feedback(data: FeedbackCreateRequest, context: Annotated[AuthContext,
     item = service.submit_feedback(context, data.content)
     item.family = context.family
     item.user = context.user
+    return feedback_response(item)
+
+
+@router.get("/feedback", response_model=list[FeedbackResponse])
+def user_feedback(context: Annotated[AuthContext, Depends(require_auth)], service: Annotated[AuthService, Depends(get_auth_service)]):
+    return [feedback_response(item) for item in service.list_user_feedback(context)]
+
+
+@router.post("/feedback/{feedback_id}/acknowledge", response_model=FeedbackResponse)
+def acknowledge_feedback(feedback_id: int, context: Annotated[AuthContext, Depends(require_auth)], service: Annotated[AuthService, Depends(get_auth_service)]):
+    item = service.acknowledge_feedback_completion(context, feedback_id)
+    if item is None:
+        raise HTTPException(status_code=404, detail="Completed feedback could not be found")
     return feedback_response(item)
 
 
@@ -224,7 +237,10 @@ def admin_feedback(_context: Annotated[AuthContext, Depends(require_system_admin
 
 @router.patch("/admin/feedback/{feedback_id}", response_model=FeedbackResponse)
 def review_feedback(feedback_id: int, data: FeedbackReviewRequest, context: Annotated[AuthContext, Depends(require_system_admin)], service: Annotated[AuthService, Depends(get_auth_service)]):
-    item = service.review_feedback(feedback_id, data.status, context.user.id)
+    try:
+        item = service.review_feedback(feedback_id, data.status, context.user.id)
+    except ValueError as error:
+        raise HTTPException(status_code=422, detail=str(error)) from error
     if item is None:
         raise HTTPException(status_code=404, detail="Feedback could not be found")
     return feedback_response(item)
