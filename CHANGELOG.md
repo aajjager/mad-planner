@@ -23,3 +23,4 @@ All notable user-visible changes to Mad Planner are recorded here. Releases will
 - Made smart planning reuse surplus recipe portions on the same meal across consecutive days without duplicating grocery quantities.
 - Fixed consecutive leftover meals falling back to lunch when applying a suggested plan.
 - Added copyable Codex implementation prompts that require tests, a changelog update, and a final commit request.
+- Fixed “Copy for Codex” on local HTTP installations by adding a compatible clipboard fallback.

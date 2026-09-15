@@ -5,6 +5,7 @@ import { localeTag, translator } from '../i18n'
 import { Navigate } from 'react-router-dom'
 import './AccountPages.css'
 import { BackupPanel } from '../components/BackupPanel'
+import { copyText } from '../utils/clipboard'
 
 export function AdminPage() {
   const { account } = useAuth()
@@ -94,7 +95,8 @@ export function AdminPage() {
 
   async function copyFeedback(item: Feedback) {
     const prompt = `Please implement this approved Mad Planner improvement:\n\n${item.content}\n\nKeep the existing architecture, preserve current data, add relevant tests, and make the Git changes reviewable. Update CHANGELOG.md with the user-visible change. When the work and tests are complete, tell me exactly what changed and ask me to commit and push it; include the suggested Git commands.`
-    await navigator.clipboard.writeText(prompt); setCopiedFeedback(item.id)
+    if (await copyText(prompt)) setCopiedFeedback(item.id)
+    else setError(t('copyFailed'))
   }
 
   async function removeFeedback(item: Feedback) {

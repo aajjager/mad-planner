@@ -12,6 +12,7 @@ htmlcov/
 node_modules/
 .npm-cache/
 .tmp/
+.tmp-tests/
 dist/
 .vscode/
 .idea/
