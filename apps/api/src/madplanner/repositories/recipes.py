@@ -80,6 +80,16 @@ class RecipeRepository:
 
     def get_or_create_ingredient(self, name: str) -> Ingredient:
         normalized_name = " ".join(name.casefold().split())
+        pending = next(
+            (
+                item
+                for item in self.session.new
+                if isinstance(item, Ingredient) and item.normalized_name == normalized_name
+            ),
+            None,
+        )
+        if pending is not None:
+            return pending
         with self.session.no_autoflush:
             ingredient = self.session.scalar(select(Ingredient).where(Ingredient.normalized_name == normalized_name))
         if ingredient is None:
@@ -102,6 +112,16 @@ class RecipeRepository:
     def get_or_create_tag(self, name: str) -> Tag:
         cleaned_name = " ".join(name.strip().split())
         normalized_name = cleaned_name.casefold()
+        pending = next(
+            (
+                item
+                for item in self.session.new
+                if isinstance(item, Tag) and item.normalized_name == normalized_name
+            ),
+            None,
+        )
+        if pending is not None:
+            return pending
         with self.session.no_autoflush:
             tag = self.session.scalar(select(Tag).where(Tag.normalized_name == normalized_name))
         if tag is None:

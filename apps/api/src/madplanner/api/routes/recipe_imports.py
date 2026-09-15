@@ -1,6 +1,6 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 
 from madplanner.importers.json_ld import RecipeParseError
 from madplanner.api.routes.auth import get_auth_service, require_recipe_editor
@@ -9,8 +9,26 @@ from madplanner.services.auth import AuthService
 from madplanner.importers.safe_http import RecipeFetchError, UnsafeUrlError
 from madplanner.importers.service import RecipeImporter
 from madplanner.schemas.imported_recipe import ImportedRecipePreview, RecipeImportRequest
+from madplanner.schemas.imported_recipe import CookBookArchivePreview
+from madplanner.importers.cookbook import parse_cookbook_archive
+from madplanner.repositories.recipes import RecipeRepository
+from madplanner.db.session import get_session
+from sqlalchemy.orm import Session
 
 router = APIRouter(prefix="/recipe-imports", tags=["recipe imports"])
+
+
+@router.post("/cookbook/preview", response_model=CookBookArchivePreview)
+async def preview_cookbook_archive(request: Request, context: Annotated[AuthContext, Depends(require_recipe_editor)], session: Annotated[Session, Depends(get_session)]):
+    content_length = int(request.headers.get("content-length", "0") or 0)
+    if content_length > 25 * 1024 * 1024:
+        raise HTTPException(status_code=413, detail="CookBook exports must be 25 MB or smaller")
+    try:
+        existing_names = {recipe.name.casefold() for recipe in RecipeRepository(session, context.family.id).list()}
+        recipes = parse_cookbook_archive(await request.body(), existing_names)
+    except ValueError as error:
+        raise HTTPException(status_code=422, detail=str(error)) from error
+    return CookBookArchivePreview(recipes=recipes)
 
 
 def get_recipe_importer() -> RecipeImporter:

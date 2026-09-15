@@ -103,6 +103,25 @@ def test_recipe_create_parses_raw_ingredient_text(client: TestClient) -> None:
     assert ingredient["unit"] == {"name": "piece", "symbol": "stk", "dimension": "count"}
 
 
+def test_recipe_reuses_repeated_ingredients_in_one_request(client: TestClient) -> None:
+    response = client.post(
+        "/api/v1/recipes",
+        json={
+            "name": "CookBook crispy chicken",
+            "ingredients": [
+                {"raw_text": "1 tsp salt"},
+                {"raw_text": "1 tsp white pepper"},
+                {"raw_text": "1 tsp salt"},
+            ],
+        },
+    )
+
+    assert response.status_code == 201
+    ingredients = response.json()["ingredients"]
+    assert len(ingredients) == 3
+    assert ingredients[0]["ingredient_name"] == ingredients[2]["ingredient_name"]
+
+
 def test_recipe_estimates_nutrition_from_recognized_ingredients(client: TestClient) -> None:
     response = client.post("/api/v1/recipes", json={"name": "Simple meal", "servings": "2", "ingredients": [{"raw_text": "200 g kylling"}, {"raw_text": "100 g broccoli"}]})
 

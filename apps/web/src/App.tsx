@@ -13,6 +13,7 @@ import { InvitationPage } from './pages/InvitationPage'
 import { AdminPage } from './pages/AdminPage'
 import { ScanRecipePage } from './pages/ScanRecipePage'
 import { PasswordResetPage } from './pages/PasswordResetPage'
+import { CookBookImportPage } from './pages/CookBookImportPage'
 import { translator } from './i18n'
 import { PlanReminderBanner } from './components/PlanReminderBanner'
 import { BrandMark } from './components/BrandMark'
@@ -35,6 +36,7 @@ function ApplicationShell() {
             <Route path="/recipes" element={<RecipeListPage />} />
             <Route path="/recipes/new" element={canEditRecipes ? <CreateRecipePage /> : <Navigate to="/recipes" replace />} />
             <Route path="/recipes/import" element={canEditRecipes ? <ImportRecipePage /> : <Navigate to="/recipes" replace />} />
+            <Route path="/recipes/import/cookbook" element={canEditRecipes ? <CookBookImportPage /> : <Navigate to="/recipes" replace />} />
             <Route path="/recipes/scan" element={canEditRecipes ? <ScanRecipePage /> : <Navigate to="/recipes" replace />} />
             <Route path="/recipes/:recipeId" element={<RecipeDetailPage />} />
             <Route path="/planner" element={<PlannerPage />} />
