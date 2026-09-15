@@ -13,6 +13,9 @@ from madplanner.schemas.account import (
     FamilyMemberRoleUpdate,
     FamilySettingsResponse,
     FamilySettingsUpdate,
+    FeedbackCreateRequest,
+    FeedbackResponse,
+    FeedbackReviewRequest,
     InvitationAcceptRequest,
     InvitationCreateRequest,
     InvitationPreviewResponse,
@@ -142,6 +145,18 @@ def current_account(context: Annotated[AuthContext, Depends(require_auth)]):
     return account_response(context)
 
 
+def feedback_response(item) -> FeedbackResponse:
+    return FeedbackResponse(id=item.id, content=item.content, status=item.status, family_name=item.family.name, submitted_by=item.user.display_name, created_at=item.created_at.isoformat(), reviewed_at=item.reviewed_at.isoformat() if item.reviewed_at else None)
+
+
+@router.post("/feedback", response_model=FeedbackResponse, status_code=status.HTTP_201_CREATED)
+def submit_feedback(data: FeedbackCreateRequest, context: Annotated[AuthContext, Depends(require_auth)], service: Annotated[AuthService, Depends(get_auth_service)]):
+    item = service.submit_feedback(context, data.content)
+    item.family = context.family
+    item.user = context.user
+    return feedback_response(item)
+
+
 @router.patch("/me/preferences", response_model=AccountResponse)
 def update_personal_preferences(data: PersonalPreferencesUpdate, context: Annotated[AuthContext, Depends(require_auth)], service: Annotated[AuthService, Depends(get_auth_service)]):
     service.update_personal_preferences(
@@ -200,6 +215,19 @@ def require_system_admin(context: Annotated[AuthContext, Depends(require_auth)])
     if not context.user.is_system_admin:
         raise HTTPException(status_code=403, detail="System administrator permission required")
     return context
+
+
+@router.get("/admin/feedback", response_model=list[FeedbackResponse])
+def admin_feedback(_context: Annotated[AuthContext, Depends(require_system_admin)], service: Annotated[AuthService, Depends(get_auth_service)]):
+    return [feedback_response(item) for item in service.list_feedback()]
+
+
+@router.patch("/admin/feedback/{feedback_id}", response_model=FeedbackResponse)
+def review_feedback(feedback_id: int, data: FeedbackReviewRequest, context: Annotated[AuthContext, Depends(require_system_admin)], service: Annotated[AuthService, Depends(get_auth_service)]):
+    item = service.review_feedback(feedback_id, data.status, context.user.id)
+    if item is None:
+        raise HTTPException(status_code=404, detail="Feedback could not be found")
+    return feedback_response(item)
 
 
 def require_recipe_editor(context: Annotated[AuthContext, Depends(require_auth)]) -> AuthContext:

@@ -169,6 +169,24 @@ class AdminFamilyResponse(BaseModel):
     recipes: int
 
 
+class FeedbackCreateRequest(BaseModel):
+    content: str = Field(min_length=5, max_length=4000)
+
+
+class FeedbackReviewRequest(BaseModel):
+    status: Literal["approved", "rejected"]
+
+
+class FeedbackResponse(BaseModel):
+    id: int
+    content: str
+    status: Literal["pending", "approved", "rejected"]
+    family_name: str
+    submitted_by: str
+    created_at: str
+    reviewed_at: str | None
+
+
 class InvitationResponse(BaseModel):
     token: str
     family_name: str

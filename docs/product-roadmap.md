@@ -83,6 +83,40 @@ Original scans should be retained only when the user chooses to keep them. OCR o
 - Allow recipient families to read, rate, and plan shared recipes without editing the source.
 - Keep ratings scoped to each family and automatically remove all shares when the source recipe is deleted.
 
+## Phase 22 — Feedback and release management
+
+- Let every signed-in user submit feedback, suggestions, issues, or improvements from personal settings.
+- Give the installation administrator an inbox with approve and reject actions.
+- Keep approved requests as a persistent, copyable implementation backlog for Codex.
+- Add a version and release-notes page showing what changed in each installed release.
+- Use deliberate, versioned releases with an administrator-triggered update, pre-update backup, migration, health check, and rollback guidance.
+
+## Phase 23 — Recipe range filters
+
+- Add a two-handle family-rating range filter so recipes can be limited to values such as 3–4 stars.
+- Add the same kind of range filter for estimated calories per serving.
+- Clearly separate unrated recipes and recipes without nutrition estimates so users can choose whether to include them.
+- Keep cuisine and recipe-type filters compatible with the new ranges and mobile layouts.
+
+## Phase 24 — External cookbook import
+
+- Research the Cookbook app's supported export and backup formats before choosing an integration.
+- Prefer a user-provided structured export over scraping or direct database access.
+- Provide a review screen, duplicate detection, image transfer, and an import report before committing data.
+
+## Phase 25 — Guided HTTPS
+
+- Add a documented reverse-proxy setup for a stable hostname and trusted TLS certificate.
+- Validate secure-cookie, passkey, notification, upload-size, and forwarded-header settings.
+- Provide an easy TrueNAS path and a generic Debian Docker path without exposing PostgreSQL publicly.
+
+## Phase 26 — Administrator backup controls
+
+- Add administrator buttons to create and download a database backup and to export uploaded media.
+- Require an explicit confirmation and fresh authentication before restore/import operations.
+- Validate uploaded backups in a disposable database before allowing a controlled restore.
+- Keep command-line backup and restore scripts as the recovery path when the web application is unavailable.
+
 ## Data compatibility rules
 
 - Every schema change uses a reviewed Alembic migration.

@@ -114,6 +114,23 @@ def test_owner_can_choose_starter_recipes(client: TestClient) -> None:
     }
 
 
+def test_feedback_can_be_submitted_and_reviewed_by_system_admin(client: TestClient) -> None:
+    setup_owner(client)
+    submitted = client.post("/api/v1/auth/feedback", json={"content": "Please add a clearer weekly overview."})
+    assert submitted.status_code == 201
+    assert submitted.json()["status"] == "pending"
+    assert submitted.json()["submitted_by"] == "Owner"
+
+    inbox = client.get("/api/v1/auth/admin/feedback")
+    assert inbox.status_code == 200
+    assert [item["content"] for item in inbox.json()] == ["Please add a clearer weekly overview."]
+
+    reviewed = client.patch(f"/api/v1/auth/admin/feedback/{submitted.json()['id']}", json={"status": "approved"})
+    assert reviewed.status_code == 200
+    assert reviewed.json()["status"] == "approved"
+    assert reviewed.json()["reviewed_at"] is not None
+
+
 def test_owner_can_invite_a_family_member(client: TestClient) -> None:
     setup_owner(client)
     invitation = client.post("/api/v1/auth/family/invitations", json={"email": "member@example.com"})

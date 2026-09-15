@@ -10,7 +10,7 @@ from sqlalchemy.orm import Session, joinedload
 from cryptography.fernet import Fernet
 import pyotp
 
-from madplanner.models import Family, FamilyInvitation, FamilyMembership, FamilyRole, MealPlanEntry, MfaLoginChallenge, PasswordResetToken, Recipe, RecipeType, SecurityEvent, User, UserSession
+from madplanner.models import Family, FamilyInvitation, FamilyMembership, FamilyRole, FeedbackSubmission, MealPlanEntry, MfaLoginChallenge, PasswordResetToken, Recipe, RecipeType, SecurityEvent, User, UserSession
 from madplanner.services.starter_recipes import add_starter_recipes
 
 
@@ -489,6 +489,26 @@ class AuthService:
     def list_families(self) -> list[tuple[Family, int, int]]:
         families = list(self.session.scalars(select(Family).order_by(Family.name, Family.id)))
         return [(family, self.session.scalar(select(func.count(FamilyMembership.id)).where(FamilyMembership.family_id == family.id)) or 0, self.session.scalar(select(func.count(Recipe.id)).where(Recipe.family_id == family.id)) or 0) for family in families]
+
+    def submit_feedback(self, context: AuthContext, content: str) -> FeedbackSubmission:
+        item = FeedbackSubmission(family_id=context.family.id, user_id=context.user.id, content=content.strip())
+        self.session.add(item)
+        self.session.commit()
+        self.session.refresh(item)
+        return item
+
+    def list_feedback(self) -> list[FeedbackSubmission]:
+        return list(self.session.scalars(select(FeedbackSubmission).options(joinedload(FeedbackSubmission.family), joinedload(FeedbackSubmission.user)).order_by(FeedbackSubmission.created_at.desc(), FeedbackSubmission.id.desc())))
+
+    def review_feedback(self, feedback_id: int, status: str, reviewer_id: int) -> FeedbackSubmission | None:
+        item = self.session.scalar(select(FeedbackSubmission).options(joinedload(FeedbackSubmission.family), joinedload(FeedbackSubmission.user)).where(FeedbackSubmission.id == feedback_id))
+        if item is None:
+            return None
+        item.status = status
+        item.reviewed_by_user_id = reviewer_id
+        item.reviewed_at = utc_now()
+        self.session.commit()
+        return item
 
     def delete_family(self, family_id: int) -> bool:
         family = self.session.get(Family, family_id)

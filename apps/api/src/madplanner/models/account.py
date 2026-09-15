@@ -165,6 +165,22 @@ class UserSession(Base):
     active_family: Mapped[Family] = relationship()
 
 
+class FeedbackSubmission(Base):
+    __tablename__ = "feedback_submissions"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    family_id: Mapped[int] = mapped_column(ForeignKey("families.id", ondelete="CASCADE"), index=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
+    content: Mapped[str] = mapped_column(String(4000))
+    status: Mapped[str] = mapped_column(String(20), default="pending", server_default="pending", index=True)
+    reviewed_by_user_id: Mapped[int | None] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"), index=True)
+    reviewed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), index=True)
+
+    family: Mapped[Family] = relationship()
+    user: Mapped[User] = relationship(foreign_keys=[user_id])
+
+
 class MfaLoginChallenge(Base):
     __tablename__ = "mfa_login_challenges"
 

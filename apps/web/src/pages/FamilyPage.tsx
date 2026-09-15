@@ -1,5 +1,5 @@
 import { useEffect, useState, type FormEvent } from 'react'
-import { createFamilyInvitation, createRecipeType, deleteRecipeType, getFamilySettings, listFamilyMembers, listRecipeTypes, updateFamilySettings, type FamilyMember, type FamilyRole, type FamilySettings, type RecipeType } from '../api/auth'
+import { createFamilyInvitation, createRecipeType, deleteRecipeType, getFamilySettings, listFamilyMembers, listRecipeTypes, submitFeedback, updateFamilySettings, type FamilyMember, type FamilyRole, type FamilySettings, type RecipeType } from '../api/auth'
 import { useAuth } from '../auth/AuthContext'
 import { translator } from '../i18n'
 import { MfaSettings } from '../components/MfaSettings'
@@ -22,6 +22,8 @@ export function FamilyPage() {
   const [typeMeal, setTypeMeal] = useState<RecipeType['meal_type']>(null)
   const [localeSaved, setLocaleSaved] = useState(false)
   const [notificationMessage, setNotificationMessage] = useState('')
+  const [feedback, setFeedback] = useState('')
+  const [feedbackSent, setFeedbackSent] = useState(false)
 
   async function changeBrowserNotifications(enabled: boolean) {
     setError(''); setNotificationMessage('')
@@ -44,6 +46,13 @@ export function FamilyPage() {
       setInviteUrl(`${window.location.origin}/invite/${invitation.token}`)
       setEmail('')
     } catch (reason) { setError(reason instanceof Error ? reason.message : t('requestFailed')) }
+    finally { setSubmitting(false) }
+  }
+
+  async function sendFeedback(event: FormEvent) {
+    event.preventDefault(); setSubmitting(true); setError(''); setFeedbackSent(false)
+    try { await submitFeedback(feedback); setFeedback(''); setFeedbackSent(true) }
+    catch (reason) { setError(reason instanceof Error ? reason.message : t('requestFailed')) }
     finally { setSubmitting(false) }
   }
 
@@ -82,6 +91,7 @@ export function FamilyPage() {
     <div className="page-heading"><div><p className="eyebrow">{t('sharedHousehold')}</p><h1>{account?.family_name}</h1><p>{t('sharedHouseholdIntro')}</p></div></div>
     <section className="family-panel personal-settings"><div className="personal-settings__intro"><h2>{t('personalSettings')}</h2><p>{t('personalLanguageHelp')}</p></div><div className="personal-settings__controls"><label className="field"><span>{t('appLanguage')}</span><select value={account?.locale || 'en'} onChange={async (event) => { setLocaleSaved(false); setError(''); try { await setLocale(event.target.value as 'en' | 'da' | 'nl'); setLocaleSaved(true) } catch (reason) { setError(reason instanceof Error ? reason.message : t('settingsSaveFailed')) } }}><option value="en">English</option><option value="da">Dansk</option><option value="nl">Nederlands</option></select></label><label className="setting-toggle"><input type="checkbox" checked={account?.dark_mode ?? false} onChange={async (event) => { setError(''); try { await setDarkMode(event.target.checked) } catch (reason) { setError(reason instanceof Error ? reason.message : t('settingsSaveFailed')) } }} /><span><strong>{t('darkMode')}</strong><small>{t('darkModeHelp')}</small></span></label><label className="field"><span>{t('menuColor')}</span><select value={account?.accent_theme || 'sage'} onChange={async (event) => { setError(''); try { await setAccentTheme(event.target.value as NonNullable<typeof account>['accent_theme']) } catch (reason) { setError(reason instanceof Error ? reason.message : t('settingsSaveFailed')) } }}><option value="sage">{t('sage')}</option><option value="ocean">{t('ocean')}</option><option value="berry">{t('berry')}</option><option value="gold">{t('goldTheme')}</option></select></label><label className="setting-toggle"><input type="checkbox" checked={account?.show_nutrition ?? true} onChange={async (event) => { setError(''); try { await setShowNutrition(event.target.checked) } catch (reason) { setError(reason instanceof Error ? reason.message : t('settingsSaveFailed')) } }} /><span><strong>{t('showNutrition')}</strong><small>{t('showNutritionHelp')}</small></span></label><label className="setting-toggle"><input type="checkbox" checked={account?.browser_notifications_enabled ?? false} onChange={(event) => void changeBrowserNotifications(event.target.checked)} /><span><strong>{t('phoneNotifications')}</strong><small>{t('phoneNotificationsHelp')}</small></span></label>{localeSaved && <span className="settings-saved" role="status">{t('languageSaved')}</span>}{notificationMessage && <span className="settings-message" role="status">{notificationMessage}</span>}</div></section>
     <MfaSettings />
+    <section className="family-panel feedback-panel"><h2>{t('feedbackTitle')}</h2><p>{t('feedbackHelp')}</p><form onSubmit={sendFeedback}><label className="field"><span>{t('feedbackLabel')}</span><textarea required minLength={5} maxLength={4000} rows={5} value={feedback} onChange={(event) => { setFeedback(event.target.value); setFeedbackSent(false) }} placeholder={t('feedbackPlaceholder')} /></label><button className="button button--primary" disabled={submitting || feedback.trim().length < 5}>{submitting ? t('sending') : t('sendFeedback')}</button>{feedbackSent && <span className="settings-saved" role="status">{t('feedbackSent')}</span>}</form></section>
     {settings && <section className="family-panel family-settings">
       <header><h2>{t('familyOptions')}</h2><p>{t('familyOptionsHelp')}</p></header>
       <form onSubmit={saveSettings}>
