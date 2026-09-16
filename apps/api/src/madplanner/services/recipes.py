@@ -91,6 +91,12 @@ class RecipeService:
             return None
         return self._to_response(self.repository.replace_shares(recipe, data.family_ids, self.user_id))
 
+    def remove_shared_recipe(self, recipe_id: int) -> bool:
+        recipe = self.repository.get(recipe_id)
+        if recipe is None or recipe.family_id == self.repository.family_id:
+            return False
+        return self.repository.remove_received_share(recipe_id)
+
     def list_public_recipes(self) -> list[RecipeResponse]:
         return [self._to_response(recipe) for recipe in self.repository.list_public()]
 

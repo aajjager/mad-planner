@@ -56,6 +56,7 @@ export const updateRecipeRating = (id: number, rating: number | null) => request
 export interface RecipeShareTarget { id: number; name: string }
 export const listRecipeShareTargets = () => request<RecipeShareTarget[]>('/api/v1/recipes/sharing/families')
 export const updateRecipeShares = (id: number, familyIds: number[]) => request<Recipe>(`/api/v1/recipes/${id}/shares`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ family_ids: familyIds }) })
+export const removeSharedRecipe = (id: number) => request<void>(`/api/v1/recipes/${id}/shared-access`, { method: 'DELETE' })
 export const listPublicRecipes = () => request<Recipe[]>('/api/v1/recipes/public')
 export const importPublicRecipe = (id: number) => request<Recipe>(`/api/v1/recipes/public/${id}/import`, { method: 'POST' })
 export const updateRecipeVisibility = (id: number, isPublic: boolean) => request<Recipe>(`/api/v1/recipes/${id}/visibility`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ is_public: isPublic }) })

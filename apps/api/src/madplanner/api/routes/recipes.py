@@ -114,6 +114,12 @@ def update_recipe_shares(recipe_id: int, data: RecipeSharesUpdate, service: Anno
     return recipe
 
 
+@router.delete("/{recipe_id}/shared-access", status_code=status.HTTP_204_NO_CONTENT)
+def remove_shared_recipe(recipe_id: int, service: Annotated[RecipeService, Depends(get_recipe_service)], _permission: Annotated[AuthContext, Depends(require_recipe_editor)]):
+    if not service.remove_shared_recipe(recipe_id):
+        raise HTTPException(status_code=404, detail="Shared recipe not found")
+
+
 @router.put("/{recipe_id}/visibility", response_model=RecipeResponse)
 def update_recipe_visibility(recipe_id: int, data: RecipeVisibilityUpdate, service: Annotated[RecipeService, Depends(get_recipe_service)], _permission: Annotated[AuthContext, Depends(require_recipe_editor)]):
     recipe = service.update_visibility(recipe_id, data)

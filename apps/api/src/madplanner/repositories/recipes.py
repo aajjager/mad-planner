@@ -78,6 +78,16 @@ class RecipeRepository:
         assert stored is not None
         return stored
 
+    def remove_received_share(self, recipe_id: int) -> bool:
+        result = self.session.execute(
+            delete(RecipeShare).where(
+                RecipeShare.recipe_id == recipe_id,
+                RecipeShare.recipient_family_id == self.family_id,
+            )
+        )
+        self.session.commit()
+        return bool(result.rowcount)
+
     def clear_contents(self, recipe: Recipe) -> None:
         recipe.ingredients.clear()
         recipe.instructions.clear()

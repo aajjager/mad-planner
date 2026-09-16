@@ -2,7 +2,19 @@
 
 All notable user-visible changes to Mad Planner are recorded here. Releases will use semantic version numbers once the controlled update system is introduced.
 
-## Unreleased
+## 0.2.3 — September 2026, week 3
+
+- Limited recipe rating filters and rating sorting to ratings made by the current family on its own recipes.
+- Added branded home-screen icons based on the Mad Planner bowl-and-heart logo.
+- Added editable, per-recipe tag suggestions for multi-selected recipes, with separate accept and deny actions.
+- Added monthly and weekly version history to the in-app Updates page.
+- Added removal of recipes shared with the current family without deleting the source family’s recipe.
+- Added direct clipboard screenshot pasting to feedback submissions.
+- Made the full recipe card clickable while selecting multiple recipes.
+
+Version numbers use `0.<month>.<week>` during development: the middle number advances with each development month and the final number identifies the week in that month when changes were released.
+
+## 0.2.2 — September 2026, week 2
 
 - Added required improvement, bug, and feature-request categories to feedback submissions; existing pending and approved requests are placed under Feature request.
 - Added category-based administrator prompts that combine all approved requests of one type for Codex.

@@ -179,6 +179,10 @@ def test_recipe_can_be_shared_without_copying_it(client: TestClient) -> None:
     assert recipient_client.put(f"/api/v1/recipes/{recipe_id}/rating", json={"rating": 4}).json()["family_rating"] == 4
     assert client.get(f"/api/v1/recipes/{recipe_id}").json()["family_rating"] is None
 
+    assert recipient_client.delete(f"/api/v1/recipes/{recipe_id}/shared-access").status_code == 204
+    assert recipient_client.get(f"/api/v1/recipes/{recipe_id}").status_code == 404
+    assert client.get(f"/api/v1/recipes/{recipe_id}").status_code == 200
+
     assert client.delete(f"/api/v1/recipes/{recipe_id}").status_code == 204
     assert recipient_client.get(f"/api/v1/recipes/{recipe_id}").status_code == 404
 
