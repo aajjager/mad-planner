@@ -4,7 +4,7 @@ All notable user-visible changes to Mad Planner are recorded here. Releases will
 
 ## Unreleased
 
-- Added required improvement, bug, and feature-request categories to feedback submissions.
+- Added required improvement, bug, and feature-request categories to feedback submissions; existing pending and approved requests are placed under Feature request.
 - Added category-based administrator prompts that combine all approved requests of one type for Codex.
 - Added category-specific in-app and browser completion notifications for the original requester.
 
