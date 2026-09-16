@@ -528,6 +528,22 @@ class AuthService:
         self.session.commit()
         return item
 
+    def complete_approved_feedback(self, category: str, reviewer_id: int) -> int:
+        completed_at = utc_now()
+        result = self.session.execute(
+            update(FeedbackSubmission)
+            .where(FeedbackSubmission.category == category, FeedbackSubmission.status == "approved")
+            .values(
+                status="done",
+                reviewed_by_user_id=reviewer_id,
+                reviewed_at=completed_at,
+                completed_at=completed_at,
+                completion_seen_at=None,
+            )
+        )
+        self.session.commit()
+        return result.rowcount
+
     def acknowledge_feedback_completion(self, context: AuthContext, feedback_id: int) -> FeedbackSubmission | None:
         item = self.session.scalar(select(FeedbackSubmission).options(joinedload(FeedbackSubmission.family), joinedload(FeedbackSubmission.user)).where(FeedbackSubmission.id == feedback_id, FeedbackSubmission.user_id == context.user.id, FeedbackSubmission.status == "done"))
         if item is None:

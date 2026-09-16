@@ -159,14 +159,15 @@ def test_feedback_can_be_submitted_and_reviewed_by_system_admin(client: TestClie
     assert reviewed.json()["status"] == "approved"
     assert reviewed.json()["reviewed_at"] is not None
 
-    completed = client.patch(f"/api/v1/auth/admin/feedback/{submitted.json()['id']}", json={"status": "done"})
-    assert completed.status_code == 200
-    assert completed.json()["completed_at"] is not None
-    assert completed.json()["completion_seen_at"] is None
+    batch_completed = client.post("/api/v1/auth/admin/feedback/complete-approved", json={"category": "feature"})
+    assert batch_completed.status_code == 200
+    assert batch_completed.json() == {"completed": 1}
 
     mine = client.get("/api/v1/auth/feedback")
     assert mine.status_code == 200
     assert mine.json()[0]["status"] == "done"
+    assert mine.json()[0]["completed_at"] is not None
+    assert mine.json()[0]["completion_seen_at"] is None
     acknowledged = client.post(f"/api/v1/auth/feedback/{submitted.json()['id']}/acknowledge")
     assert acknowledged.status_code == 200
     assert acknowledged.json()["completion_seen_at"] is not None

@@ -178,6 +178,14 @@ class FeedbackReviewRequest(BaseModel):
     status: Literal["approved", "rejected", "done"]
 
 
+class FeedbackBatchCompleteRequest(BaseModel):
+    category: Literal["improvement", "bug", "feature"]
+
+
+class FeedbackBatchCompleteResponse(BaseModel):
+    completed: int
+
+
 class FeedbackResponse(BaseModel):
     id: int
     content: str

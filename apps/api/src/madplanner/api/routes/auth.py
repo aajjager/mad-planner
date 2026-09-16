@@ -18,6 +18,8 @@ from madplanner.schemas.account import (
     FamilyMemberRoleUpdate,
     FamilySettingsResponse,
     FamilySettingsUpdate,
+    FeedbackBatchCompleteRequest,
+    FeedbackBatchCompleteResponse,
     FeedbackCreateRequest,
     FeedbackResponse,
     FeedbackReviewRequest,
@@ -287,6 +289,11 @@ async def validate_uploaded_backup(request: Request, _context: Annotated[AuthCon
 @router.get("/admin/feedback", response_model=list[FeedbackResponse])
 def admin_feedback(_context: Annotated[AuthContext, Depends(require_system_admin)], service: Annotated[AuthService, Depends(get_auth_service)]):
     return [feedback_response(item) for item in service.list_feedback()]
+
+
+@router.post("/admin/feedback/complete-approved", response_model=FeedbackBatchCompleteResponse)
+def complete_approved_feedback(data: FeedbackBatchCompleteRequest, context: Annotated[AuthContext, Depends(require_system_admin)], service: Annotated[AuthService, Depends(get_auth_service)]):
+    return FeedbackBatchCompleteResponse(completed=service.complete_approved_feedback(data.category, context.user.id))
 
 
 @router.patch("/admin/feedback/{feedback_id}", response_model=FeedbackResponse)
