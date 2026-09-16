@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState, type FormEvent } from 'react'
-import { createNewFamilyInvitation, createPasswordReset, deleteAdminFamily, deleteFeedback, listAdminFamilies, listFamilyMembers, listFeedback, listManagedInvitations, listSecurityEvents, removeFamilyMember, reviewFeedback, revokeInvitation, revokeMemberSessions, updateFamilyMemberRole, type AdminFamily, type FamilyMember, type FamilyRole, type Feedback, type ManagedInvitation, type SecurityEvent } from '../api/auth'
+import { createNewFamilyInvitation, createPasswordReset, deleteAdminFamily, deleteFeedback, listAdminFamilies, listFamilyMembers, listFeedback, listManagedInvitations, listSecurityEvents, removeFamilyMember, reviewFeedback, revokeInvitation, revokeMemberSessions, updateFamilyMemberRole, type AdminFamily, type FamilyMember, type FamilyRole, type Feedback, type FeedbackCategory, type ManagedInvitation, type SecurityEvent } from '../api/auth'
 import { useAuth } from '../auth/AuthContext'
 import { localeTag, translator } from '../i18n'
 import { Navigate } from 'react-router-dom'
@@ -20,6 +20,7 @@ export function AdminPage() {
   const [newFamilyName, setNewFamilyName] = useState(''); const [newFamilyEmail, setNewFamilyEmail] = useState(''); const [newFamilyUrl, setNewFamilyUrl] = useState('')
   const [feedback, setFeedback] = useState<Feedback[]>([])
   const [copiedFeedback, setCopiedFeedback] = useState<number | null>(null)
+  const [copiedGroup, setCopiedGroup] = useState<FeedbackCategory | null>(null)
   const [feedbackView, setFeedbackView] = useState<'active' | 'archived'>('active')
 
   const refresh = useCallback(async () => {
@@ -100,6 +101,15 @@ export function AdminPage() {
     else setError(t('copyFailed'))
   }
 
+  async function copyApprovedGroup(category: FeedbackCategory) {
+    const items = feedback.filter((item) => item.status === 'approved' && item.category === category)
+    const label = category === 'bug' ? 'bugs' : category === 'feature' ? 'feature requests' : 'improvements'
+    const requests = items.map((item, index) => `${index + 1}. ${item.content}${item.attachment_url ? `\n   Attachment: ${window.location.origin}${item.attachment_url}` : ''}`).join('\n\n')
+    const prompt = `Please implement these approved Mad Planner ${label}:\n\n${requests}\n\nTreat these as one reviewable implementation batch while keeping each request independently testable. Keep the existing architecture, preserve current data, add relevant tests, and update CHANGELOG.md with every user-visible change. When the work and tests are complete, tell me exactly what changed and ask me to commit and push it; include the suggested Git commands.`
+    if (await copyText(prompt)) setCopiedGroup(category)
+    else setError(t('copyFailed'))
+  }
+
   async function removeFeedback(item: Feedback) {
     if (!window.confirm(t('deleteFeedbackConfirm'))) return
     setBusy(`feedback-${item.id}`); setError('')
@@ -115,6 +125,7 @@ export function AdminPage() {
     {error && <div className="notice notice--error" role="alert">{error}</div>}
     <div className="admin-stack">
       {account.is_system_admin && <BackupPanel reportError={setError} />}
+      {account.is_system_admin && <section className="family-panel"><h2>{t('copyApprovedBatches')}</h2><p>{t('copyApprovedBatchesHelp')}</p><div className="feedback-tabs">{(['improvement', 'bug', 'feature'] as FeedbackCategory[]).map((category) => { const count = feedback.filter((item) => item.status === 'approved' && item.category === category).length; return <button className="button" disabled={count === 0} onClick={() => void copyApprovedGroup(category)} key={category}>{copiedGroup === category ? t('copiedForCodex') : `${t(category === 'feature' ? 'featureRequest' : category)} (${count})`}</button> })}</div></section>}
       {account.is_system_admin && feedback.some((item) => item.attachment_url) && <section className="family-panel"><h2>{t('attachments')}</h2><div className="feedback-attachments">{feedback.filter((item) => item.attachment_url).map((item) => <a className="button" href={item.attachment_url!} target="_blank" rel="noreferrer" key={item.id}>{item.attachment_name || t('attachment')} · {item.submitted_by}</a>)}</div></section>}
       {account.is_system_admin && <section className="family-panel"><h2>{t('feedbackInbox')}</h2><p>{t('feedbackInboxHelp')}</p><nav className="feedback-tabs" aria-label={t('feedbackInbox')}><button className={feedbackView === 'active' ? 'button button--primary' : 'button'} onClick={() => setFeedbackView('active')}>{t('active')} ({feedback.filter((item) => item.status === 'pending' || item.status === 'approved').length})</button><button className={feedbackView === 'archived' ? 'button button--primary' : 'button'} onClick={() => setFeedbackView('archived')}>{t('archived')} ({feedback.filter((item) => item.status === 'done' || item.status === 'rejected').length})</button></nav>{visibleFeedback.length === 0 ? <p>{feedbackView === 'active' ? t('noActiveFeedback') : t('noArchivedFeedback')}</p> : <div className="feedback-review-list">{visibleFeedback.map((item) => <article key={item.id}><header><div><strong>{item.submitted_by}</strong><small>{item.family_name} · {new Date(item.created_at).toLocaleString(locale)}</small></div><span className={`feedback-status feedback-status--${item.status}`}>{t(item.status)}</span></header><p>{item.content}</p><footer>{item.status === 'pending' && <><button className="button button--primary" disabled={Boolean(busy)} onClick={() => void decideFeedback(item, 'approved')}>{t('approve')}</button><button className="button button--danger" disabled={Boolean(busy)} onClick={() => void decideFeedback(item, 'rejected')}>{t('reject')}</button></>}{item.status === 'approved' && <><button className="button" onClick={() => void copyFeedback(item)}>{copiedFeedback === item.id ? t('copiedForCodex') : t('copyForCodex')}</button><button className="button button--primary" disabled={Boolean(busy)} onClick={() => void decideFeedback(item, 'done')}>{t('markDone')}</button></>}{(item.status === 'done' || item.status === 'rejected') && <button className="button button--danger" disabled={Boolean(busy)} onClick={() => void removeFeedback(item)}>{t('delete')}</button>}</footer></article>)}</div>}</section>}
       {account.is_system_admin && <section className="family-panel system-family-admin"><h2>{t('manageFamilies')}</h2><p>{t('manageFamiliesHelp')}</p><form className="new-family-form" onSubmit={inviteNewFamily}><label className="field"><span>{t('newFamilyName')}</span><input required maxLength={120} value={newFamilyName} onChange={(event) => setNewFamilyName(event.target.value)} /></label><label className="field"><span>{t('ownerEmail')}</span><input required type="email" value={newFamilyEmail} onChange={(event) => setNewFamilyEmail(event.target.value)} /></label><button className="button button--primary" disabled={Boolean(busy)}>{busy === 'new-family' ? t('creating') : t('createFamilyInvitation')}</button></form>{newFamilyUrl && <div className="invite-result"><strong>{t('newFamilyInvitationReady')}</strong><input aria-label={t('invitationLink')} readOnly value={newFamilyUrl} /><button className="button" onClick={() => navigator.clipboard.writeText(newFamilyUrl)}>{t('copyLink')}</button></div>}<div className="managed-family-list">{families.map((family) => <article key={family.id}><div><strong>{family.name}</strong><small>{family.members} {t('members')} · {family.recipes} {t('recipes')}</small></div>{family.id === account.family_id ? <span className="tag">{t('currentFamily')}</span> : <button className="button button--danger" disabled={Boolean(busy)} onClick={() => void removeFamily(family)}>{t('deleteFamily')}</button>}</article>)}</div></section>}

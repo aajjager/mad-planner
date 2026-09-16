@@ -171,6 +171,7 @@ class AdminFamilyResponse(BaseModel):
 
 class FeedbackCreateRequest(BaseModel):
     content: str = Field(min_length=5, max_length=4000)
+    category: Literal["improvement", "bug", "feature"]
 
 
 class FeedbackReviewRequest(BaseModel):
@@ -180,6 +181,7 @@ class FeedbackReviewRequest(BaseModel):
 class FeedbackResponse(BaseModel):
     id: int
     content: str
+    category: Literal["improvement", "bug", "feature"]
     status: Literal["pending", "approved", "rejected", "done"]
     family_name: str
     submitted_by: str

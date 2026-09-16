@@ -4,6 +4,10 @@ All notable user-visible changes to Mad Planner are recorded here. Releases will
 
 ## Unreleased
 
+- Added required improvement, bug, and feature-request categories to feedback submissions.
+- Added category-based administrator prompts that combine all approved requests of one type for Codex.
+- Added category-specific in-app and browser completion notifications for the original requester.
+
 - Added multi-select recipe management for publishing or unpublishing recipes and adding or removing tags in one action.
 
 - Added an opt-in public recipe library where families can browse and import independent recipe copies.

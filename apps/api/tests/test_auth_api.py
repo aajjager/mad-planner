@@ -143,8 +143,9 @@ def test_owner_can_choose_starter_recipes(client: TestClient) -> None:
 
 def test_feedback_can_be_submitted_and_reviewed_by_system_admin(client: TestClient) -> None:
     setup_owner(client)
-    submitted = client.post("/api/v1/auth/feedback", json={"content": "Please add a clearer weekly overview."})
+    submitted = client.post("/api/v1/auth/feedback", json={"content": "Please add a clearer weekly overview.", "category": "feature"})
     assert submitted.status_code == 201
+    assert submitted.json()["category"] == "feature"
     assert submitted.json()["status"] == "pending"
     assert submitted.json()["submitted_by"] == "Owner"
     assert client.delete(f"/api/v1/auth/admin/feedback/{submitted.json()['id']}").status_code == 404
@@ -176,7 +177,7 @@ def test_feedback_can_be_submitted_and_reviewed_by_system_admin(client: TestClie
 def test_feedback_accepts_an_optional_attachment(client: TestClient, tmp_path) -> None:
     setup_owner(client)
     get_settings().media_root = tmp_path
-    submitted = client.post("/api/v1/auth/feedback", json={"content": "The planner layout needs a screenshot."})
+    submitted = client.post("/api/v1/auth/feedback", json={"content": "The planner layout needs a screenshot.", "category": "bug"})
     assert submitted.status_code == 201, submitted.text
     attached = client.post(f"/api/v1/auth/feedback/{submitted.json()['id']}/attachment", content=b"screenshot bytes", headers={"content-type": "image/png", "x-file-name": "planner.png"})
     assert attached.status_code == 200

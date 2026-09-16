@@ -21,3 +21,12 @@ export async function showPlanReminderNotification(title: string, body: string, 
   })
   window.localStorage.setItem(dedupeKey, new Date().toISOString())
 }
+
+export async function showFeedbackCompletionNotification(title: string, body: string, feedbackId: number): Promise<void> {
+  if (!notificationsSupported() || Notification.permission !== 'granted') return
+  const dedupeKey = `madplanner-feedback-complete-${feedbackId}`
+  if (window.localStorage.getItem(dedupeKey)) return
+  const registration = await navigator.serviceWorker.ready
+  await registration.showNotification(title, { body, icon: '/favicon.svg', badge: '/favicon.svg', tag: `madplanner-feedback-${feedbackId}`, data: { url: '/family' } })
+  window.localStorage.setItem(dedupeKey, new Date().toISOString())
+}

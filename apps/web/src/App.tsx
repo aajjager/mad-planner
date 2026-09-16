@@ -19,6 +19,7 @@ import { PublicRecipesPage } from './pages/PublicRecipesPage'
 import { translator } from './i18n'
 import { PlanReminderBanner } from './components/PlanReminderBanner'
 import { BrandMark } from './components/BrandMark'
+import { FeedbackCompletionNotifier } from './components/FeedbackCompletionNotifier'
 
 function ApplicationShell() {
   const { account, logout } = useAuth()
@@ -32,6 +33,7 @@ function ApplicationShell() {
           <div className="account-menu"><Link className="account-link" to="/family">{account?.display_name} · {account?.family_name}</Link>{account?.role === 'owner' && <Link className="account-link" to="/admin">{t('admin')}</Link>}<button className="text-button" onClick={() => void logout()}>{t('signOut')}</button></div>
         </header>
         <PlanReminderBanner />
+        <FeedbackCompletionNotifier />
         <main>
           <Routes>
             <Route path="/" element={<Navigate to="/recipes" replace />} />

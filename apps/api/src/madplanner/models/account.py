@@ -172,6 +172,7 @@ class FeedbackSubmission(Base):
     family_id: Mapped[int] = mapped_column(ForeignKey("families.id", ondelete="CASCADE"), index=True)
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
     content: Mapped[str] = mapped_column(String(4000))
+    category: Mapped[str] = mapped_column(String(20), default="improvement", server_default="improvement", index=True)
     attachment_url: Mapped[str | None] = mapped_column(Text)
     attachment_name: Mapped[str | None] = mapped_column(String(255))
     attachment_content_type: Mapped[str | None] = mapped_column(String(100))

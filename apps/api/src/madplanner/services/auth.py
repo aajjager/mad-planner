@@ -490,8 +490,8 @@ class AuthService:
         families = list(self.session.scalars(select(Family).order_by(Family.name, Family.id)))
         return [(family, self.session.scalar(select(func.count(FamilyMembership.id)).where(FamilyMembership.family_id == family.id)) or 0, self.session.scalar(select(func.count(Recipe.id)).where(Recipe.family_id == family.id)) or 0) for family in families]
 
-    def submit_feedback(self, context: AuthContext, content: str) -> FeedbackSubmission:
-        item = FeedbackSubmission(family_id=context.family.id, user_id=context.user.id, content=content.strip())
+    def submit_feedback(self, context: AuthContext, content: str, category: str) -> FeedbackSubmission:
+        item = FeedbackSubmission(family_id=context.family.id, user_id=context.user.id, content=content.strip(), category=category)
         self.session.add(item)
         self.session.commit()
         self.session.refresh(item)

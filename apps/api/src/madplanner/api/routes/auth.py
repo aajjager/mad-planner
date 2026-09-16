@@ -152,12 +152,12 @@ def current_account(context: Annotated[AuthContext, Depends(require_auth)]):
 
 
 def feedback_response(item) -> FeedbackResponse:
-    return FeedbackResponse(id=item.id, content=item.content, status=item.status, family_name=item.family.name, submitted_by=item.user.display_name, created_at=item.created_at.isoformat(), reviewed_at=item.reviewed_at.isoformat() if item.reviewed_at else None, completed_at=item.completed_at.isoformat() if item.completed_at else None, completion_seen_at=item.completion_seen_at.isoformat() if item.completion_seen_at else None, attachment_url=item.attachment_url, attachment_name=item.attachment_name, attachment_content_type=item.attachment_content_type)
+    return FeedbackResponse(id=item.id, content=item.content, category=item.category, status=item.status, family_name=item.family.name, submitted_by=item.user.display_name, created_at=item.created_at.isoformat(), reviewed_at=item.reviewed_at.isoformat() if item.reviewed_at else None, completed_at=item.completed_at.isoformat() if item.completed_at else None, completion_seen_at=item.completion_seen_at.isoformat() if item.completion_seen_at else None, attachment_url=item.attachment_url, attachment_name=item.attachment_name, attachment_content_type=item.attachment_content_type)
 
 
 @router.post("/feedback", response_model=FeedbackResponse, status_code=status.HTTP_201_CREATED)
 def submit_feedback(data: FeedbackCreateRequest, context: Annotated[AuthContext, Depends(require_auth)], service: Annotated[AuthService, Depends(get_auth_service)]):
-    item = service.submit_feedback(context, data.content)
+    item = service.submit_feedback(context, data.content, data.category)
     item.family = context.family
     item.user = context.user
     return feedback_response(item)
