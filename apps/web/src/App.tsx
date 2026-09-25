@@ -52,12 +52,13 @@ function ApplicationShell() {
             <Route path="*" element={<Navigate to="/recipes" replace />} />
           </Routes>
         </main>
-        <nav className="mobile-navigation" aria-label="Mobile navigation">
+        <nav className={`mobile-navigation${account?.role === 'owner' ? ' mobile-navigation--admin' : ''}`} aria-label="Mobile navigation">
           <NavLink to="/recipes"><span aria-hidden="true">▤</span>{t('recipes')}</NavLink>
           <NavLink to="/planner"><span aria-hidden="true">□</span>{t('planner')}</NavLink>
           {canEditRecipes && <NavLink className="mobile-navigation__add" to="/recipes/new"><span aria-hidden="true">+</span>{t('addRecipe')}</NavLink>}
           <NavLink to="/grocery-list"><span aria-hidden="true">✓</span>{t('groceries')}</NavLink>
           <NavLink to="/family"><span aria-hidden="true">⌂</span>{t('familyNav')}</NavLink>
+          {account?.role === 'owner' && <NavLink to="/admin"><span aria-hidden="true">⚙</span>{t('admin')}</NavLink>}
         </nav>
       </div>
   )

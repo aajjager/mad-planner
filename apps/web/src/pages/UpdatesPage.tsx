@@ -3,6 +3,11 @@ import { translator } from '../i18n'
 import './UpdatesPage.css'
 
 const releases = [
+  { version: '0.2.4', period: 'September 2026 · week 4', notes: [
+    'Open and Closed views for personal request history',
+    'Mobile access to Administration for family owners',
+    'Phone-friendly administrator feedback and approval controls',
+  ] },
   { version: '0.2.3', period: 'September 2026 · week 3', notes: [
     'Family-only rating filtering for owned recipes',
     'Branded iOS and installable-app icons',

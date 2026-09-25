@@ -2,8 +2,14 @@
 
 All notable user-visible changes to Mad Planner are recorded here. Releases will use semantic version numbers once the controlled update system is introduced.
 
+## 0.2.4 — September 2026, week 4
+
+- Split personal feedback history into Open and Closed request views, with Open shown by default.
+- Added owner access to Administration from the mobile navigation and improved phone layouts for feedback review and approval controls.
+
 ## 0.2.3 — September 2026, week 3
 
+- Added an optional Cloudflare Tunnel deployment for HTTPS without router port forwarding.
 - Limited recipe rating filters and rating sorting to ratings made by the current family on its own recipes.
 - Added branded home-screen icons based on the Mad Planner bowl-and-heart logo.
 - Added editable, per-recipe tag suggestions for multi-selected recipes, with separate accept and deny actions.

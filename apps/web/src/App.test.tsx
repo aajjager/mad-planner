@@ -78,6 +78,29 @@ describe('App', () => {
     expect(await screen.findByLabelText('Invitation link')).toHaveValue('http://localhost:3000/invite/private-token')
   })
 
+  it('separates open and closed personal requests', async () => {
+    window.history.pushState({}, '', '/family')
+    const feedback = [
+      { id: 1, content: 'Open planner request', category: 'feature', status: 'approved', family_name: 'Test family', submitted_by: 'Owner', created_at: '2026-09-24T10:00:00Z', reviewed_at: null, completed_at: null, completion_seen_at: null, attachment_url: null, attachment_name: null, attachment_content_type: null },
+      { id: 2, content: 'Closed grocery request', category: 'improvement', status: 'done', family_name: 'Test family', submitted_by: 'Owner', created_at: '2026-09-23T10:00:00Z', reviewed_at: '2026-09-24T10:00:00Z', completed_at: '2026-09-24T10:00:00Z', completion_seen_at: '2026-09-24T11:00:00Z', attachment_url: null, attachment_name: null, attachment_content_type: null },
+    ]
+    vi.spyOn(globalThis, 'fetch').mockImplementation((input) => {
+      const url = String(input)
+      const auth = authResponse(input)
+      if (auth) return Promise.resolve(auth)
+      if (url.endsWith('/auth/feedback')) return Promise.resolve(jsonResponse(feedback))
+      if (url.includes('/family/members')) return Promise.resolve(jsonResponse([{ id: 1, email: 'owner@example.com', display_name: 'Owner', role: 'owner' }]))
+      return Promise.resolve(jsonResponse([]))
+    })
+    render(<App />)
+
+    expect(await screen.findByText('Open planner request')).toBeInTheDocument()
+    expect(screen.queryByText('Closed grocery request')).not.toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Closed requests (1)' }))
+    expect(screen.getByText('Closed grocery request')).toBeInTheDocument()
+    expect(screen.queryByText('Open planner request')).not.toBeInTheDocument()
+  })
+
   it('lets an invited person join the shared family', async () => {
     window.history.pushState({}, '', '/invite/private-token')
     vi.spyOn(globalThis, 'fetch').mockImplementation((input) => {
@@ -120,6 +143,7 @@ describe('App', () => {
     expect(screen.getByLabelText('Member Permission')).toHaveValue('editor')
     expect(screen.getByText('pending@example.com')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Revoke invitation' })).toBeInTheDocument()
+    expect(screen.getAllByRole('link', { name: 'Admin' })).toHaveLength(2)
   })
 
   it('shows the empty recipe collection and API status', async () => {

@@ -74,6 +74,7 @@
   - [ ] Add confirmation-protected restore with disposable validation
 
 - [ ] Phase 25 — Guided HTTPS
+  - [x] Add an optional Cloudflare Tunnel Compose deployment and setup guide
   - [x] Add secure-cookie and loopback-binding configuration
   - [x] Document Caddy setup for Debian and reverse-proxy requirements for TrueNAS
   - [ ] Verify the final hostname and certificate on TrueNAS
