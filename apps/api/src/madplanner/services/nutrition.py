@@ -2,6 +2,7 @@ from dataclasses import dataclass
 from decimal import Decimal
 
 from madplanner.models import Recipe
+from madplanner.ingredients.parser import parse_ingredient
 from madplanner.models.ingredient import UnitDimension
 
 
@@ -44,6 +45,12 @@ _FOODS: tuple[tuple[tuple[str, ...], Nutrients], ...] = (
     (("banana", "banan", "banaan"), Nutrients(89, 0.3, 22.8, 1.1, 120)),
     (("apple", "æble", "appel"), Nutrients(52, 0.2, 13.8, 0.3, 180)),
     (("sugar", "sukker", "suiker"), Nutrients(387, 0, 100, 0)),
+    (("mozzarella", "burrata"), Nutrients(280, 20, 3, 22, 125)),
+    (("pesto",), Nutrients(410, 42, 6, 5, 15)),
+    (("spinach", "spinat", "spinazie"), Nutrients(23, 0.4, 3.6, 2.9, 100)),
+    (("bacon",), Nutrients(541, 42, 1.4, 37, 25)),
+    (("chickpea", "kikært", "kikkererwt"), Nutrients(364, 6, 61, 19, 240)),
+    (("coconut milk", "kokosmælk", "kokosmelk"), Nutrients(230, 24, 6, 2.3, 400)),
 )
 
 
@@ -52,27 +59,32 @@ def _food(name: str) -> Nutrients | None:
     return next((value for aliases, value in _FOODS if any(alias in normalized for alias in aliases)), None)
 
 
-def _grams(item, food: Nutrients) -> float | None:
-    if item.quantity is None:
+def _grams(quantity, quantity_max, unit, food: Nutrients) -> float | None:
+    if quantity is None:
         return None
-    quantity = float(item.quantity_max or item.quantity)
-    if item.unit is None:
-        return quantity * food.count_grams
-    symbol = item.unit.symbol.casefold().strip(".")
-    if item.unit.dimension is UnitDimension.MASS:
-        return quantity * (1000 if symbol in {"kg", "kilo"} else 1)
-    if item.unit.dimension is UnitDimension.VOLUME:
-        return quantity * ({"l": 1000, "dl": 100, "cl": 10, "ml": 1, "spsk": 15, "tbsp": 15, "tsk": 5, "tsp": 5}.get(symbol, 1))
-    return quantity * food.count_grams
+    amount = float(quantity_max or quantity)
+    if unit is None:
+        return amount * food.count_grams
+    symbol = unit.symbol.casefold().strip(".")
+    if unit.dimension is UnitDimension.MASS:
+        return amount * (1000 if symbol in {"kg", "kilo"} else 1)
+    if unit.dimension is UnitDimension.VOLUME:
+        return amount * ({"l": 1000, "dl": 100, "cl": 10, "ml": 1, "spsk": 15, "tbsp": 15, "tsk": 5, "tsp": 5}.get(symbol, 1))
+    return amount * food.count_grams
 
 
 def estimate_nutrition(recipe: Recipe) -> dict | None:
     totals = {"calories": 0.0, "fatContent": 0.0, "carbohydrateContent": 0.0, "proteinContent": 0.0}
     measured = 0
     for item in recipe.ingredients:
-        name = item.ingredient.normalized_name if item.ingredient else item.raw_text
+        parsed = parse_ingredient(item.raw_text)
+        stored_name = item.ingredient.normalized_name if item.ingredient else ""
+        name = f"{stored_name} {parsed.ingredient_name}".strip()
         food = _food(name)
-        grams = _grams(item, food) if food else None
+        quantity = item.quantity if item.quantity is not None else parsed.quantity
+        quantity_max = item.quantity_max if item.quantity_max is not None else parsed.quantity_max
+        unit = item.unit or parsed.unit
+        grams = _grams(quantity, quantity_max, unit, food) if food else None
         if food is None or grams is None:
             continue
         measured += 1
@@ -83,9 +95,17 @@ def estimate_nutrition(recipe: Recipe) -> dict | None:
         totals["proteinContent"] += food.protein * factor
     if measured == 0:
         return None
+    classification = " ".join([
+        recipe.name or "",
+        recipe.category or "",
+        *(recipe_type.name for recipe_type in recipe.recipe_types),
+    ]).casefold()
+    is_batch = any(term in classification for term in ("cookie", "biscuit", "småkage", "kage", "cake", "bake-off", "baked", "bagværk"))
     servings = float(recipe.servings or Decimal(1))
-    result = {key: round(value / servings, 1) for key, value in totals.items()}
-    result.update({"estimated": True, "coveragePercent": round(measured / max(len(recipe.ingredients), 1) * 100), "servingBasis": "per serving"})
+    serving_basis = "whole batch" if is_batch else "per serving" if servings > 1 else "whole recipe"
+    divisor = servings if serving_basis == "per serving" else 1
+    result = {key: round(value / divisor, 1) for key, value in totals.items()}
+    result.update({"estimated": True, "coveragePercent": round(measured / max(len(recipe.ingredients), 1) * 100), "servingBasis": serving_basis})
     return result
 
 

@@ -6,6 +6,9 @@ All notable user-visible changes to Mad Planner are recorded here. Releases will
 
 - Added the public IP address to administrator login history for new successful and failed login attempts, including MFA failures. Existing history remains available and is marked as not recorded.
 - Limited the initial security history to the newest 30 events, with filters for successful logins, failed logins, password resets, and MFA changes plus on-demand access to older events.
+- Restored nutrition estimates for older imported recipes by reading quantities and units from their original ingredient text, with broader Danish, English, and Dutch food recognition.
+- Labelled estimated nutrition as per serving, whole recipe, or whole baking batch so totals such as cookie calories are not presented as a single serving.
+- Improved book-recipe scanning with two complementary page-layout passes, expanded multilingual section headings, better numbered-step handling, wrapped instruction recovery, and clearer missing-section warnings.
 
 ## 0.2.4 — September 2026, week 4
 

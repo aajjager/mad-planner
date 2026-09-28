@@ -103,7 +103,7 @@
   - [x] Add white-paper recipe reading view
   - [x] Add reversible cooking-step completion
   - [x] Add book-recipe OCR with review before saving
-  - [ ] Improve OCR accuracy, multi-column page detection, and automatic section layout (lower priority)
+  - [x] Improve OCR accuracy, multi-column page detection, and automatic section layout
 
 - [ ] Phase 14 — Personal languages
   - [x] Add per-user locale settings
@@ -133,7 +133,7 @@
   - [x] Normalize supplied nutrition and estimate missing values from recognized ingredient quantities
   - [x] Add a discreet pastel macronutrient donut to recipe details
   - [x] Use an offline generic-food estimator informed by USDA FoodData Central, with visible coverage and estimate labels
-  - [ ] Revisit missing nutrition panel on some imported recipes (confirmed on Monsterpasta despite recognizable quantified ingredients)
+  - [x] Revisit missing nutrition panel on older imported recipes by parsing their original ingredient text
 
 - [x] Phase 19 — Settings and mobile polish
   - [x] Reorganize family settings into clear left-label/right-control rows and sections

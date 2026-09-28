@@ -23,7 +23,7 @@ const nutritionValues = (recipe: Recipe): NutritionValues | null => {
   return Object.values(values).some((value) => value !== null) ? values : null
 }
 
-export function NutritionSummary({ recipe, labels }: { recipe: Recipe; labels: { title: string; available: string; estimated: string; coverage: string; calories: string; fat: string; carbohydrates: string; protein: string } }) {
+export function NutritionSummary({ recipe, labels }: { recipe: Recipe; labels: { title: string; available: string; estimated: string; estimatedBatch: string; estimatedWhole: string; coverage: string; calories: string; fat: string; carbohydrates: string; protein: string } }) {
   const values = nutritionValues(recipe)
   if (!values) return null
   const fatEnergy = (values.fat || 0) * 9
@@ -34,9 +34,11 @@ export function NutritionSummary({ recipe, labels }: { recipe: Recipe; labels: {
   const carbohydrateEnd = total ? (fatEnergy + carbohydrateEnergy) / total * 100 : 0
   const chartStyle = { '--fat-end': `${fatEnd}%`, '--carb-end': `${carbohydrateEnd}%`, ...(total ? {} : { background: '#e7e4dc' }) } as CSSProperties
   const estimated = recipe.nutrition?.estimated === true
+  const servingBasis = recipe.nutrition?.servingBasis
+  const estimateLabel = servingBasis === 'whole batch' ? labels.estimatedBatch : servingBasis === 'whole recipe' ? labels.estimatedWhole : labels.estimated
   const coverage = typeof recipe.nutrition?.coveragePercent === 'number' ? recipe.nutrition.coveragePercent : null
   return <section className="nutrition-summary" aria-label={labels.title}>
     <div className="nutrition-chart" style={chartStyle} aria-hidden="true"><span>{values.calories !== null ? Math.round(values.calories) : '—'}<small>kcal</small></span></div>
-    <div><p className="eyebrow">{labels.title}</p><strong>{estimated ? labels.estimated : labels.available}</strong>{estimated && coverage !== null && <small className="nutrition-coverage">{labels.coverage}: {coverage}%</small>}<div className="nutrition-legend">{values.fat !== null && <span><i className="macro-fat" />{labels.fat} {values.fat} g</span>}{values.carbohydrates !== null && <span><i className="macro-carbs" />{labels.carbohydrates} {values.carbohydrates} g</span>}{values.protein !== null && <span><i className="macro-protein" />{labels.protein} {values.protein} g</span>}{values.calories !== null && <span className="nutrition-calories">{labels.calories}: {Math.round(values.calories)} kcal</span>}</div></div>
+    <div><p className="eyebrow">{labels.title}</p><strong>{estimated ? estimateLabel : labels.available}</strong>{estimated && coverage !== null && <small className="nutrition-coverage">{labels.coverage}: {coverage}%</small>}<div className="nutrition-legend">{values.fat !== null && <span><i className="macro-fat" />{labels.fat} {values.fat} g</span>}{values.carbohydrates !== null && <span><i className="macro-carbs" />{labels.carbohydrates} {values.carbohydrates} g</span>}{values.protein !== null && <span><i className="macro-protein" />{labels.protein} {values.protein} g</span>}{values.calories !== null && <span className="nutrition-calories">{labels.calories}: {Math.round(values.calories)} kcal</span>}</div></div>
   </section>
 }
