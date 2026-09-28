@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState, type FormEvent } from 'react'
-import { completeApprovedFeedback, createNewFamilyInvitation, createPasswordReset, deleteAdminFamily, deleteFeedback, listAdminFamilies, listFamilyMembers, listFeedback, listManagedInvitations, listSecurityEvents, removeFamilyMember, reviewFeedback, revokeInvitation, revokeMemberSessions, updateFamilyMemberRole, type AdminFamily, type FamilyMember, type FamilyRole, type Feedback, type FeedbackCategory, type ManagedInvitation, type SecurityEvent } from '../api/auth'
+import { completeApprovedFeedback, createNewFamilyInvitation, createPasswordReset, deleteAdminFamily, deleteFeedback, listAdminFamilies, listFamilyMembers, listFeedback, listManagedInvitations, listSecurityEvents, removeFamilyMember, reviewFeedback, revokeInvitation, revokeMemberSessions, updateFamilyMemberRole, type AdminFamily, type FamilyMember, type FamilyRole, type Feedback, type FeedbackCategory, type ManagedInvitation, type SecurityEvent, type SecurityEventCategory } from '../api/auth'
 import { useAuth } from '../auth/AuthContext'
 import { localeTag, translator } from '../i18n'
 import { Navigate } from 'react-router-dom'
@@ -13,6 +13,8 @@ export function AdminPage() {
   const [members, setMembers] = useState<FamilyMember[]>([])
   const [invitations, setInvitations] = useState<ManagedInvitation[]>([])
   const [securityEvents, setSecurityEvents] = useState<SecurityEvent[]>([])
+  const [securityCategory, setSecurityCategory] = useState<SecurityEventCategory>('all')
+  const [hasOlderSecurityEvents, setHasOlderSecurityEvents] = useState(false)
   const [error, setError] = useState('')
   const [busy, setBusy] = useState('')
   const [resetLink, setResetLink] = useState('')
@@ -25,14 +27,23 @@ export function AdminPage() {
 
   const refresh = useCallback(async () => {
     try {
-      const [nextMembers, nextInvitations, nextSecurityEvents, nextFamilies, nextFeedback] = await Promise.all([listFamilyMembers(), listManagedInvitations(), listSecurityEvents(), account?.is_system_admin ? listAdminFamilies() : Promise.resolve([]), account?.is_system_admin ? listFeedback() : Promise.resolve([])])
-      setMembers(nextMembers); setInvitations(nextInvitations); setSecurityEvents(nextSecurityEvents); setFamilies(nextFamilies); setFeedback(nextFeedback)
+      const [nextMembers, nextInvitations, nextFamilies, nextFeedback] = await Promise.all([listFamilyMembers(), listManagedInvitations(), account?.is_system_admin ? listAdminFamilies() : Promise.resolve([]), account?.is_system_admin ? listFeedback() : Promise.resolve([])])
+      setMembers(nextMembers); setInvitations(nextInvitations); setFamilies(nextFamilies); setFeedback(nextFeedback)
     } catch (reason) { setError(reason instanceof Error ? reason.message : t('adminLoadFailed')) }
   // oxlint-disable-next-line react-hooks/exhaustive-deps -- Refresh when the signed-in user's locale changes.
   }, [account?.locale, account?.is_system_admin])
 
   // oxlint-disable-next-line react/set-state-in-effect -- Load owner-managed data when the page opens.
   useEffect(() => { void refresh() }, [refresh])
+  useEffect(() => {
+    let current = true
+    void listSecurityEvents(securityCategory, 0, 31).then((items) => {
+      if (!current) return
+      setSecurityEvents(items.slice(0, 30)); setHasOlderSecurityEvents(items.length > 30)
+    }).catch((reason) => { if (current) setError(reason instanceof Error ? reason.message : t('adminLoadFailed')) })
+    return () => { current = false }
+  // oxlint-disable-next-line react-hooks/exhaustive-deps -- Reload when the selected category or locale changes.
+  }, [securityCategory, account?.locale])
   if (account?.role !== 'owner') return <Navigate to="/family" replace />
 
   async function revokeSessions(member: FamilyMember) {
@@ -127,6 +138,26 @@ export function AdminPage() {
     finally { setBusy('') }
   }
 
+  async function loadOlderSecurityEvents() {
+    setBusy('security-history'); setError('')
+    try {
+      const items = await listSecurityEvents(securityCategory, securityEvents.length, 31)
+      setSecurityEvents((current) => [...current, ...items.slice(0, 30)])
+      setHasOlderSecurityEvents(items.length > 30)
+    } catch (reason) { setError(reason instanceof Error ? reason.message : t('requestFailed')) }
+    finally { setBusy('') }
+  }
+
+  function securityEventLabel(eventType: string) {
+    if (eventType === 'login_succeeded') return t('loginSucceeded')
+    if (eventType === 'login_failed') return t('loginFailed')
+    if (eventType === 'password_reset_created') return t('password_reset_created')
+    if (eventType === 'password_reset_completed') return t('password_reset_completed')
+    if (eventType === 'mfa_enabled') return t('mfa_enabled')
+    if (eventType === 'mfa_disabled') return t('mfa_disabled')
+    return eventType
+  }
+
   const visibleFeedback = feedback.filter((item) => feedbackView === 'active' ? item.status === 'pending' || item.status === 'approved' : item.status === 'done' || item.status === 'rejected')
 
   return <section className="page admin-page">
@@ -140,7 +171,7 @@ export function AdminPage() {
       {account.is_system_admin && <section className="family-panel system-family-admin"><h2>{t('manageFamilies')}</h2><p>{t('manageFamiliesHelp')}</p><form className="new-family-form" onSubmit={inviteNewFamily}><label className="field"><span>{t('newFamilyName')}</span><input required maxLength={120} value={newFamilyName} onChange={(event) => setNewFamilyName(event.target.value)} /></label><label className="field"><span>{t('ownerEmail')}</span><input required type="email" value={newFamilyEmail} onChange={(event) => setNewFamilyEmail(event.target.value)} /></label><button className="button button--primary" disabled={Boolean(busy)}>{busy === 'new-family' ? t('creating') : t('createFamilyInvitation')}</button></form>{newFamilyUrl && <div className="invite-result"><strong>{t('newFamilyInvitationReady')}</strong><input aria-label={t('invitationLink')} readOnly value={newFamilyUrl} /><button className="button" onClick={() => navigator.clipboard.writeText(newFamilyUrl)}>{t('copyLink')}</button></div>}<div className="managed-family-list">{families.map((family) => <article key={family.id}><div><strong>{family.name}</strong><small>{family.members} {t('members')} · {family.recipes} {t('recipes')}</small></div>{family.id === account.family_id ? <span className="tag">{t('currentFamily')}</span> : <button className="button button--danger" disabled={Boolean(busy)} onClick={() => void removeFamily(family)}>{t('deleteFamily')}</button>}</article>)}</div></section>}
       <section className="family-panel"><h2>{t('familyLogins')}</h2><div className="admin-list">{members.map((member) => <article key={member.id}><span className="member-avatar">{member.display_name.charAt(0).toUpperCase()}</span><div><strong>{member.display_name}</strong><small>{member.email} · {member.active_sessions} {member.active_sessions === 1 ? t('activeLogin') : t('activeLogins')}</small></div>{member.role === 'owner' ? <span className="tag">{t('owner')}</span> : <select aria-label={`${member.display_name} ${t('permission')}`} value={member.role} disabled={Boolean(busy)} onChange={(event) => void changeRole(member, event.target.value as Exclude<FamilyRole, 'owner'>)}><option value="editor">{t('editor')}</option><option value="planner">{t('plannerRole')}</option><option value="viewer">{t('viewer')}</option></select>}<div className="admin-actions"><button className="button" disabled={Boolean(busy)} onClick={() => void makeResetLink(member)}>{t('createResetLink')}</button>{member.role !== 'owner' && <><button className="button" disabled={Boolean(busy)} onClick={() => void revokeSessions(member)}>{t('signOutEverywhere')}</button><button className="button button--danger" disabled={Boolean(busy)} onClick={() => void removeMember(member)}>{t('removeAccess')}</button></>}</div></article>)}</div>{resetLink && <div className="invite-result"><strong>{t('resetLinkReady')}</strong><p>{t('resetLinkHelp')}</p><input readOnly value={resetLink} /><button className="button" onClick={() => navigator.clipboard.writeText(resetLink)}>{t('copyLink')}</button></div>}</section>
       <section className="family-panel"><h2>{t('pendingInvitations')}</h2>{invitations.length === 0 ? <p>{t('noPendingInvitations')}</p> : <div className="admin-list">{invitations.map((invitation) => <article key={invitation.id}><div><strong>{invitation.intended_email}</strong><small>{invitation.role} · {t('expires')} {new Date(invitation.expires_at).toLocaleDateString(locale)}</small></div><div className="admin-actions"><button className="button button--danger" disabled={Boolean(busy)} onClick={() => void cancelInvitation(invitation)}>{t('revokeInvitation')}</button></div></article>)}</div>}</section>
-      <section className="family-panel"><h2>{t('securityHistory')}</h2><p>{t('securityHistoryHelp')}</p>{securityEvents.length === 0 ? <p>{t('noSecurityEvents')}</p> : <div className="security-event-list">{securityEvents.map((event) => <article key={event.id}><span className={`security-event-dot security-event-dot--${event.event_type === 'login_succeeded' ? 'success' : 'warning'}`} aria-hidden="true" /><div><strong>{event.event_type === 'login_succeeded' ? t('loginSucceeded') : event.event_type === 'login_failed' ? t('loginFailed') : event.event_type}</strong><small>{event.user_email || t('unknownAccount')}</small></div><time dateTime={event.created_at}>{new Date(event.created_at).toLocaleString(locale)}</time></article>)}</div>}</section>
+      <section className="family-panel"><h2>{t('securityHistory')}</h2><p>{t('securityHistoryHelp')}</p><label className="field security-filter"><span>{t('filterSecurityHistory')}</span><select value={securityCategory} onChange={(event) => setSecurityCategory(event.target.value as SecurityEventCategory)}><option value="all">{t('allSecurityEvents')}</option><option value="successful">{t('successfulSignIns')}</option><option value="failed">{t('failedSignIns')}</option><option value="password">{t('passwordResets')}</option><option value="mfa">{t('mfaChanges')}</option></select></label>{securityEvents.length === 0 ? <p>{t('noSecurityEvents')}</p> : <><div className="security-event-list">{securityEvents.map((event) => <article key={event.id}><span className={`security-event-dot security-event-dot--${event.event_type === 'login_succeeded' ? 'success' : 'warning'}`} aria-hidden="true" /><div><strong>{securityEventLabel(event.event_type)}</strong><small>{event.user_email || t('unknownAccount')} · {t('ipAddress')}: {event.ip_address || t('ipUnavailable')}</small></div><time dateTime={event.created_at}>{new Date(event.created_at).toLocaleString(locale)}</time></article>)}</div>{hasOlderSecurityEvents && <button className="button security-load-older" disabled={Boolean(busy)} onClick={() => void loadOlderSecurityEvents()}>{t('loadOlder')}</button>}</>}</section>
     </div>
   </section>
 }

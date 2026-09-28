@@ -106,6 +106,7 @@ class SecurityEventResponse(BaseModel):
     id: int
     event_type: str
     user_email: str | None
+    ip_address: str | None
     created_at: str
 
 

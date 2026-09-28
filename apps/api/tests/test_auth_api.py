@@ -110,12 +110,17 @@ def test_owner_setup_login_and_logout(client: TestClient) -> None:
 
     assert client.post("/api/v1/auth/logout").status_code == 204
     assert client.get("/api/v1/auth/me").status_code == 401
-    assert client.post("/api/v1/auth/login", json={"email": "owner@example.com", "password": "wrong-password"}).status_code == 401
-    assert client.post("/api/v1/auth/login", json={"email": "OWNER@example.com", "password": "correct-horse-battery-staple"}).status_code == 200
+    assert client.post("/api/v1/auth/login", headers={"CF-Connecting-IP": "203.0.113.42"}, json={"email": "owner@example.com", "password": "wrong-password"}).status_code == 401
+    assert client.post("/api/v1/auth/login", headers={"X-Real-IP": "2001:db8::7"}, json={"email": "OWNER@example.com", "password": "correct-horse-battery-staple"}).status_code == 200
     events = client.get("/api/v1/auth/admin/security-events")
     assert events.status_code == 200
     assert [item["event_type"] for item in events.json()[:2]] == ["login_succeeded", "login_failed"]
+    assert [item["ip_address"] for item in events.json()[:2]] == ["2001:db8::7", "203.0.113.42"]
     assert all(item["user_email"] == "owner@example.com" for item in events.json())
+    assert [item["event_type"] for item in client.get("/api/v1/auth/admin/security-events?category=successful").json()] == ["login_succeeded"]
+    assert [item["event_type"] for item in client.get("/api/v1/auth/admin/security-events?category=failed").json()] == ["login_failed"]
+    assert client.get("/api/v1/auth/admin/security-events?offset=1&limit=1").json()[0]["event_type"] == "login_failed"
+    assert client.get("/api/v1/auth/admin/security-events?limit=101").status_code == 422
 
 
 def test_owner_can_choose_starter_recipes(client: TestClient) -> None:

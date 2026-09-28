@@ -1,9 +1,10 @@
-from typing import Annotated
+from typing import Annotated, Literal
 from pathlib import Path
 from uuid import uuid4
+from ipaddress import ip_address
 
 from datetime import datetime, timezone
-from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response, status
 from fastapi.responses import FileResponse
 from starlette.background import BackgroundTask
 from sqlalchemy.orm import Session
@@ -58,6 +59,23 @@ def get_auth_service(session: Annotated[Session, Depends(get_session)]) -> AuthS
 
 def session_token(request: Request) -> str | None:
     return request.cookies.get(get_settings().session_cookie_name)
+
+
+def login_ip_address(request: Request) -> str | None:
+    """Return a normalized address supplied by our edge proxy or the direct client."""
+    candidates = (
+        request.headers.get("cf-connecting-ip"),
+        request.headers.get("x-real-ip"),
+        request.client.host if request.client else None,
+    )
+    for candidate in candidates:
+        if not candidate:
+            continue
+        try:
+            return str(ip_address(candidate.strip()))
+        except ValueError:
+            continue
+    return None
 
 
 def require_auth(
@@ -117,8 +135,8 @@ def setup_owner(data: OwnerSetupRequest, response: Response, service: Annotated[
 
 
 @router.post("/login", response_model=AccountResponse | MfaChallengeResponse)
-def login(data: LoginRequest, response: Response, service: Annotated[AuthService, Depends(get_auth_service)]):
-    result = service.login(data.email, data.password)
+def login(data: LoginRequest, request: Request, response: Response, service: Annotated[AuthService, Depends(get_auth_service)]):
+    result = service.login(data.email, data.password, login_ip_address(request))
     if result is None:
         raise HTTPException(status_code=401, detail="Invalid email or password")
     if isinstance(result, MfaChallenge):
@@ -129,11 +147,11 @@ def login(data: LoginRequest, response: Response, service: Annotated[AuthService
 
 
 @router.post("/login/mfa", response_model=AccountResponse)
-def login_mfa(data: MfaLoginRequest, response: Response, service: Annotated[AuthService, Depends(get_auth_service)]):
+def login_mfa(data: MfaLoginRequest, request: Request, response: Response, service: Annotated[AuthService, Depends(get_auth_service)]):
     key = get_settings().mfa_encryption_key
     if key is None or not key.get_secret_value():
         raise HTTPException(status_code=503, detail="MFA encryption is not configured")
-    result = service.complete_mfa_login(data.challenge_token, data.code, key.get_secret_value())
+    result = service.complete_mfa_login(data.challenge_token, data.code, key.get_secret_value(), login_ip_address(request))
     if result is None:
         raise HTTPException(status_code=401, detail="Invalid or expired authentication code")
     context, token = result
@@ -391,8 +409,21 @@ def managed_invitations(context: Annotated[AuthContext, Depends(require_owner)],
 
 
 @router.get("/admin/security-events", response_model=list[SecurityEventResponse])
-def security_events(context: Annotated[AuthContext, Depends(require_owner)], service: Annotated[AuthService, Depends(get_auth_service)]):
-    return [SecurityEventResponse(id=item.id, event_type=item.event_type, user_email=item.user.email if item.user else None, created_at=item.created_at.isoformat()) for item in service.list_security_events(context.family.id)]
+def security_events(
+    context: Annotated[AuthContext, Depends(require_owner)],
+    service: Annotated[AuthService, Depends(get_auth_service)],
+    category: Literal["all", "successful", "failed", "password", "mfa"] = "all",
+    offset: Annotated[int, Query(ge=0)] = 0,
+    limit: Annotated[int, Query(ge=1, le=100)] = 30,
+):
+    category_types = {
+        "successful": ("login_succeeded",),
+        "failed": ("login_failed",),
+        "password": ("password_reset_created", "password_reset_completed"),
+        "mfa": ("mfa_enabled", "mfa_disabled"),
+    }
+    items = service.list_security_events(context.family.id, event_types=category_types.get(category), limit=limit, offset=offset)
+    return [SecurityEventResponse(id=item.id, event_type=item.event_type, user_email=item.user.email if item.user else None, ip_address=item.ip_address, created_at=item.created_at.isoformat()) for item in items]
 
 
 @router.delete("/admin/invitations/{invitation_id}", status_code=status.HTTP_204_NO_CONTENT)

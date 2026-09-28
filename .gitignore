@@ -6,6 +6,8 @@ backups/
 __pycache__/
 *.py[cod]
 .pytest_cache/
+pytest-of-*/
+.vitest-temp/
 .ruff_cache/
 .coverage
 htmlcov/

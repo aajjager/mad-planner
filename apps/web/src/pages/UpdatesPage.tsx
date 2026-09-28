@@ -3,6 +3,10 @@ import { translator } from '../i18n'
 import './UpdatesPage.css'
 
 const releases = [
+  { version: '0.2.5', period: 'September 2026 · week 5', notes: [
+    'Public IP addresses in administrator login history',
+    'Filtered security history with on-demand access to older events',
+  ] },
   { version: '0.2.4', period: 'September 2026 · week 4', notes: [
     'Open and Closed views for personal request history',
     'Mobile access to Administration for family owners',

@@ -106,7 +106,7 @@ class AuthService:
             add_starter_recipes(self.session, family.id, user.id)
         return auth_context, token
 
-    def login(self, email: str, password: str) -> tuple[AuthContext, str] | MfaChallenge | None:
+    def login(self, email: str, password: str, ip_address: str | None = None) -> tuple[AuthContext, str] | MfaChallenge | None:
         user = self.session.scalar(
             select(User)
             .options(joinedload(User.memberships).joinedload(FamilyMembership.family))
@@ -116,7 +116,7 @@ class AuthService:
             return None
         membership = user.memberships[0]
         if not verify_password(password, user.password_hash):
-            self.session.add(SecurityEvent(family_id=membership.family_id, user_id=user.id, event_type="login_failed"))
+            self.session.add(SecurityEvent(family_id=membership.family_id, user_id=user.id, event_type="login_failed", ip_address=ip_address))
             self.session.commit()
             return None
         if user.mfa_enabled:
@@ -125,11 +125,11 @@ class AuthService:
             self.session.commit()
             return MfaChallenge(token)
         auth_context, token = self._create_session(user, membership.family, membership.role)
-        self.session.add(SecurityEvent(family_id=membership.family_id, user_id=user.id, event_type="login_succeeded"))
+        self.session.add(SecurityEvent(family_id=membership.family_id, user_id=user.id, event_type="login_succeeded", ip_address=ip_address))
         self.session.commit()
         return auth_context, token
 
-    def complete_mfa_login(self, challenge_token: str, code: str, encryption_key: str) -> tuple[AuthContext, str] | None:
+    def complete_mfa_login(self, challenge_token: str, code: str, encryption_key: str, ip_address: str | None = None) -> tuple[AuthContext, str] | None:
         challenge = self.session.scalar(select(MfaLoginChallenge).options(joinedload(MfaLoginChallenge.user), joinedload(MfaLoginChallenge.family)).where(MfaLoginChallenge.token_hash == hash_token(challenge_token)))
         if challenge is None or is_expired(challenge.expires_at) or challenge.attempts >= 5:
             if challenge is not None:
@@ -148,15 +148,28 @@ class AuthService:
             if valid:
                 user.mfa_recovery_code_hashes = [stored for stored in user.mfa_recovery_code_hashes if not hmac.compare_digest(recovery_hash, stored)]
         if not valid or membership is None:
-            challenge.attempts += 1; self.session.commit(); return None
+            challenge.attempts += 1
+            self.session.add(SecurityEvent(family_id=challenge.family_id, user_id=user.id, event_type="login_failed", ip_address=ip_address))
+            self.session.commit()
+            return None
         self.session.delete(challenge)
         context, token = self._create_session(user, challenge.family, membership.role)
-        self.session.add(SecurityEvent(family_id=challenge.family_id, user_id=user.id, event_type="login_succeeded"))
+        self.session.add(SecurityEvent(family_id=challenge.family_id, user_id=user.id, event_type="login_succeeded", ip_address=ip_address))
         self.session.commit()
         return context, token
 
-    def list_security_events(self, family_id: int, limit: int = 100) -> list[SecurityEvent]:
-        return list(self.session.scalars(select(SecurityEvent).options(joinedload(SecurityEvent.user)).where(SecurityEvent.family_id == family_id).order_by(SecurityEvent.created_at.desc(), SecurityEvent.id.desc()).limit(limit)))
+    def list_security_events(
+        self,
+        family_id: int,
+        *,
+        event_types: tuple[str, ...] | None = None,
+        limit: int = 30,
+        offset: int = 0,
+    ) -> list[SecurityEvent]:
+        query = select(SecurityEvent).options(joinedload(SecurityEvent.user)).where(SecurityEvent.family_id == family_id)
+        if event_types:
+            query = query.where(SecurityEvent.event_type.in_(event_types))
+        return list(self.session.scalars(query.order_by(SecurityEvent.created_at.desc(), SecurityEvent.id.desc()).offset(offset).limit(limit)))
 
     def start_mfa_enrollment(self, context: AuthContext, encryption_key: str) -> tuple[str, str]:
         secret = pyotp.random_base32()

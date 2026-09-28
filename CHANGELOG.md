@@ -2,6 +2,11 @@
 
 All notable user-visible changes to Mad Planner are recorded here. Releases will use semantic version numbers once the controlled update system is introduced.
 
+## 0.2.5 — September 2026, week 5
+
+- Added the public IP address to administrator login history for new successful and failed login attempts, including MFA failures. Existing history remains available and is marked as not recorded.
+- Limited the initial security history to the newest 30 events, with filters for successful logins, failed logins, password resets, and MFA changes plus on-demand access to older events.
+
 ## 0.2.4 — September 2026, week 4
 
 - Split personal feedback history into Open and Closed request views, with Open shown by default.
