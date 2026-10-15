@@ -2,6 +2,10 @@
 
 All notable user-visible changes to Mad Planner are recorded here. Releases will use semantic version numbers once the controlled update system is introduced.
 
+## Unreleased
+
+- Fixed HTML tags and encoded characters appearing in imported recipe instructions, including HelloFresh recipes. Previously saved recipes also display readable instructions without needing to be imported again.
+
 ## 0.2.5 — September 2026, week 5
 
 - Added the public IP address to administrator login history for new successful and failed login attempts, including MFA failures. Existing history remains available and is marked as not recorded.

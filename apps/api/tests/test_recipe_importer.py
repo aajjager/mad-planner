@@ -1,4 +1,5 @@
 import pytest
+import json
 from pathlib import Path
 from fastapi.testclient import TestClient
 
@@ -34,6 +35,21 @@ SAMPLE_HTML = """
 </script></head></html>
 """
 FIXTURES = Path(__file__).parent / "fixtures"
+
+
+@pytest.mark.parametrize("instructions", [
+    [{"@type": "HowToStep", "text": "<p>Heat <strong>oil</strong>.</p><p>Cook &amp; serve.</p>"}],
+    ["<p>Heat <strong>oil</strong>.</p><p>Cook &amp; serve.</p>"],
+    [{"@type": "HowToSection", "itemListElement": [
+        {"@type": "HowToStep", "text": "<p>Heat <strong>oil</strong>.</p><p>Cook &amp; serve.</p>"}
+    ]}],
+    "<p>Heat <strong>oil</strong>.</p><p>Cook &amp; serve.</p>",
+])
+def test_json_ld_instructions_remove_publisher_html(instructions) -> None:
+    payload = {"@type": "Recipe", "name": "Markup regression", "recipeInstructions": instructions}
+    html = '<script type="application/ld+json">' + json.dumps(payload) + '</script>'
+    preview = parse_json_ld_recipe(html, "https://www.hellofresh.dk/recipes/example")
+    assert preview.instructions == ["Heat oil.\nCook & serve."]
 
 
 def test_json_ld_recipe_is_normalized_to_preview() -> None:

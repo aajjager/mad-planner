@@ -1,4 +1,5 @@
 from sqlalchemy import select
+from madplanner.recipe_text import instruction_text
 
 from madplanner.models import Family, Recipe, RecipeIngredient, RecipeInstruction
 from madplanner.ingredients import parse_ingredient
@@ -240,7 +241,7 @@ class RecipeService:
                 RecipeInstructionResponse(
                     id=item.id,
                     position=item.position,
-                    text=item.text,
+                    text=instruction_text(item.text),
                 )
                 for item in recipe.instructions
             ],

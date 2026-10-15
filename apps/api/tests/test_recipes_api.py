@@ -82,6 +82,27 @@ def test_recipe_validation_and_not_found(client: TestClient) -> None:
     assert client.delete("/api/v1/recipes/999").status_code == 404
 
 
+def test_saved_html_instructions_are_readable_without_changing_storage(client: TestClient) -> None:
+    from madplanner.models import RecipeInstruction
+
+    raw = "<p>Heat <strong>oil</strong>.</p><p>Cook &amp; serve.</p>"
+    created = client.post("/api/v1/recipes", json={
+        "name": "Previously imported recipe",
+        "instructions": [{"text": raw}, {"text": "Enjoy!"}],
+    })
+    assert created.status_code == 201
+    recipe_id = created.json()["id"]
+    for recipe in (created.json(), client.get(f"/api/v1/recipes/{recipe_id}").json(), client.get("/api/v1/recipes").json()[0]):
+        assert [step["text"] for step in recipe["instructions"]] == ["Heat oil.\nCook & serve.", "Enjoy!"]
+        assert [step["position"] for step in recipe["instructions"]] == [1, 2]
+    sessions = app.dependency_overrides[get_session]()
+    try:
+        session = next(sessions)
+        assert session.get(RecipeInstruction, created.json()["instructions"][0]["id"]).text == raw
+    finally:
+        sessions.close()
+
+
 def test_openapi_includes_recipe_endpoints(client: TestClient) -> None:
     response = client.get("/api/openapi.json")
 

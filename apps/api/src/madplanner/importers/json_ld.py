@@ -5,6 +5,7 @@ from typing import Any
 from selectolax.parser import HTMLParser
 
 from madplanner.schemas.imported_recipe import ImportedRecipePreview
+from madplanner.recipe_text import instruction_text
 
 
 class RecipeParseError(ValueError):
@@ -43,20 +44,22 @@ def _image(value: Any) -> str | None:
 
 def _instructions(value: Any) -> list[str]:
     if isinstance(value, str):
-        return [line.strip() for line in value.splitlines() if line.strip()]
+        return [text for line in value.splitlines() if (text := instruction_text(line))]
     if not isinstance(value, list):
         return []
     steps: list[str] = []
     for item in value:
         if isinstance(item, str) and item.strip():
-            steps.append(item.strip())
+            if text := instruction_text(item):
+                steps.append(text)
         elif isinstance(item, dict):
             if isinstance(item.get("itemListElement"), list):
                 steps.extend(_instructions(item["itemListElement"]))
             else:
                 text = _text(item.get("text") or item.get("name"))
                 if text:
-                    steps.append(text)
+                    if cleaned := instruction_text(text):
+                        steps.append(cleaned)
     return steps
 
 
