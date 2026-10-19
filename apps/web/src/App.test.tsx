@@ -1,4 +1,4 @@
-import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import App from './App'
 import { inferMealTypes, parseServingCount } from './api/recipes'
@@ -19,6 +19,54 @@ const authResponse = (input: RequestInfo | URL) => {
 
 describe('App', () => {
   afterEach(() => { cleanup(); vi.restoreAllMocks(); window.history.pushState({}, '', '/') })
+
+  it('requires typed confirmation for the selected family, resets on cancel, and preserves the dialog on failure', async () => {
+    vi.spyOn(HTMLDialogElement.prototype, 'showModal').mockImplementation(function (this: HTMLDialogElement) { this.setAttribute('open', '') })
+    window.history.pushState({}, '', '/admin')
+    let attempts = 0
+    let removed = false
+    const fetch = vi.spyOn(globalThis, 'fetch').mockImplementation((input, init) => {
+      const url = String(input)
+      if (url.includes('/auth/me')) return Promise.resolve(jsonResponse({ ...account, is_system_admin: true }))
+      if (url.endsWith('/admin/families/2') && init?.method === 'DELETE') {
+        attempts += 1
+        if (attempts === 1) return Promise.resolve(new Response(JSON.stringify({ detail: 'Deletion failed. Try again.' }), { status: 500, headers: { 'Content-Type': 'application/json' } }))
+        removed = true
+        return Promise.resolve(new Response(null, { status: 204 }))
+      }
+      if (url.endsWith('/admin/families')) return Promise.resolve(jsonResponse([{ id: 1, name: 'Test family', members: 1, recipes: 0 }, ...(removed ? [] : [{ id: 2, name: 'Other family', members: 2, recipes: 5 }])]))
+      return Promise.resolve(authResponse(input) ?? jsonResponse([]))
+    })
+    render(<App />)
+    fireEvent.click(await screen.findByRole('button', { name: 'Delete family' }))
+    let dialog = screen.getByRole('dialog', { name: 'Delete the family “Other family”?' })
+    expect(within(dialog).getByText(/permanently removed/)).toBeInTheDocument()
+    let input = within(dialog).getByLabelText('Type delete to confirm permanent deletion.')
+    const confirm = () => within(screen.getByRole('dialog')).getByRole('button', { name: 'Delete family' })
+    expect(confirm()).toBeDisabled()
+    for (const value of ['DELETE', 'delete ', 'Other family']) {
+      fireEvent.change(input, { target: { value } })
+      expect(confirm()).toBeDisabled()
+      fireEvent.submit(input.closest('form')!)
+    }
+    expect(attempts).toBe(0)
+    fireEvent.change(input, { target: { value: 'delete' } })
+    expect(confirm()).toBeEnabled()
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Cancel' }))
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Delete family' }))
+    dialog = screen.getByRole('dialog')
+    input = within(dialog).getByLabelText('Type delete to confirm permanent deletion.')
+    expect(input).toHaveValue('')
+    fireEvent.change(input, { target: { value: 'delete' } })
+    fireEvent.click(confirm())
+    expect(await within(dialog).findByRole('alert')).toHaveTextContent('Deletion failed. Try again.')
+    expect(screen.getByRole('dialog')).toBeInTheDocument()
+    fireEvent.click(confirm())
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
+    expect(attempts).toBe(2)
+    expect(fetch.mock.calls.filter(([, init]) => init?.method === 'DELETE').every(([url]) => String(url).endsWith('/admin/families/2'))).toBe(true)
+  })
 
   it('shows unread answers on family links, marks them read, and keeps the reply in history', async () => {
     window.history.pushState({}, '', '/family')

@@ -44,3 +44,8 @@
 .feedback-answer-editor { display:grid; gap:12px; margin:16px 0; width:100%; }
 .feedback-answer-text { white-space:pre-wrap; overflow-wrap:anywhere; }
 .feedback-answer { display:block; }
+
+.delete-family-dialog { width:min(520px,calc(100% - 32px)); padding:28px; border:1px solid var(--border); border-radius:20px; background:var(--paper); color:var(--ink); box-shadow:0 20px 70px #0005; }
+.delete-family-dialog::backdrop { background:#0008; }
+.delete-family-dialog form { display:grid; gap:18px; }
+.delete-family-dialog h2,.delete-family-dialog p { margin:0; }
