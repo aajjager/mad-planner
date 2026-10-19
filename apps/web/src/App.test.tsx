@@ -20,6 +20,38 @@ const authResponse = (input: RequestInfo | URL) => {
 describe('App', () => {
   afterEach(() => { cleanup(); vi.restoreAllMocks(); window.history.pushState({}, '', '/') })
 
+  it('collapses long recipe descriptions and restores the full original text on demand', async () => {
+    const description = 'A delicious vegetable dinner with gnocchi. '.repeat(20) + 'The complete description ends here.'
+    window.history.pushState({}, '', '/recipes/88')
+    const fetch = vi.spyOn(globalThis, 'fetch').mockImplementation((input) => {
+      if (String(input).endsWith('/recipes/88')) return Promise.resolve(jsonResponse({ id: 88, name: 'Gnocchi regression', description, tags: [], ingredients: [], instructions: [], meal_types: [], recipe_types: [] }))
+      return Promise.resolve(authResponse(input) ?? jsonResponse([]))
+    })
+    render(<App />)
+    const show = await screen.findByRole('button', { name: 'Show more' })
+    expect(show).toHaveAttribute('aria-expanded', 'false')
+    const paragraph = document.getElementById(show.getAttribute('aria-controls')!)!
+    expect(paragraph.textContent!.length).toBeLessThanOrEqual(321)
+    expect(paragraph).not.toHaveTextContent('The complete description ends here.')
+    fireEvent.click(show)
+    expect(screen.getByRole('button', { name: 'Show less' })).toHaveAttribute('aria-expanded', 'true')
+    expect(paragraph.textContent).toBe(description)
+    fireEvent.click(screen.getByRole('button', { name: 'Show less' }))
+    expect(paragraph).not.toHaveTextContent('The complete description ends here.')
+    expect(fetch.mock.calls.every(([, options]) => !options?.method || options.method === 'GET')).toBe(true)
+  })
+
+  it.each(['A short introduction.', 'x'.repeat(320), null])('does not offer Show more for a short or missing description', async (description) => {
+    window.history.pushState({}, '', '/recipes/89')
+    vi.spyOn(globalThis, 'fetch').mockImplementation((input) => String(input).endsWith('/recipes/89')
+      ? Promise.resolve(jsonResponse({ id: 89, name: 'Short description regression', description, tags: [], ingredients: [], instructions: [], meal_types: [], recipe_types: [] }))
+      : Promise.resolve(authResponse(input) ?? jsonResponse([])))
+    render(<App />)
+    await screen.findByRole('heading', { name: 'Short description regression' })
+    expect(screen.queryByRole('button', { name: 'Show more' })).not.toBeInTheDocument()
+    if (description) expect(screen.getByText(description)).toBeInTheDocument()
+  })
+
   it('requires typed confirmation for the selected family, resets on cancel, and preserves the dialog on failure', async () => {
     vi.spyOn(HTMLDialogElement.prototype, 'showModal').mockImplementation(function (this: HTMLDialogElement) { this.setAttribute('open', '') })
     window.history.pushState({}, '', '/admin')

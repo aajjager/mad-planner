@@ -6,6 +6,8 @@ All notable user-visible changes are recorded here. Versions use year since 2026
 
 ### Improvements
 
+- Long recipe descriptions now start with a short preview and offer Show more / Show less, keeping the full saved text available.
+
 - Added a family deletion warning that names the family and requires typing delete before permanent deletion is enabled.
 
 - Administrators can mark feedback as a question and send or revise an answer. Requesters see red unread-answer counts on their family links, can read and acknowledge replies in Family settings, and keep answers in their closed request history.
