@@ -33,7 +33,7 @@ export interface AdminFamily { id: number; name: string; members: number; recipe
 export interface SecurityEvent { id: number; event_type: 'login_succeeded' | 'login_failed' | string; user_email: string | null; ip_address: string | null; created_at: string }
 export type SecurityEventCategory = 'all' | 'successful' | 'failed' | 'password' | 'mfa'
 export type FeedbackCategory = 'improvement' | 'bug' | 'feature'
-export interface Feedback { id: number; content: string; category: FeedbackCategory; status: 'pending' | 'approved' | 'rejected' | 'done'; family_name: string; submitted_by: string; created_at: string; reviewed_at: string | null; completed_at: string | null; completion_seen_at: string | null; attachment_url: string | null; attachment_name: string | null; attachment_content_type: string | null }
+export interface Feedback { is_question?: boolean; answer?: string | null; answered_at?: string | null; answer_seen_at?: string | null; id: number; content: string; category: FeedbackCategory; status: 'pending' | 'approved' | 'rejected' | 'done'; family_name: string; submitted_by: string; created_at: string; reviewed_at: string | null; completed_at: string | null; completion_seen_at: string | null; attachment_url: string | null; attachment_name: string | null; attachment_content_type: string | null }
 export interface RecipeType { id: number; name: string; meal_type: 'breakfast' | 'lunch' | 'dinner' | null }
 export interface FamilySettings {
   household_size: number
@@ -127,3 +127,5 @@ export const listRecipeTypes = () => request<RecipeType[]>('/api/v1/auth/family/
 export const createRecipeType = (name: string, meal_type: RecipeType['meal_type']) => request<RecipeType>('/api/v1/auth/family/recipe-types', jsonOptions('POST', { name, meal_type }))
 export const deleteRecipeType = (id: number) => request<void>(`/api/v1/auth/family/recipe-types/${id}`, { method: 'DELETE' })
 export const updatePersonalPreferences = (preferences: { locale?: Account['locale']; show_nutrition?: boolean; dark_mode?: boolean; accent_theme?: Account['accent_theme']; browser_notifications_enabled?: boolean }) => request<Account>('/api/v1/auth/me/preferences', jsonOptions('PATCH', preferences))
+
+export const answerFeedback = (id: number, answer?: string) => request<Feedback>(`/api/v1/auth/admin/feedback/${id}/answer`, jsonOptions('POST', answer === undefined ? {} : { answer }))

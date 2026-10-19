@@ -530,6 +530,8 @@ class AuthService:
         item = self.session.scalar(select(FeedbackSubmission).options(joinedload(FeedbackSubmission.family), joinedload(FeedbackSubmission.user)).where(FeedbackSubmission.id == feedback_id))
         if item is None:
             return None
+        if item.is_question and status != "rejected":
+            raise ValueError("Questions must be answered instead of approved or marked done")
         if status == "done" and item.status != "approved":
             raise ValueError("Only an approved request can be marked done")
         item.status = status
@@ -545,7 +547,7 @@ class AuthService:
         completed_at = utc_now()
         result = self.session.execute(
             update(FeedbackSubmission)
-            .where(FeedbackSubmission.category == category, FeedbackSubmission.status == "approved")
+            .where(FeedbackSubmission.category == category, FeedbackSubmission.status == "approved", FeedbackSubmission.is_question.is_(False))
             .values(
                 status="done",
                 reviewed_by_user_id=reviewer_id,
@@ -562,6 +564,35 @@ class AuthService:
         if item is None:
             return None
         item.completion_seen_at = utc_now()
+        if item.is_question and item.answer:
+            item.answer_seen_at = utc_now()
+        self.session.commit()
+        return item
+
+    def answer_feedback(self, feedback_id: int, answer: str | None, reviewer_id: int) -> FeedbackSubmission | None:
+        item = self.session.scalar(select(FeedbackSubmission).options(joinedload(FeedbackSubmission.family), joinedload(FeedbackSubmission.user)).where(FeedbackSubmission.id == feedback_id))
+        if item is None:
+            return None
+        if answer is not None and not answer.strip():
+            raise ValueError("The answer cannot be blank")
+        if not item.is_question and item.status in {"done", "rejected"}:
+            raise ValueError("Only active feedback can be marked as a question")
+        item.is_question = True
+        item.reviewed_by_user_id = reviewer_id
+        item.reviewed_at = utc_now()
+        if answer is not None:
+            cleaned = answer.strip()
+            if cleaned != item.answer:
+                item.answer = cleaned
+                item.answered_at = utc_now()
+                item.answer_seen_at = None
+                item.completion_seen_at = None
+            item.status = "done"
+            item.completed_at = item.answered_at
+        elif not item.answer:
+            item.status = "pending"
+            item.completed_at = None
+            item.completion_seen_at = None
         self.session.commit()
         return item
 

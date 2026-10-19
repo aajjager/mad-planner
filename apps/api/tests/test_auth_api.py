@@ -192,6 +192,51 @@ def test_feedback_accepts_an_optional_attachment(client: TestClient, tmp_path) -
     assert client.get("/api/v1/auth/admin/feedback").json()[0]["attachment_content_type"] == "image/png"
 
 
+def test_feedback_question_answer_and_read_lifecycle(client: TestClient) -> None:
+    setup_owner(client)
+    created = client.post("/api/v1/auth/feedback", json={"content": "How do I add a recipe?", "category": "improvement"}).json()
+    feedback_id = created["id"]
+    assert created["is_question"] is False
+    url = f"/api/v1/auth/admin/feedback/{feedback_id}/answer"
+    assert client.post(url, json={"answer": "   "}).status_code == 422
+    assert client.post(url, json={"answer": "x" * 4001}).status_code == 422
+    marked = client.post(url, json={})
+    assert marked.status_code == 200
+    assert marked.json()["is_question"] is True
+    assert marked.json()["content"] == created["content"]
+    assert marked.json()["category"] == "improvement"
+    assert client.patch(f"/api/v1/auth/admin/feedback/{feedback_id}", json={"status": "approved"}).status_code == 422
+    assert client.post("/api/v1/auth/admin/feedback/complete-approved", json={"category": "improvement"}).json() == {"completed": 0}
+    answered = client.post(url, json={"answer": "  Use Add recipe.  "}).json()
+    assert answered["status"] == "done"
+    assert answered["answer"] == "Use Add recipe."
+    assert answered["answered_at"] is not None
+    assert answered["answer_seen_at"] is None
+    assert client.get("/api/v1/auth/feedback").json()[0]["answer"] == "Use Add recipe."
+    read = client.post(f"/api/v1/auth/feedback/{feedback_id}/acknowledge").json()
+    assert read["answer_seen_at"] is not None
+    stored_seen = client.get("/api/v1/auth/feedback").json()[0]["answer_seen_at"]
+    assert client.post(url, json={"answer": "Use Add recipe."}).json()["answer_seen_at"] == stored_seen
+    revised = client.post(url, json={"answer": "Use Add recipe or Import."}).json()
+    assert revised["answer_seen_at"] is None
+    assert revised["answer"] == "Use Add recipe or Import."
+    assert client.post("/api/v1/auth/admin/feedback/99999/answer", json={}).status_code == 404
+
+
+@pytest.mark.parametrize("other_family", [False, True])
+def test_only_admin_can_answer_and_only_requester_can_read_answer(client: TestClient, other_family: bool) -> None:
+    setup_owner(client)
+    feedback_id = client.post("/api/v1/auth/feedback", json={"content": "Where is my planner?", "category": "feature"}).json()["id"]
+    client.post(f"/api/v1/auth/admin/feedback/{feedback_id}/answer", json={"answer": "Open Planner."})
+    invitation_url = "/api/v1/auth/families/invitations" if other_family else "/api/v1/auth/family/invitations"
+    token = client.post(invitation_url, json={"email": "member@example.com", **({"family_name": "Other family"} if other_family else {})}).json()["token"]
+    accepted = client.post(f"/api/v1/auth/invitations/{token}/accept", json={"display_name": "Member", "password": "member-password-123"})
+    assert accepted.status_code == 201
+    assert client.get("/api/v1/auth/feedback").json() == []
+    assert client.post(f"/api/v1/auth/feedback/{feedback_id}/acknowledge").status_code == 404
+    assert client.post(f"/api/v1/auth/admin/feedback/{feedback_id}/answer", json={"answer": "Not allowed."}).status_code == 403
+
+
 def test_owner_can_invite_a_family_member(client: TestClient) -> None:
     setup_owner(client)
     invitation = client.post("/api/v1/auth/family/invitations", json={"email": "member@example.com"})

@@ -179,6 +179,10 @@ class FeedbackReviewRequest(BaseModel):
     status: Literal["approved", "rejected", "done"]
 
 
+class FeedbackAnswerRequest(BaseModel):
+    answer: str | None = Field(default=None, min_length=1, max_length=4000)
+
+
 class FeedbackBatchCompleteRequest(BaseModel):
     category: Literal["improvement", "bug", "feature"]
 
@@ -190,6 +194,10 @@ class FeedbackBatchCompleteResponse(BaseModel):
 class FeedbackResponse(BaseModel):
     id: int
     content: str
+    is_question: bool = False
+    answer: str | None = None
+    answered_at: str | None = None
+    answer_seen_at: str | None = None
     category: Literal["improvement", "bug", "feature"]
     status: Literal["pending", "approved", "rejected", "done"]
     family_name: str

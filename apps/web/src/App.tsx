@@ -18,6 +18,7 @@ import { UpdatesPage } from './pages/UpdatesPage'
 import { PublicRecipesPage } from './pages/PublicRecipesPage'
 import { translator } from './i18n'
 import { PlanReminderBanner } from './components/PlanReminderBanner'
+import { FeedbackAnswerBadge } from './components/FeedbackAnswerBadge'
 import { BrandMark } from './components/BrandMark'
 import { FeedbackCompletionNotifier } from './components/FeedbackCompletionNotifier'
 
@@ -30,7 +31,7 @@ function ApplicationShell() {
         <header className="site-header">
           <Link className="brand" to="/recipes"><BrandMark /><span>Mad Planner</span></Link>
           <nav aria-label="Main navigation"><Link to="/recipes">{t('recipes')}</Link><Link to="/planner">{t('planner')}</Link><Link to="/grocery-list">{t('groceries')}</Link>{canEditRecipes && <Link to="/recipes/import">{t('import')}</Link>}{canEditRecipes && <Link className="primary-link" to="/recipes/new">{t('addRecipe')}</Link>}</nav>
-          <div className="account-menu"><Link className="account-link" to="/family">{account?.display_name} · {account?.family_name}</Link>{account?.role === 'owner' && <Link className="account-link" to="/admin">{t('admin')}</Link>}<button className="text-button" onClick={() => void logout()}>{t('signOut')}</button></div>
+          <div className="account-menu"><Link className="account-link" to="/family">{account?.display_name} · {account?.family_name}<FeedbackAnswerBadge /></Link>{account?.role === 'owner' && <Link className="account-link" to="/admin">{t('admin')}</Link>}<button className="text-button" onClick={() => void logout()}>{t('signOut')}</button></div>
         </header>
         <PlanReminderBanner />
         <FeedbackCompletionNotifier />
@@ -57,7 +58,7 @@ function ApplicationShell() {
           <NavLink to="/planner"><span aria-hidden="true">□</span>{t('planner')}</NavLink>
           {canEditRecipes && <NavLink className="mobile-navigation__add" to="/recipes/new"><span aria-hidden="true">+</span>{t('addRecipe')}</NavLink>}
           <NavLink to="/grocery-list"><span aria-hidden="true">✓</span>{t('groceries')}</NavLink>
-          <NavLink to="/family"><span aria-hidden="true">⌂</span>{t('familyNav')}</NavLink>
+          <NavLink to="/family"><span aria-hidden="true">⌂</span>{t('familyNav')}<FeedbackAnswerBadge /></NavLink>
           {account?.role === 'owner' && <NavLink to="/admin"><span aria-hidden="true">⚙</span>{t('admin')}</NavLink>}
         </nav>
       </div>

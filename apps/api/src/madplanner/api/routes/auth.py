@@ -24,6 +24,7 @@ from madplanner.schemas.account import (
     FeedbackCreateRequest,
     FeedbackResponse,
     FeedbackReviewRequest,
+    FeedbackAnswerRequest,
     InvitationAcceptRequest,
     InvitationCreateRequest,
     InvitationPreviewResponse,
@@ -172,7 +173,7 @@ def current_account(context: Annotated[AuthContext, Depends(require_auth)]):
 
 
 def feedback_response(item) -> FeedbackResponse:
-    return FeedbackResponse(id=item.id, content=item.content, category=item.category, status=item.status, family_name=item.family.name, submitted_by=item.user.display_name, created_at=item.created_at.isoformat(), reviewed_at=item.reviewed_at.isoformat() if item.reviewed_at else None, completed_at=item.completed_at.isoformat() if item.completed_at else None, completion_seen_at=item.completion_seen_at.isoformat() if item.completion_seen_at else None, attachment_url=item.attachment_url, attachment_name=item.attachment_name, attachment_content_type=item.attachment_content_type)
+    return FeedbackResponse(id=item.id, content=item.content, category=item.category, status=item.status, family_name=item.family.name, submitted_by=item.user.display_name, created_at=item.created_at.isoformat(), reviewed_at=item.reviewed_at.isoformat() if item.reviewed_at else None, completed_at=item.completed_at.isoformat() if item.completed_at else None, completion_seen_at=item.completion_seen_at.isoformat() if item.completion_seen_at else None, attachment_url=item.attachment_url, attachment_name=item.attachment_name, attachment_content_type=item.attachment_content_type, is_question=item.is_question, answer=item.answer, answered_at=item.answered_at.isoformat() if item.answered_at else None, answer_seen_at=item.answer_seen_at.isoformat() if item.answer_seen_at else None)
 
 
 @router.post("/feedback", response_model=FeedbackResponse, status_code=status.HTTP_201_CREATED)
@@ -318,6 +319,17 @@ def complete_approved_feedback(data: FeedbackBatchCompleteRequest, context: Anno
 def review_feedback(feedback_id: int, data: FeedbackReviewRequest, context: Annotated[AuthContext, Depends(require_system_admin)], service: Annotated[AuthService, Depends(get_auth_service)]):
     try:
         item = service.review_feedback(feedback_id, data.status, context.user.id)
+    except ValueError as error:
+        raise HTTPException(status_code=422, detail=str(error)) from error
+    if item is None:
+        raise HTTPException(status_code=404, detail="Feedback could not be found")
+    return feedback_response(item)
+
+
+@router.post("/admin/feedback/{feedback_id}/answer", response_model=FeedbackResponse)
+def answer_feedback(feedback_id: int, data: FeedbackAnswerRequest, context: Annotated[AuthContext, Depends(require_system_admin)], service: Annotated[AuthService, Depends(get_auth_service)]):
+    try:
+        item = service.answer_feedback(feedback_id, data.answer, context.user.id)
     except ValueError as error:
         raise HTTPException(status_code=422, detail=str(error)) from error
     if item is None:

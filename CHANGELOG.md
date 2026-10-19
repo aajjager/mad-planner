@@ -6,6 +6,8 @@ All notable user-visible changes are recorded here. Versions use year since 2026
 
 ### Improvements
 
+- Administrators can mark feedback as a question and send or revise an answer. Requesters see red unread-answer counts on their family links, can read and acknowledge replies in Family settings, and keep answers in their closed request history.
+
 - Aligned release numbers with the calendar month and four week buckets; the Updates page and family version link now use the packaged changelog.
 - Added visible Bug fixes, Features, and Improvements groups for new releases. Single and grouped Codex prompts preserve the approved request type and require entries in the correct weekly changelog group. Added project guidance for all future implementations.
 

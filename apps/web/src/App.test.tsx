@@ -20,6 +20,47 @@ const authResponse = (input: RequestInfo | URL) => {
 describe('App', () => {
   afterEach(() => { cleanup(); vi.restoreAllMocks(); window.history.pushState({}, '', '/') })
 
+  it('shows unread answers on family links, marks them read, and keeps the reply in history', async () => {
+    window.history.pushState({}, '', '/family')
+    let item = { id: 71, content: 'Where is my planner?', category: 'improvement', status: 'done', is_question: true, answer: 'Open the Planner tab.\nChoose your week.', answered_at: '2026-10-19T12:00:00Z', answer_seen_at: null as string | null }
+    vi.spyOn(globalThis, 'fetch').mockImplementation((input) => {
+      const url = String(input)
+      if (url.endsWith('/feedback/71/acknowledge')) { item = { ...item, answer_seen_at: '2026-10-19T12:01:00Z' }; return Promise.resolve(jsonResponse(item)) }
+      if (url.endsWith('/auth/feedback')) return Promise.resolve(jsonResponse([item]))
+      return Promise.resolve(authResponse(input) ?? jsonResponse([]))
+    })
+    render(<App />)
+    expect(await screen.findByRole('heading', { name: 'Your question has been answered' })).toBeInTheDocument()
+    expect(screen.getAllByLabelText('Unread answers: 1')).toHaveLength(2)
+    expect(screen.getByText('Open the Planner tab. Choose your week.')).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Mark as read' }))
+    await waitFor(() => expect(screen.queryByLabelText('Unread answers: 1')).not.toBeInTheDocument())
+    expect(screen.queryByRole('heading', { name: 'Your question has been answered' })).not.toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: /Closed requests/ }))
+    expect(screen.getByText('Open the Planner tab. Choose your week.')).toBeInTheDocument()
+    expect(screen.getByText('Question')).toBeInTheDocument()
+  })
+
+  it('lets administrators classify and answer a question instead of copying it to Codex', async () => {
+    window.history.pushState({}, '', '/admin')
+    let item = { id: 72, content: 'How do I add a recipe?', category: 'feature', status: 'approved', is_question: false, answer: null as string | null, submitted_by: 'Member', family_name: 'Family', created_at: '2026-10-19T12:00:00Z' }
+    const fetch = vi.spyOn(globalThis, 'fetch').mockImplementation((input, init) => {
+      const url = String(input)
+      if (url.includes('/auth/me')) return Promise.resolve(jsonResponse({ ...account, is_system_admin: true }))
+      if (url.endsWith('/admin/feedback/72/answer')) { const data = JSON.parse(String(init?.body)); item = { ...item, is_question: true, status: data.answer ? 'done' : 'pending', answer: data.answer ?? null }; return Promise.resolve(jsonResponse(item)) }
+      if (url.endsWith('/admin/feedback')) return Promise.resolve(jsonResponse([item]))
+      return Promise.resolve(authResponse(input) ?? jsonResponse([]))
+    })
+    render(<App />)
+    fireEvent.click(await screen.findByRole('button', { name: 'Mark as question' }))
+    const answer = await screen.findByLabelText('Administrator answer')
+    expect(screen.queryByRole('button', { name: 'Copy for Codex' })).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Send answer' })).toBeDisabled()
+    fireEvent.change(answer, { target: { value: 'Use Add recipe.' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Send answer' }))
+    await waitFor(() => expect(fetch.mock.calls.some(([url, init]) => String(url).endsWith('/72/answer') && init?.body === JSON.stringify({ answer: 'Use Add recipe.' }))).toBe(true))
+  })
+
   it('shows the calendar release and categorized changelog in Updates', async () => {
     window.history.pushState({}, '', '/updates')
     vi.spyOn(globalThis, 'fetch').mockImplementation((input) => Promise.resolve(authResponse(input) ?? jsonResponse([])))
