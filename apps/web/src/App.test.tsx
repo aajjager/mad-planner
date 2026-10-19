@@ -1,7 +1,8 @@
-import { cleanup, fireEvent, render, screen } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import App from './App'
 import { inferMealTypes, parseServingCount } from './api/recipes'
+import * as clipboard from './utils/clipboard'
 
 const jsonResponse = (value: unknown) => new Response(JSON.stringify(value), { status: 200, headers: { 'Content-Type': 'application/json' } })
 const account = { id: 1, email: 'owner@example.com', display_name: 'Owner', family_id: 1, family_name: 'Test family', role: 'owner', locale: 'en', show_nutrition: true, dark_mode: false, accent_theme: 'sage', browser_notifications_enabled: false, mfa_enabled: false }
@@ -18,6 +19,37 @@ const authResponse = (input: RequestInfo | URL) => {
 
 describe('App', () => {
   afterEach(() => { cleanup(); vi.restoreAllMocks(); window.history.pushState({}, '', '/') })
+
+  it('shows the calendar release and categorized changelog in Updates', async () => {
+    window.history.pushState({}, '', '/updates')
+    vi.spyOn(globalThis, 'fetch').mockImplementation((input) => Promise.resolve(authResponse(input) ?? jsonResponse([])))
+    render(<App />)
+    expect(await screen.findByRole('heading', { name: 'Mad Planner 0.10.3' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Improvements' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Bug fixes' })).toBeInTheDocument()
+    expect(screen.getByText('October 2026, week 3')).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Mad Planner 0.2.5' })).toBeInTheDocument()
+  })
+
+  it.each([['bug', 'Bug fixes'], ['feature', 'Features'], ['improvement', 'Improvements']])('copies the approved %s category from individual and group controls', async (category, heading) => {
+    window.history.pushState({}, '', '/admin')
+    const copy = vi.spyOn(clipboard, 'copyText').mockResolvedValue(true)
+    vi.spyOn(globalThis, 'fetch').mockImplementation((input) => {
+      const url = String(input)
+      if (url.includes('/auth/me')) return Promise.resolve(jsonResponse({ ...account, is_system_admin: true }))
+      if (url.endsWith('/admin/feedback')) return Promise.resolve(jsonResponse([{ id: 1, category, content: 'Approved category regression', status: 'approved', submitted_by: 'Owner', family_name: 'Family', created_at: '2026-10-18T12:00:00Z' }]))
+      return Promise.resolve(authResponse(input) ?? jsonResponse([]))
+    })
+    render(<App />)
+    fireEvent.click(await screen.findByRole('button', { name: 'Copy for Codex' }))
+    await waitFor(() => expect(copy).toHaveBeenCalledTimes(1))
+    expect(copy.mock.calls[0][0]).toContain(`Request type: ${category}`)
+    expect(copy.mock.calls[0][0]).toContain(`### ${heading}`)
+    const groupButton = screen.getAllByRole('button', { name: 'Copy group for Codex' }).find((button) => !(button as HTMLButtonElement).disabled)!
+    fireEvent.click(groupButton)
+    await waitFor(() => expect(copy).toHaveBeenCalledTimes(2))
+    expect(copy.mock.calls[1][0]).toContain(`### ${heading}`)
+  })
 
   it('shows first-owner setup when no account exists', async () => {
     vi.spyOn(globalThis, 'fetch').mockImplementation((input) => {

@@ -1,8 +1,15 @@
 # Mad Planner changelog
 
-All notable user-visible changes to Mad Planner are recorded here. Releases will use semantic version numbers once the controlled update system is introduced.
+All notable user-visible changes are recorded here. Versions use year since 2026.month.week in Europe/Copenhagen time: 2026 = 0, October = 10; days 1–7 = week 1, 8–14 = week 2, 15–21 = week 3, and 22–month-end = week 4. Older release numbers below are retained as historical identifiers.
 
-## Unreleased
+## 0.10.3 — October 2026, week 3
+
+### Improvements
+
+- Aligned release numbers with the calendar month and four week buckets; the Updates page and family version link now use the packaged changelog.
+- Added visible Bug fixes, Features, and Improvements groups for new releases. Single and grouped Codex prompts preserve the approved request type and require entries in the correct weekly changelog group. Added project guidance for all future implementations.
+
+### Bug fixes
 
 - Fixed HTML tags and encoded characters appearing in imported recipe instructions, including HelloFresh recipes. Previously saved recipes also display readable instructions without needing to be imported again.
 
@@ -30,7 +37,7 @@ All notable user-visible changes to Mad Planner are recorded here. Releases will
 - Added direct clipboard screenshot pasting to feedback submissions.
 - Made the full recipe card clickable while selecting multiple recipes.
 
-Version numbers use `0.<month>.<week>` during development: the middle number advances with each development month and the final number identifies the week in that month when changes were released.
+The releases below retain their original development-month numbering; new releases use the calendar-based convention above.
 
 ## 0.2.2 — September 2026, week 2
 
