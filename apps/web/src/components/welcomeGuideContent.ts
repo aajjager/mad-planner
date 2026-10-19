@@ -6,7 +6,7 @@ export const guideCopy = {
     open: 'Welcome guide', familyGuide: 'Family settings guide', back: 'Previous tip', next: 'Next tip', finish: 'Finish guide', skip: 'Close guide', visit: 'Try this page', progress: 'Step',
     steps: [
       ['Welcome to Mad Planner', 'Keep your recipes, weekly meals, and groceries together. Follow these tips at your own pace. You can close the guide and reopen it using Welcome guide.', ''],
-      ['Your recipe collection', 'Search and filter recipes, open one to see ingredients and cooking steps, and use cooking mode to follow along. Long descriptions have a Read more button.', '/recipes'],
+      ['Your recipe collection', 'Search and filter recipes, open one to see ingredients and cooking steps, and use cooking mode to follow along. Long descriptions have a Read more button. Owners and editors can use Edit recipe on their own family recipes to change details, ingredients, and steps.', '/recipes'],
       ['Bring your own recipes', 'Add a recipe yourself, import a recipe from a website, or scan a cookbook. Review the ingredients and steps before saving.', '/recipes/import'],
       ['Plan meals together', 'Choose meals for your week or review smart suggestions. Family settings control household size, leftovers, and meal types.', '/planner'],
       ['Shop with your family', 'Your planned meals provide the grocery list. Add extra items and tick off purchases as you shop.', '/grocery-list'],
@@ -22,7 +22,7 @@ export const guideCopy = {
     open: 'Velkomstguide', familyGuide: 'Guide til familieindstillinger', back: 'Forrige tip', next: 'Næste tip', finish: 'Afslut guiden', skip: 'Luk guiden', visit: 'Prøv denne side', progress: 'Trin',
     steps: [
       ['Velkommen til Mad Planner', 'Saml opskrifter, ugens måltider og indkøb ét sted. Følg guiden i dit eget tempo. Du kan lukke den og åbne den igen via Velkomstguide.', ''],
-      ['Din opskriftssamling', 'Søg og filtrér opskrifter. Åbn en opskrift for at se ingredienser og fremgangsmåde, og følg trinene i madlavningstilstand. Lange beskrivelser har en Læs mere-knap.', '/recipes'],
+      ['Din opskriftssamling', 'Søg og filtrér opskrifter. Åbn en opskrift for at se ingredienser og fremgangsmåde, og følg trinene i madlavningstilstand. Lange beskrivelser har en Læs mere-knap. Ejere og redaktører kan bruge Redigér opskrift på familiens egne opskrifter for at ændre detaljer, ingredienser og trin.', '/recipes'],
       ['Tilføj dine opskrifter', 'Opret en opskrift selv, importér fra en hjemmeside eller scan en kogebog. Gennemgå ingredienser og trin, før du gemmer.', '/recipes/import'],
       ['Planlæg måltider sammen', 'Vælg ugens måltider eller gennemgå smarte forslag. Familieindstillinger styrer antal personer, rester og måltidstyper.', '/planner'],
       ['Køb ind med familien', 'Dine planlagte måltider danner indkøbslisten. Tilføj ekstra varer og markér dem som købt undervejs.', '/grocery-list'],
@@ -38,7 +38,7 @@ export const guideCopy = {
     open: 'Welkomstgids', familyGuide: 'Gids voor gezinsinstellingen', back: 'Vorige tip', next: 'Volgende tip', finish: 'Gids afronden', skip: 'Gids sluiten', visit: 'Probeer deze pagina', progress: 'Stap',
     steps: [
       ['Welkom bij Mad Planner', 'Bewaar recepten, weekmaaltijden en boodschappen op één plek. Volg de tips in je eigen tempo. Je kunt de gids sluiten en opnieuw openen via Welkomstgids.', ''],
-      ['Je receptenverzameling', 'Zoek en filter recepten. Open een recept voor ingrediënten en stappen en volg de kookmodus. Lange beschrijvingen hebben een Lees meer-knop.', '/recipes'],
+      ['Je receptenverzameling', 'Zoek en filter recepten. Open een recept voor ingrediënten en stappen en volg de kookmodus. Lange beschrijvingen hebben een Lees meer-knop. Eigenaren en bewerkers kunnen eigen gezinsrecepten aanpassen met Recept bewerken, inclusief details, ingrediënten en stappen.', '/recipes'],
       ['Voeg je recepten toe', 'Maak zelf een recept, importeer van een website of scan een kookboek. Controleer ingrediënten en stappen voordat je opslaat.', '/recipes/import'],
       ['Plan samen maaltijden', 'Kies maaltijden voor de week of bekijk slimme suggesties. Gezinsinstellingen bepalen personen, restjes en maaltijdtypen.', '/planner'],
       ['Doe samen boodschappen', 'Geplande maaltijden vormen je boodschappenlijst. Voeg extra artikelen toe en vink aankopen af tijdens het winkelen.', '/grocery-list'],

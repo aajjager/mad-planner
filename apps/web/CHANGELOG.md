@@ -6,6 +6,8 @@ All notable user-visible changes are recorded here. Versions use year since 2026
 
 ### Improvements
 
+- Owners and editors can edit saved family recipes using the prefilled recipe form, including details, ingredients, and instructions. Recipe identity, pictures, source nutrition, ratings, sharing, and meal-plan links are retained.
+
 - Guide navigation now opens the relevant page and scrolls to and highlights the specific Family settings section, including sections that load after opening the page.
 
 - Expanded the welcome guide with personal preferences, account security, shared family planning options, recipe types, member invitations, and permissions. The Family page offers a direct shortcut to these tips.

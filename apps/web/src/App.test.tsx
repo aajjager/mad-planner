@@ -18,6 +18,67 @@ const authResponse = (input: RequestInfo | URL) => {
 }
 
 describe('App', () => {
+  it('keeps edits available after a failed save and cancels without another write', async () => {
+    window.history.pushState({}, '', '/recipes/90/edit')
+    const recipe = { id: 90, name: 'Keep this recipe', tags: [], meal_types: [], recipe_types: [], ingredients: [], instructions: [], owned_by_current_family: true }
+    const fetch = vi.spyOn(globalThis, 'fetch').mockImplementation((input, init) => {
+      if (String(input).endsWith('/recipes/90')) return Promise.resolve(init?.method === 'PUT'
+        ? new Response(JSON.stringify({ detail: 'Save failed. Try again.' }), { status: 500 })
+        : jsonResponse(recipe))
+      return Promise.resolve(authResponse(input) ?? jsonResponse([]))
+    })
+    render(<App />)
+    const name = await screen.findByLabelText('Name *')
+    fireEvent.change(name, { target: { value: 'Unsaved name' } })
+    for (let step = 0; step < 3; step++) fireEvent.click(screen.getByRole('button', { name: 'Continue' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Save recipe' }))
+    expect(await screen.findByRole('alert')).toHaveTextContent('Save failed. Try again.')
+    expect(name).toHaveValue('Unsaved name')
+    fireEvent.click(screen.getByRole('link', { name: '← Cancel' }))
+    await screen.findByRole('heading', { name: 'Keep this recipe' })
+    expect(fetch.mock.calls.filter(([, init]) => init?.method === 'PUT')).toHaveLength(1)
+  })
+
+  it('does not offer editing for a recipe owned by another family', async () => {
+    window.history.pushState({}, '', '/recipes/91/edit')
+    vi.spyOn(globalThis, 'fetch').mockImplementation((input) => Promise.resolve(String(input).endsWith('/recipes/91')
+      ? jsonResponse({ id: 91, owned_by_current_family: false })
+      : authResponse(input) ?? jsonResponse([])))
+    render(<App />)
+    await screen.findByRole('link', { name: 'All recipes' })
+    expect(screen.queryByRole('heading', { name: 'Edit recipe' })).not.toBeInTheDocument()
+    expect(screen.queryByLabelText('Name *')).not.toBeInTheDocument()
+  })
+  it('prefills a saved recipe, saves edits to the same recipe, and preserves ingredient metadata', async () => {
+    window.history.pushState({}, '', '/recipes/88/edit')
+    let recipe = { id: 88, name: 'Original soup', description: 'Original description', author: 'Chef', servings: '4', source_url: 'https://example.com/soup', image_url: '/api/v1/media/photo.jpg', tags: ['Soup'], meal_types: ['dinner'], recipe_types: ['Dinner'], owned_by_current_family: true, ingredients: [{ id: 1, raw_text: '2 onions', ingredient_name: 'onion', quantity: '2', quantity_max: '3', preparation: 'diced', notes: 'optional', unit: null }], instructions: [{ id: 1, text: 'Cook gently.' }] }
+    let saved: Record<string, unknown> | undefined
+    vi.spyOn(globalThis, 'fetch').mockImplementation((input, init) => {
+      if (String(input).endsWith('/recipes/88')) {
+        if (init?.method === 'PUT') { saved = JSON.parse(String(init.body)); recipe = { ...recipe, ...saved } }
+        return Promise.resolve(jsonResponse(recipe))
+      }
+      return Promise.resolve(authResponse(input) ?? jsonResponse([]))
+    })
+    render(<App />)
+    const name = await screen.findByLabelText('Name *')
+    expect(name).toHaveValue('Original soup')
+    expect(screen.getByLabelText('Description')).toHaveValue('Original description')
+    fireEvent.change(name, { target: { value: 'Edited soup' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Continue' }))
+    expect(screen.getByDisplayValue('2 onions')).toBeInTheDocument()
+    fireEvent.change(screen.getByDisplayValue('2 onions'), { target: { value: '2 diced onions' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Continue' }))
+    fireEvent.change(screen.getByDisplayValue('Cook gently.'), { target: { value: 'Simmer gently.' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Continue' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Save recipe' }))
+    await screen.findByRole('heading', { name: 'Edited soup' })
+    expect(saved?.ingredients).toEqual([expect.objectContaining({ raw_text: '2 diced onions', quantity_max: '3', preparation: 'diced', notes: 'optional' })])
+    expect(saved?.instructions).toEqual([{ text: 'Simmer gently.' }])
+    expect(saved).not.toHaveProperty('nutrition')
+    expect(saved).not.toHaveProperty('image_url')
+    expect(window.location.pathname).toBe('/recipes/88')
+  })
   // Existing workflows exercise a returning user; first visits are covered in WelcomeGuide.test.tsx.
   beforeEach(() => localStorage.setItem('madplanner:welcome:1:1', 'seen'))
   afterEach(() => { cleanup(); vi.restoreAllMocks(); window.history.pushState({}, '', '/') })

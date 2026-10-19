@@ -43,7 +43,12 @@ class RecipeService:
         recipe = self.repository.get_owned(recipe_id)
         if recipe is None:
             return None
+        # The editor does not edit media/nutrition. Preserve their stored source
+        # values when omitted, rather than saving computed nutrition estimates.
+        preserved = {field: getattr(recipe, field) for field in ("image_url", "nutrition") if field not in data.model_fields_set}
         self._apply(recipe, data)
+        for field, value in preserved.items():
+            setattr(recipe, field, value)
         return self._to_response(self.repository.save(recipe))
 
     def delete_recipe(self, recipe_id: int) -> bool:

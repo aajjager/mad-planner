@@ -1,5 +1,6 @@
 import { BrowserRouter, Link, NavLink, Navigate, Route, Routes } from 'react-router-dom'
 import './App.css'
+import { EditRecipePage } from './pages/EditRecipePage'
 import { CreateRecipePage } from './pages/CreateRecipePage'
 import { RecipeDetailPage } from './pages/RecipeDetailPage'
 import { RecipeListPage } from './pages/RecipeListPage'
@@ -45,6 +46,7 @@ function ApplicationShell() {
             <Route path="/recipes/import" element={canEditRecipes ? <ImportRecipePage /> : <Navigate to="/recipes" replace />} />
             <Route path="/recipes/import/cookbook" element={canEditRecipes ? <CookBookImportPage /> : <Navigate to="/recipes" replace />} />
             <Route path="/recipes/scan" element={canEditRecipes ? <ScanRecipePage /> : <Navigate to="/recipes" replace />} />
+            <Route path="/recipes/:recipeId/edit" element={canEditRecipes ? <EditRecipePage /> : <Navigate to="/recipes" replace />} />
             <Route path="/recipes/:recipeId" element={<RecipeDetailPage />} />
             <Route path="/recipes/public" element={<PublicRecipesPage />} />
             <Route path="/planner" element={<PlannerPage />} />

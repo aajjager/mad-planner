@@ -1,13 +1,13 @@
 export type UnitDimension = 'mass' | 'volume' | 'count'
 export type RecipeMealType = 'breakfast' | 'lunch' | 'dinner'
 export interface UnitInput { name: string; symbol: string; dimension: UnitDimension }
-export interface RecipeIngredientInput { raw_text: string; ingredient_name?: string; quantity?: string; unit?: UnitInput }
+export interface RecipeIngredientInput { raw_text: string; ingredient_name?: string; quantity?: string; quantity_max?: string | null; preparation?: string | null; notes?: string | null; unit?: UnitInput }
 export interface RecipeWrite {
   name: string; description?: string; image_url?: string; source_url?: string; author?: string; servings?: string;
   preparation_time_minutes?: number; cooking_time_minutes?: number; total_time_minutes?: number;
   cuisine?: string; category?: string; nutrition?: Record<string, unknown>; tags?: string[]; meal_types?: RecipeMealType[]; recipe_types?: string[]; ingredients: RecipeIngredientInput[]; instructions: { text: string }[]
 }
-export interface RecipeIngredient { id: number; position: number; raw_text: string; ingredient_name: string | null; quantity: string | null; unit: UnitInput | null }
+export interface RecipeIngredient { id: number; position: number; raw_text: string; ingredient_name: string | null; quantity: string | null; quantity_max?: string | null; preparation?: string | null; notes?: string | null; unit: UnitInput | null }
 export interface RecipeInstruction { id: number; position: number; text: string }
 export interface Recipe {
   id: number; name: string; description: string | null; source_url: string | null; author: string | null; servings: string | null;
@@ -83,3 +83,5 @@ export function inferMealTypes(category: string | null): RecipeMealType[] {
   if (/dinner|aftensmad|hovedret/.test(value)) result.push('dinner')
   return result
 }
+
+export const replaceRecipe = (id: number, recipe: RecipeWrite) => request<Recipe>(`/api/v1/recipes/${id}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(recipe) })

@@ -28,6 +28,29 @@ def client() -> TestClient:
         app.dependency_overrides.clear()
 
 
+def test_edit_preserves_media_nutrition_rating_and_identity(client: TestClient) -> None:
+    payload = {"name": "Original", "image_url": "https://example.com/photo.jpg", "nutrition": {"calories": "250 kcal"}, "ingredients": [{"raw_text": "2 onions", "ingredient_name": "onion", "quantity": "2", "quantity_max": "3", "preparation": "diced", "notes": "optional"}], "instructions": [{"text": "Cook"}]}
+    original = client.post("/api/v1/recipes", json=payload).json()
+    recipe_id = original["id"]
+    client.put(f"/api/v1/recipes/{recipe_id}/rating", json={"rating": 5})
+    client.put(f"/api/v1/recipes/{recipe_id}/visibility", json={"is_public": True})
+    payload.pop("image_url")
+    payload.pop("nutrition")
+    payload["name"] = "Edited"
+    result = client.put(f"/api/v1/recipes/{recipe_id}", json=payload)
+    assert result.status_code == 200
+    updated = result.json()
+    assert updated["id"] == recipe_id
+    assert updated["created_at"] == original["created_at"]
+    assert updated["image_url"] == original["image_url"]
+    assert updated["nutrition"] == original["nutrition"]
+    assert updated["my_rating"] == 5
+    assert updated["is_public"] is True
+    assert updated["ingredients"][0]["quantity_max"] == original["ingredients"][0]["quantity_max"]
+    assert updated["ingredients"][0]["preparation"] == "diced"
+    assert updated["ingredients"][0]["notes"] == "optional"
+
+
 def test_recipe_crud(client: TestClient) -> None:
     payload = {
         "name": "Onion soup", "servings": "4", "cuisine": "French", "tags": ["Dinner", "Comfort food", "dinner"], "meal_types": ["lunch", "dinner"],
