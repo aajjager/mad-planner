@@ -1,0 +1,24 @@
+.welcome-guide {
+  position: fixed;
+  z-index: 30;
+  right: 1rem;
+  bottom: 6rem;
+  width: min(26rem, calc(100vw - 2rem));
+  max-height: 65dvh;
+  overflow-y: auto;
+  padding: 1.25rem;
+  border: 2px solid #8a9f7d;
+  border-radius: 1.25rem;
+  background: #fff9ee;
+  color: #28352c;
+  box-shadow: 0 8px 32px #0003;
+}
+.welcome-guide h2 { margin: .25rem 0 .75rem; font-size: 1.35rem; color: #28352c; }
+.welcome-guide p { line-height: 1.6; }
+.welcome-guide .text-button { color: #354a32; }
+.welcome-guide-progress { margin: 0; font-size: .875rem; }
+.welcome-guide-actions { display: flex; flex-wrap: wrap; gap: .5rem; margin-top: 1rem; }
+.family-page [id] { scroll-margin-top: 1.5rem; }
+.welcome-guide-target { outline: 3px solid #8a9f7d; outline-offset: 5px; }
+.welcome-guide-launcher { display: flex; flex-wrap: wrap; gap: 1rem; justify-content: flex-end; padding: .5rem 1rem; }
+@media print { .welcome-guide, .welcome-guide-launcher { display: none; } }

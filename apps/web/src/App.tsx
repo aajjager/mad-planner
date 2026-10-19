@@ -21,6 +21,7 @@ import { PlanReminderBanner } from './components/PlanReminderBanner'
 import { FeedbackAnswerBadge } from './components/FeedbackAnswerBadge'
 import { BrandMark } from './components/BrandMark'
 import { FeedbackCompletionNotifier } from './components/FeedbackCompletionNotifier'
+import { WelcomeGuide } from './components/WelcomeGuide'
 
 function ApplicationShell() {
   const { account, logout } = useAuth()
@@ -35,6 +36,7 @@ function ApplicationShell() {
         </header>
         <PlanReminderBanner />
         <FeedbackCompletionNotifier />
+        {account && <WelcomeGuide key={`${account.family_id}:${account.id}`} account={account} />}
         <main>
           <Routes>
             <Route path="/" element={<Navigate to="/recipes" replace />} />

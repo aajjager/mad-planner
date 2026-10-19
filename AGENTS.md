@@ -19,6 +19,11 @@
   proposing a commit. Follow the user's current commit/push instructions and
   never include credentials or unrelated deployment changes.
 - Do not include `git diff --cached` in user-facing Git instructions unless asked.
+- Keep the interactive welcome guide in apps/web/src/components/welcomeGuideContent.ts
+  current with user-facing feature changes. Update relevant tips and all three
+  languages, respect account permissions, and add regression coverage as needed.
+  Review guide accuracy for every feature implementation; do not reset completed
+  guides for routine updates. The Updates page provides release-by-release news.
 - When verifying changes against the local Docker app, rebuild the affected
   services and verify localhost:8080 before reporting the changes as visible there.
 

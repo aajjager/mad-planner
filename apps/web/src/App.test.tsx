@@ -1,5 +1,5 @@
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import App from './App'
 import { inferMealTypes, parseServingCount } from './api/recipes'
 import * as clipboard from './utils/clipboard'
@@ -18,6 +18,8 @@ const authResponse = (input: RequestInfo | URL) => {
 }
 
 describe('App', () => {
+  // Existing workflows exercise a returning user; first visits are covered in WelcomeGuide.test.tsx.
+  beforeEach(() => localStorage.setItem('madplanner:welcome:1:1', 'seen'))
   afterEach(() => { cleanup(); vi.restoreAllMocks(); window.history.pushState({}, '', '/') })
 
   it('collapses long recipe descriptions and restores the full original text on demand', async () => {

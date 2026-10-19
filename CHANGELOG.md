@@ -6,6 +6,12 @@ All notable user-visible changes are recorded here. Versions use year since 2026
 
 ### Improvements
 
+- Guide navigation now opens the relevant page and scrolls to and highlights the specific Family settings section, including sections that load after opening the page.
+
+- Expanded the welcome guide with personal preferences, account security, shared family planning options, recipe types, member invitations, and permissions. The Family page offers a direct shortcut to these tips.
+
+- Added an interactive first-visit welcome guide covering recipes, importing, meal planning, groceries, family feedback, and Updates. Reopen it anytime; tips respect account permissions and are available in English, Danish, and Dutch. Guide dismissal is remembered per account in the current browser.
+
 - Recipe descriptions now collapse to five visible lines, adapting to screen width, with Read more / Read less controls when the text overflows. The full saved description is preserved.
 
 - Recipe imports now preserve paragraph-based instruction steps, including Valdemarsro recipes, instead of combining the whole method into one step. Previously flattened imports need reimporting to recover their original steps.

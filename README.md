@@ -22,6 +22,15 @@ Open <http://localhost:8080>. The web container serves the React application and
 
 On a brand-new database, the first-owner screen asks how the recipe collection should begin. Choose **Start with example recipes** to add five editable recipes for trying the planner and grocery list, or **Start with an empty collection** for a clean installation. This choice appears only during initial setup and never replaces recipes in an existing database.
 
+After signing in, the interactive **Welcome guide** introduces recipes, importing,
+planning, groceries, family feedback, and Updates. Use **Try this page** to explore
+without closing the guide, or reopen it using **Welcome guide**. Closing or finishing
+is remembered per account in this browser; a different browser or cleared browser
+storage shows the welcome again. Existing users also see it once after installation.
+The guide does not change recipes or family settings. Future feature work must
+review the translated tips in `apps/web/src/components/welcomeGuideContent.ts`,
+as required by `AGENTS.md`; routine releases do not reopen dismissed guides.
+
 Check container health with:
 
 ```powershell
