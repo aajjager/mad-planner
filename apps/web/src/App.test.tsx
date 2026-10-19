@@ -21,6 +21,8 @@ describe('App', () => {
   afterEach(() => { cleanup(); vi.restoreAllMocks(); window.history.pushState({}, '', '/') })
 
   it('collapses long recipe descriptions and restores the full original text on demand', async () => {
+    const height = vi.spyOn(HTMLElement.prototype, 'scrollHeight', 'get').mockReturnValue(300)
+    vi.spyOn(HTMLElement.prototype, 'clientHeight', 'get').mockReturnValue(100)
     const description = 'A delicious vegetable dinner with gnocchi. '.repeat(20) + 'The complete description ends here.'
     window.history.pushState({}, '', '/recipes/88')
     const fetch = vi.spyOn(globalThis, 'fetch').mockImplementation((input) => {
@@ -28,17 +30,21 @@ describe('App', () => {
       return Promise.resolve(authResponse(input) ?? jsonResponse([]))
     })
     render(<App />)
-    const show = await screen.findByRole('button', { name: 'Show more' })
+    const show = await screen.findByRole('button', { name: 'Read more' })
     expect(show).toHaveAttribute('aria-expanded', 'false')
     const paragraph = document.getElementById(show.getAttribute('aria-controls')!)!
-    expect(paragraph.textContent!.length).toBeLessThanOrEqual(321)
-    expect(paragraph).not.toHaveTextContent('The complete description ends here.')
-    fireEvent.click(show)
-    expect(screen.getByRole('button', { name: 'Show less' })).toHaveAttribute('aria-expanded', 'true')
+    expect(paragraph).toHaveClass('recipe-description-text--collapsed')
     expect(paragraph.textContent).toBe(description)
-    fireEvent.click(screen.getByRole('button', { name: 'Show less' }))
-    expect(paragraph).not.toHaveTextContent('The complete description ends here.')
+    fireEvent.click(show)
+    expect(screen.getByRole('button', { name: 'Read less' })).toHaveAttribute('aria-expanded', 'true')
+    expect(paragraph.textContent).toBe(description)
+    expect(paragraph).not.toHaveClass('recipe-description-text--collapsed')
+    fireEvent.click(screen.getByRole('button', { name: 'Read less' }))
+    expect(paragraph).toHaveClass('recipe-description-text--collapsed')
     expect(fetch.mock.calls.every(([, options]) => !options?.method || options.method === 'GET')).toBe(true)
+    height.mockReturnValue(100)
+    fireEvent(window, new Event('resize'))
+    await waitFor(() => expect(screen.queryByRole('button', { name: 'Read more' })).not.toBeInTheDocument())
   })
 
   it.each(['A short introduction.', 'x'.repeat(320), null])('does not offer Show more for a short or missing description', async (description) => {
@@ -48,7 +54,7 @@ describe('App', () => {
       : Promise.resolve(authResponse(input) ?? jsonResponse([])))
     render(<App />)
     await screen.findByRole('heading', { name: 'Short description regression' })
-    expect(screen.queryByRole('button', { name: 'Show more' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Read more' })).not.toBeInTheDocument()
     if (description) expect(screen.getByText(description)).toBeInTheDocument()
   })
 

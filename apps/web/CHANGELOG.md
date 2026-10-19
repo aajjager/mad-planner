@@ -6,6 +6,10 @@ All notable user-visible changes are recorded here. Versions use year since 2026
 
 ### Improvements
 
+- Recipe descriptions now collapse to five visible lines, adapting to screen width, with Read more / Read less controls when the text overflows. The full saved description is preserved.
+
+- Recipe imports now preserve paragraph-based instruction steps, including Valdemarsro recipes, instead of combining the whole method into one step. Previously flattened imports need reimporting to recover their original steps.
+
 - Long recipe descriptions now start with a short preview and offer Show more / Show less, keeping the full saved text available.
 
 - Added a family deletion warning that names the family and requires typing delete before permanent deletion is enabled.

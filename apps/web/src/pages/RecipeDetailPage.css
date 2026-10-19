@@ -24,3 +24,5 @@
 
 .recipe-description p { white-space:pre-wrap; overflow-wrap:anywhere; }
 .recipe-description .text-button { margin-top:8px; color:var(--green); text-decoration:underline; }
+.recipe-description .recipe-description-text { line-height:1.65; }
+.recipe-description-text--collapsed { display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:5; line-clamp:5; max-height:8.25em; overflow:hidden; }

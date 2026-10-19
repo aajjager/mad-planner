@@ -117,6 +117,38 @@ def test_html_microdata_is_normalized_to_preview() -> None:
     assert preview.parser == "html"
 
 
+def test_valdemarsro_paragraphs_become_separate_steps_through_importer() -> None:
+    class StubHttpClient:
+        def fetch(self, url: str) -> str:
+            return (FIXTURES / "valdemarsro_paragraph_instructions.html").read_text(encoding="utf-8")
+
+    preview = RecipeImporter(http_client=StubHttpClient()).preview(
+        "https://www.valdemarsro.dk/gnocchi-med-aerter-majs-og-spinatcreme/"
+    )
+    assert preview.parser == "html"
+    assert preview.instructions == [
+        "Heat the pan.", "Fry the gnocchi. Set aside.", "Blend the sauce. Warm gently.",
+        "Add the peas.", "Combine and serve.",
+    ]
+
+
+@pytest.mark.parametrize("selector", ['itemprop="recipeInstructions"', 'class="recipe-instructions"', 'class="instructions"'])
+def test_html_paragraph_steps_preserve_repeats_and_inline_text(selector: str) -> None:
+    html = f'<h1>Test recipe</h1><div {selector}><p>Stir <strong>well.</strong></p><p>Wait.</p><p>Stir <strong>well.</strong></p></div>'
+    preview = parse_html_recipe(html, "https://example.com/recipe")
+    assert preview.instructions == ["Stir well.", "Wait.", "Stir well."]
+
+
+def test_html_list_steps_take_priority_over_nested_paragraphs() -> None:
+    html = '<h1>Test recipe</h1><ol itemprop="recipeInstructions"><li><p>Mix.</p><p>Keep stirring.</p></li><li><p>Serve.</p></li></ol>'
+    assert parse_html_recipe(html, "https://example.com/recipe").instructions == ["Mix. Keep stirring.", "Serve."]
+
+
+def test_html_instructions_without_paragraphs_keep_container_fallback() -> None:
+    html = '<h1>Toast</h1><div itemprop="recipeInstructions">Toast the bread. Serve warm.</div>'
+    assert parse_html_recipe(html, "https://example.com/toast").instructions == ["Toast the bread. Serve warm."]
+
+
 def test_importer_falls_back_to_html_when_json_ld_is_missing() -> None:
     class StubHttpClient:
         def fetch(self, url: str) -> str:

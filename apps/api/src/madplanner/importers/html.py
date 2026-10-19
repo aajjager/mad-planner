@@ -40,6 +40,15 @@ def _node_text(node: Node) -> str | None:
     return _clean(value)
 
 
+def _instruction_texts(document: HTMLParser, selectors: tuple[str, ...]) -> list[str]:
+    # Use one representation of the instructions, preserving repeated steps.
+    for selector in selectors:
+        values = [value for node in document.css(selector) if (value := _node_text(node))]
+        if values:
+            return values
+    return []
+
+
 def _minutes(value: str | None) -> int | None:
     if not value:
         return None
@@ -63,12 +72,16 @@ def parse_html_recipe(html: str, source_url: str) -> ImportedRecipePreview:
         '[itemprop="recipeIngredient"]', '[itemprop="ingredients"]',
         '.recipe-ingredient', '.recipe-ingredients li', '.ingredients li',
     ))
-    instructions = _texts(document, (
+    instructions = _instruction_texts(document, (
         '[itemprop="recipeInstructions"] li', '.recipe-instruction',
         '.recipe-instructions li', '.instructions li',
     ))
     if not instructions:
-        instructions = _texts(document, ('[itemprop="recipeInstructions"]',))
+        instructions = _instruction_texts(document, (
+            '[itemprop="recipeInstructions"] p', '.recipe-instructions p', '.instructions p',
+        ))
+    if not instructions:
+        instructions = _instruction_texts(document, ('[itemprop="recipeInstructions"]',))
     if not ingredients and not instructions:
         raise RecipeParseError("No recipe data was found on this page")
 
