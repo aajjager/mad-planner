@@ -27,6 +27,10 @@ All notable user-visible changes are recorded here. Versions use year since 2026
 - Aligned release numbers with the calendar month and four week buckets; the Updates page and family version link now use the packaged changelog.
 - Added visible Bug fixes, Features, and Improvements groups for new releases. Single and grouped Codex prompts preserve the approved request type and require entries in the correct weekly changelog group. Added project guidance for all future implementations.
 
+### Features
+
+- Added an optional administrator implementation workspace with queued jobs, progress, preview and pull-request links, revision requests, and approval of the exact tested commit. A separately configured Linux controller runs isolated implementations and checks, publishes preview branches, and merges only after approval. TrueNAS deployment remains manual; worker credentials and a protected preview address must be configured before use.
+
 ### Bug fixes
 
 - Fixed HTML tags and encoded characters appearing in imported recipe instructions, including HelloFresh recipes. Previously saved recipes also display readable instructions without needing to be imported again.

@@ -1,6 +1,7 @@
 import { BrowserRouter, Link, NavLink, Navigate, Route, Routes } from 'react-router-dom'
 import './App.css'
 import { EditRecipePage } from './pages/EditRecipePage'
+import { PreviewBanner } from './components/PreviewBanner'
 import { CreateRecipePage } from './pages/CreateRecipePage'
 import { RecipeDetailPage } from './pages/RecipeDetailPage'
 import { RecipeListPage } from './pages/RecipeListPage'
@@ -36,6 +37,7 @@ function ApplicationShell() {
           <div className="account-menu"><Link className="account-link" to="/family">{account?.display_name} · {account?.family_name}<FeedbackAnswerBadge /></Link>{account?.role === 'owner' && <Link className="account-link" to="/admin">{t('admin')}</Link>}<button className="text-button" onClick={() => void logout()}>{t('signOut')}</button></div>
         </header>
         <PlanReminderBanner />
+        <PreviewBanner />
         <FeedbackCompletionNotifier />
         {account && <WelcomeGuide key={`${account.family_id}:${account.id}`} account={account} />}
         <main>

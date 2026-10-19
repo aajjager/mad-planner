@@ -11,6 +11,7 @@ from madplanner.models.account import (
     UserSession,
 )
 from madplanner.models.ingredient import Ingredient, IngredientAlias, Unit
+from madplanner.models.implementation import ImplementationJob
 from madplanner.models.grocery import GroceryListEntry
 from madplanner.models.planner import MealPlanEntry, MealPlanExclusion, MealType
 from madplanner.models.recipe import Recipe, RecipeIngredient, RecipeInstruction, RecipeRating, RecipeShare, RecipeType, Tag
@@ -22,6 +23,7 @@ __all__ = [
     "FamilyRole",
     "FeedbackSubmission",
     "Ingredient",
+    "ImplementationJob",
     "IngredientAlias",
     "GroceryListEntry",
     "MealPlanEntry",

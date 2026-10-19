@@ -1,0 +1,9 @@
+{
+  "app_url": "https://YOUR-MAD-PLANNER-ADDRESS",
+  "worker_token": "GENERATE-A-RANDOM-32-BYTE-TOKEN",
+  "work_directory": "/home/docker/madplanner-worker/jobs",
+  "codex_auth_file": "/home/docker/.local/share/madplanner-worker/auth/auth.json",
+  "preview_bind": "127.0.0.1",
+  "preview_port": 8090,
+  "preview_password": "CHOOSE-A-SEPARATE-PREVIEW-PASSWORD"
+}

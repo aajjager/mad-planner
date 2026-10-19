@@ -13,6 +13,8 @@ class Settings(BaseSettings):
     session_cookie_secure: bool = False
     media_root: Path = Path("/data/media")
     mfa_encryption_key: SecretStr | None = None
+    implementation_worker_token: SecretStr | None = None
+    implementation_preview_url: str | None = None
 
     model_config = SettingsConfigDict(
         env_file=".env",

@@ -1,0 +1,16 @@
+[Unit]
+Description=Mad Planner approval-controlled implementation worker
+After=network-online.target
+
+[Service]
+Type=simple
+Environment=PATH=%h/.local/bin:/usr/local/bin:/usr/bin:/bin
+WorkingDirectory=%h/madplanner-worker/controller
+ExecStart=/usr/bin/python3 %h/madplanner-worker/controller/controller.py %h/.config/madplanner-worker/config.json
+Restart=on-failure
+RestartSec=10
+TimeoutStopSec=70
+UMask=0077
+
+[Install]
+WantedBy=default.target
