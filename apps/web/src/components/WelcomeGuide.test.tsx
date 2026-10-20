@@ -11,6 +11,14 @@ function show(value = account) { return render(<MemoryRouter><WelcomeGuide accou
 afterEach(() => { cleanup(); localStorage.clear() })
 
 describe('Welcome guide', () => {
+  it.each([
+    ['en', 'five days', 'dismissed', 'Closed requests'],
+    ['da', 'fem dage', 'afviser', 'Lukkede ønsker'],
+    ['nl', 'vijf dagen', 'sluit', 'Gesloten verzoeken'],
+  ] as const)('explains completion notice expiry and retained history in %s', (locale, duration, dismiss, history) => {
+    const step = guideCopy[locale].steps.find((step) => step[2] === '/family#family-feedback')!
+    for (const text of [duration, dismiss, history]) expect(step[1]).toContain(text)
+  })
   it('scrolls and focuses the selected section, waits for delayed settings, and clears highlighting', async () => {
     const scroll = vi.fn()
     render(<MemoryRouter initialEntries={['/family']}><WelcomeGuide account={account} /><Location /><section id="personal-settings" tabIndex={-1} ref={(node) => { if (node) node.scrollIntoView = scroll }}>Personal settings target</section></MemoryRouter>)

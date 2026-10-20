@@ -1,4 +1,4 @@
-import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
+import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import App from './App'
 import { inferMealTypes, parseServingCount } from './api/recipes'
@@ -81,7 +81,7 @@ describe('App', () => {
   })
   // Existing workflows exercise a returning user; first visits are covered in WelcomeGuide.test.tsx.
   beforeEach(() => localStorage.setItem('madplanner:welcome:1:1', 'seen'))
-  afterEach(() => { cleanup(); vi.restoreAllMocks(); window.history.pushState({}, '', '/') })
+  afterEach(() => { cleanup(); vi.useRealTimers(); vi.restoreAllMocks(); window.history.pushState({}, '', '/') })
 
   it('collapses long recipe descriptions and restores the full original text on demand', async () => {
     const height = vi.spyOn(HTMLElement.prototype, 'scrollHeight', 'get').mockReturnValue(300)
@@ -298,6 +298,36 @@ describe('App', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Create invitation' }))
 
     expect(await screen.findByLabelText('Invitation link')).toHaveValue('http://localhost:3000/invite/private-token')
+  })
+
+  it.each(['expire', 'dismiss'])('hides completed notices on %s while preserving closed history', async (action) => {
+    window.history.pushState({}, '', '/family')
+    const now = Date.now()
+    const item = { id: 99, content: 'Recently completed suggestion', category: 'improvement', status: 'done', completed_at: new Date(now - 5 * 86400000 + 10000).toISOString(), completion_seen_at: null }
+    const old = { ...item, id: 100, content: 'Old completed suggestion', completed_at: new Date(now - 6 * 86400000).toISOString() }
+    const fetch = vi.spyOn(globalThis, 'fetch').mockImplementation((input) => {
+      const url = String(input)
+      if (url.endsWith('/feedback/99/acknowledge')) return Promise.resolve(jsonResponse({ ...item, completion_seen_at: new Date().toISOString() }))
+      if (url.endsWith('/auth/feedback')) return Promise.resolve(jsonResponse([item, old]))
+      return Promise.resolve(authResponse(input) ?? jsonResponse([]))
+    })
+    if (action === 'expire') vi.useFakeTimers()
+    await act(async () => { render(<App />) })
+    expect(screen.getByText(item.content)).toBeInTheDocument()
+    expect(screen.queryByText(old.content)).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Dismiss' })).toBeInTheDocument()
+    if (action === 'dismiss') {
+      fireEvent.click(screen.getByRole('button', { name: 'Dismiss' }))
+      await waitFor(() => expect(screen.queryByText(item.content)).not.toBeInTheDocument())
+      expect(fetch.mock.calls.some(([url]) => String(url).endsWith('/feedback/99/acknowledge'))).toBe(true)
+    } else {
+      await act(async () => { await vi.advanceTimersByTimeAsync(10001) })
+      expect(screen.queryByText(item.content)).not.toBeInTheDocument()
+      expect(fetch.mock.calls.some(([, init]) => init?.method && init.method !== 'GET')).toBe(false)
+    }
+    fireEvent.click(screen.getByRole('button', { name: 'Closed requests (2)' }))
+    expect(screen.getByText(item.content)).toBeInTheDocument()
+    expect(screen.getByText(old.content)).toBeInTheDocument()
   })
 
   it('separates open and closed personal requests', async () => {
