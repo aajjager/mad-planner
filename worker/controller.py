@@ -41,6 +41,20 @@ def safe_files(root):
     return result
 
 
+def prepare_preview_api(source, destination):
+    """Export only API source with readable modes for the capability-free runtime."""
+    destination.mkdir(mode=0o755)
+    destination.chmod(0o755)
+    for relative, original in safe_files(source / 'apps/api').items():
+        target = destination / relative
+        target.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(original, target)
+        target.chmod(0o644)
+    for directory, _, _ in os.walk(destination):
+        Path(directory).chmod(0o755)
+    return destination
+
+
 def verify_changes(baseline, source):
     before, after = safe_files(baseline), safe_files(source)
     changed = {name for name in before.keys() | after.keys() if name not in before or name not in after or before[name].read_bytes() != after[name].read_bytes()}
@@ -208,6 +222,7 @@ class Controller:
         self.report('ready', head_sha=head, base_sha=base, branch=branch, pr_number=pr_number, tests_passed=True, summary=summary)
 
     def deploy(self, source, job, head):
+        api_source = prepare_preview_api(source, source.parent / 'preview-api')
         prefix = f"mp-preview-{job['id']}-r{job['revision']}"
         network = prefix + '-net'
         password = secrets.token_hex(24)
@@ -225,7 +240,7 @@ class Controller:
                     raise RuntimeError('Cancelled while preparing preview database')
         else:
             raise RuntimeError('Preview database did not become ready')
-        self.run(['docker', 'run', '-d', '--user', '0:0', '--cap-drop', 'ALL', '--security-opt', 'no-new-privileges', '--memory', '768m', '--name', prefix + '-api', '--network', network, '--network-alias', 'api', '--label', 'madplanner.preview=true', '--mount', f'type=bind,src={source},dst=/workspace,readonly', '--mount', f'type=volume,src={prefix}-media,dst=/data/media', '-e', 'SESSION_COOKIE_NAME=madplanner_preview_session', '-e', 'HTTPS_PROXY=http://egress:3128', '-e', 'HTTP_PROXY=http://egress:3128', '-e', 'NO_PROXY=localhost,127.0.0.1,db,api', '-e', 'DATABASE_URL=postgresql+psycopg://preview:' + password + '@db:5432/preview', IMAGE, 'sh', '-c', 'cd /workspace/apps/api && alembic upgrade head && exec uvicorn madplanner.main:app --host 0.0.0.0 --port 8000'])
+        self.run(['docker', 'run', '-d', '--user', '0:0', '--cap-drop', 'ALL', '--security-opt', 'no-new-privileges', '--memory', '768m', '--name', prefix + '-api', '--network', network, '--network-alias', 'api', '--label', 'madplanner.preview=true', '--mount', f'type=bind,src={api_source},dst=/workspace/apps/api,readonly', '--mount', f'type=volume,src={prefix}-media,dst=/data/media', '-e', 'SESSION_COOKIE_NAME=madplanner_preview_session', '-e', 'HTTPS_PROXY=http://egress:3128', '-e', 'HTTP_PROXY=http://egress:3128', '-e', 'NO_PROXY=localhost,127.0.0.1,db,api', '-e', 'DATABASE_URL=postgresql+psycopg://preview:' + password + '@db:5432/preview', IMAGE, 'sh', '-c', 'cd /workspace/apps/api && alembic upgrade head && exec uvicorn madplanner.main:app --host 0.0.0.0 --port 8000'])
         health = ['docker', 'exec', prefix + '-api', 'python', '-c', "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/v1/health/ready')"]
         for _ in range(60):
             try:

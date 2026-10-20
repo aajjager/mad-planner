@@ -14,6 +14,20 @@ proxy_spec.loader.exec_module(proxy)
 
 
 class Boundaries(unittest.TestCase):
+    def test_preview_export_contains_only_api_source_without_caches(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            api = root / 'source/apps/api'
+            (api / 'src').mkdir(parents=True)
+            (api / 'src/main.py').write_text('print("preview")')
+            (api / '__pycache__').mkdir()
+            (api / '__pycache__/main.pyc').write_bytes(b'cache')
+            (root / 'source/secret.txt').write_text('outside api')
+            exported = controller.prepare_preview_api(root / 'source', root / 'export')
+            self.assertEqual((exported / 'src/main.py').read_text(), 'print("preview")')
+            self.assertFalse((exported / '__pycache__').exists())
+            self.assertFalse((exported / 'secret.txt').exists())
+
     def test_api_identifies_worker_and_preserves_authentication(self):
         worker = object.__new__(controller.Controller)
         worker.config = {'app_url': 'https://example.invalid', 'worker_token': 'test-token'}
