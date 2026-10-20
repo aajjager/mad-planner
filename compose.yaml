@@ -33,6 +33,8 @@ services:
       MEDIA_ROOT: /data/media
       MFA_ENCRYPTION_KEY: ${MFA_ENCRYPTION_KEY:-}
       SESSION_COOKIE_SECURE: ${SESSION_COOKIE_SECURE:-false}
+      IMPLEMENTATION_WORKER_TOKEN: ${IMPLEMENTATION_WORKER_TOKEN:-}
+      IMPLEMENTATION_PREVIEW_URL: ${IMPLEMENTATION_PREVIEW_URL:-}
     volumes:
       - recipe_media:/data/media
     depends_on:
