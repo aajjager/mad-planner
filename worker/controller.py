@@ -85,7 +85,7 @@ class Controller:
 
     def api(self, path, data):
         request = urllib.request.Request(self.config['app_url'].rstrip('/') + '/api/v1/implementations/' + path,
-            data=json.dumps(data).encode(), headers={'Authorization': 'Bearer ' + self.config['worker_token'], 'Content-Type': 'application/json'})
+            data=json.dumps(data).encode(), headers={'Authorization': 'Bearer ' + self.config['worker_token'], 'Content-Type': 'application/json', 'User-Agent': 'MadPlanner-Worker/1.0'})
         with urllib.request.urlopen(request, timeout=30) as response:
             return json.load(response)
 

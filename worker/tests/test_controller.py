@@ -2,7 +2,7 @@ import importlib.util
 from pathlib import Path
 import tempfile
 import unittest
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 import json
 
 spec = importlib.util.spec_from_file_location('controller', Path(__file__).resolve().parents[1] / 'controller.py')
@@ -14,6 +14,18 @@ proxy_spec.loader.exec_module(proxy)
 
 
 class Boundaries(unittest.TestCase):
+    def test_api_identifies_worker_and_preserves_authentication(self):
+        worker = object.__new__(controller.Controller)
+        worker.config = {'app_url': 'https://example.invalid', 'worker_token': 'test-token'}
+        response = Mock()
+        response.read.return_value = b'null'
+        with patch.object(controller.urllib.request, 'urlopen') as send:
+            send.return_value.__enter__.return_value = response
+            self.assertIsNone(worker.api('worker/claim', {}))
+            request = send.call_args.args[0]
+            self.assertEqual(request.get_header('User-agent'), 'MadPlanner-Worker/1.0')
+            self.assertEqual(request.get_header('Authorization'), 'Bearer test-token')
+
     def test_agent_proxy_only_allows_exact_openai_hosts_on_tls_port(self):
         self.assertTrue(proxy.permitted('api.openai.com', '443'))
         for host, port in [('192.168.1.19', '443'), ('github.com', '443'), ('api.openai.com.evil.test', '443'), ('api.openai.com', '80'), ('localhost', '443')]:
