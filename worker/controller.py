@@ -272,7 +272,7 @@ class Controller:
             shutil.copy2(path, destination)
         (context / 'html/preview-version.json').write_text(json.dumps({'job': job['id'], 'revision': job['revision'], 'head_sha': head}))
         (context / 'default.conf').write_text('server { listen 80; root /usr/share/nginx/html; index index.html; client_max_body_size 100m; location /api/ { proxy_set_header Cookie "madplanner_preview_session=$cookie_madplanner_preview_session"; proxy_pass http://api:8000; } location /media/ { proxy_pass http://api:8000; } location / { try_files $uri $uri/ /index.html; } }')
-        (context / 'Dockerfile').write_text('FROM nginx:1.29-alpine\nCOPY html /usr/share/nginx/html\nCOPY default.conf /etc/nginx/conf.d/default.conf\n')
+        (context / 'Dockerfile').write_text('FROM nginx:1.29-alpine\nCOPY html /usr/share/nginx/html\nCOPY default.conf /etc/nginx/conf.d/default.conf\nRUN chmod -R a=rX /usr/share/nginx/html\n')
         self.run(['docker', 'build', '-t', prefix + '-web', str(context)])
         # Only containers explicitly created by this controller can be replaced.
         previous = self.run(['docker', 'ps', '-aq', '--filter', 'label=madplanner.preview=true', '--filter', 'name=mp-preview-'])
