@@ -1,4 +1,5 @@
 import { useEffect } from 'react'
+import { isFeedbackCompletionVisible } from '../utils/feedbackCompletion'
 import { listMyFeedback } from '../api/auth'
 import { useAuth } from '../auth/AuthContext'
 import { translator } from '../i18n'
@@ -8,7 +9,7 @@ export function FeedbackCompletionNotifier() {
   const { account } = useAuth(); const t = translator(account?.locale)
   useEffect(() => {
     if (!account?.browser_notifications_enabled) return
-    const check = () => listMyFeedback().then((items) => items.filter((item) => item.status === 'done' && !item.is_question && !item.completion_seen_at).forEach((item) => {
+    const check = () => listMyFeedback().then((items) => items.filter((item) => isFeedbackCompletionVisible(item)).forEach((item) => {
       const title = item.category === 'bug' ? t('bugFixed') : item.category === 'feature' ? t('featureAdded') : t('improvementCompleted')
       void showFeedbackCompletionNotification(title, item.content, item.id)
     })).catch(() => undefined)
