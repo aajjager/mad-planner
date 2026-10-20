@@ -31,6 +31,8 @@ All notable user-visible changes are recorded here. Versions use year since 2026
 
 ### Features
 
+- Added lavender, terracotta, and teal menu palettes in Family personal settings, with light and dark variants and English, Danish, and Dutch labels. Existing colour choices are preserved.
+
 - Added an optional administrator implementation workspace with queued jobs, progress, preview and pull-request links, revision requests, and approval of the exact tested commit. A separately configured Linux controller runs isolated implementations and checks, publishes preview branches, and merges only after approval. TrueNAS deployment remains manual; worker credentials and a protected preview address must be configured before use.
 
 ### Bug fixes

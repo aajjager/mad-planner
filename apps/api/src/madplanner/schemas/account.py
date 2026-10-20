@@ -42,7 +42,7 @@ class AccountResponse(BaseModel):
     locale: Literal["en", "da", "nl"]
     show_nutrition: bool
     dark_mode: bool
-    accent_theme: Literal["sage", "ocean", "berry", "gold"]
+    accent_theme: Literal["sage", "ocean", "berry", "gold", "lavender", "terracotta", "teal"]
     browser_notifications_enabled: bool
     mfa_enabled: bool
     is_system_admin: bool
@@ -52,7 +52,7 @@ class PersonalPreferencesUpdate(BaseModel):
     locale: Literal["en", "da", "nl"] | None = None
     show_nutrition: bool | None = None
     dark_mode: bool | None = None
-    accent_theme: Literal["sage", "ocean", "berry", "gold"] | None = None
+    accent_theme: Literal["sage", "ocean", "berry", "gold", "lavender", "terracotta", "teal"] | None = None
     browser_notifications_enabled: bool | None = None
 
 

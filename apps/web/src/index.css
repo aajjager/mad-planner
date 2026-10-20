@@ -29,9 +29,15 @@ button, a { font: inherit; }
 :root[data-accent="ocean"] { --sage:#8faeb6; --dark-sage:#426d78; --peach:#d98368; --cream:#dfeaed; }
 :root[data-accent="berry"] { --sage:#b49aaa; --dark-sage:#76516a; --peach:#dd8069; --cream:#eadde4; }
 :root[data-accent="gold"] { --sage:#b8a674; --dark-sage:#75642f; --peach:#db7658; --cream:#f3e4b8; }
+:root[data-accent="lavender"] { --sage:#afa0c5; --dark-sage:#685181; --peach:#d88468; --cream:#e9e0f1; }
+:root[data-accent="terracotta"] { --sage:#c59d89; --dark-sage:#8a4f39; --peach:#ca7656; --cream:#f2dfd2; }
+:root[data-accent="teal"] { --sage:#88b5ad; --dark-sage:#326e65; --peach:#d88764; --cream:#dcece6; }
 :root[data-mode="dark"] { --background:#202521; --surface:#292f2a; --charcoal:#f7ead3; --muted-text:#b9b9ae; --cream:#3b4038; --border:#41483f; color:var(--ink); color-scheme:dark; }
 :root[data-mode="dark"][data-accent="sage"] { --sage:#9caf91; --dark-sage:#b6c9ac; }
 :root[data-mode="dark"][data-accent="ocean"] { --sage:#8faeb6; --dark-sage:#9ecbd5; }
 :root[data-mode="dark"][data-accent="berry"] { --sage:#b49aaa; --dark-sage:#d4aac4; }
 :root[data-mode="dark"][data-accent="gold"] { --sage:#b8a674; --dark-sage:#e1c975; }
+:root[data-mode="dark"][data-accent="lavender"] { --dark-sage:#cdb6e5; }
+:root[data-mode="dark"][data-accent="terracotta"] { --dark-sage:#e6b29a; }
+:root[data-mode="dark"][data-accent="teal"] { --dark-sage:#9bd1c6; }
 :root[data-mode="dark"] input,:root[data-mode="dark"] textarea,:root[data-mode="dark"] select { color:var(--ink); background:var(--surface) !important; }

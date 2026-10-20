@@ -12,6 +12,15 @@ afterEach(() => { cleanup(); localStorage.clear() })
 
 describe('Welcome guide', () => {
   it.each([
+    ['en', 'lavender', 'terracotta', 'teal'],
+    ['da', 'lavendel', 'terrakotta', 'blågrøn'],
+    ['nl', 'lavendel', 'terracotta', 'blauwgroen'],
+  ] as const)('introduces the extra personal palettes in %s', (locale, ...colours) => {
+    const step = guideCopy[locale].steps.find((step) => step[2] === '/family#personal-settings')!
+    for (const colour of colours) expect(step[1]).toContain(colour)
+  })
+
+  it.each([
     ['en', 'five days', 'dismissed', 'Closed requests'],
     ['da', 'fem dage', 'afviser', 'Lukkede ønsker'],
     ['nl', 'vijf dagen', 'sluit', 'Gesloten verzoeken'],

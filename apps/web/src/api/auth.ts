@@ -10,7 +10,7 @@ export interface Account {
   locale: 'en' | 'da' | 'nl'
   show_nutrition: boolean
   dark_mode: boolean
-  accent_theme: 'sage' | 'ocean' | 'berry' | 'gold'
+  accent_theme: 'sage' | 'ocean' | 'berry' | 'gold' | 'lavender' | 'terracotta' | 'teal'
   browser_notifications_enabled: boolean
   mfa_enabled: boolean
   is_system_admin: boolean

@@ -18,6 +18,25 @@ const authResponse = (input: RequestInfo | URL) => {
 }
 
 describe('App', () => {
+  it.each(['lavender', 'terracotta', 'teal'])('saves and applies the %s personal palette in Family', async (theme) => {
+    window.history.pushState({}, '', '/family')
+    const fetch = vi.spyOn(globalThis, 'fetch').mockImplementation((input, init) => {
+      if (String(input).endsWith('/auth/me/preferences') && init?.method === 'PATCH') {
+        return Promise.resolve(jsonResponse({ ...account, ...JSON.parse(String(init.body)) }))
+      }
+      return Promise.resolve(authResponse(input) ?? jsonResponse([]))
+    })
+    render(<App />)
+    const select = await screen.findByLabelText('Menu color')
+    for (const name of ['Lavender purple', 'Terracotta orange', 'Deep teal']) {
+      expect(within(select).getByRole('option', { name })).toBeInTheDocument()
+    }
+    fireEvent.change(select, { target: { value: theme } })
+    await waitFor(() => expect(document.documentElement.dataset.accent).toBe(theme))
+    expect(select).toHaveValue(theme)
+    expect(fetch).toHaveBeenCalledWith('/api/v1/auth/me/preferences', expect.objectContaining({ method: 'PATCH', body: JSON.stringify({ accent_theme: theme }) }))
+  })
+
   it('keeps edits available after a failed save and cancels without another write', async () => {
     window.history.pushState({}, '', '/recipes/90/edit')
     const recipe = { id: 90, name: 'Keep this recipe', tags: [], meal_types: [], recipe_types: [], ingredients: [], instructions: [], owned_by_current_family: true }

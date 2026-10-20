@@ -344,3 +344,17 @@ def test_owner_can_enroll_totp_mfa(client: TestClient) -> None:
     disabled = client.post("/api/v1/auth/me/mfa/disable", json={"password": "correct-horse-battery-staple"})
     assert disabled.status_code == 200
     assert disabled.json()["mfa_enabled"] is False
+
+
+@pytest.mark.parametrize("theme", ["sage", "ocean", "berry", "gold", "lavender", "terracotta", "teal"])
+def test_personal_palette_persists_without_changing_other_preferences(client: TestClient, theme: str) -> None:
+    owner = setup_owner(client)
+    response = client.patch("/api/v1/auth/me/preferences", json={"accent_theme": theme})
+    assert response.status_code == 200
+    assert response.json()["accent_theme"] == theme
+    saved = client.get("/api/v1/auth/me").json()
+    assert saved["accent_theme"] == theme
+    for field in ["family_id", "locale", "dark_mode", "show_nutrition"]:
+        assert saved[field] == owner[field]
+    assert client.patch("/api/v1/auth/me/preferences", json={"accent_theme": "unknown"}).status_code == 422
+    assert client.get("/api/v1/auth/me").json()["accent_theme"] == theme
