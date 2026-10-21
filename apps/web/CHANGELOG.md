@@ -6,6 +6,8 @@ All notable user-visible changes are recorded here. Versions use year since 2026
 
 ### Improvements
 
+- Added lavender, terracotta, and teal menu palettes in Family personal settings, with light and dark variants and English, Danish, and Dutch labels. Existing colour choices are preserved, and saved palettes are restored when reopening the app.
+
 - Completed feedback notices now disappear after five days and can still be dismissed earlier. Closed request history is retained, and expired completions no longer trigger browser notifications.
 
 - Owners and editors can edit saved family recipes using the prefilled recipe form, including details, ingredients, and instructions. Recipe identity, pictures, source nutrition, ratings, sharing, and meal-plan links are retained.
@@ -30,8 +32,6 @@ All notable user-visible changes are recorded here. Versions use year since 2026
 - Added visible Bug fixes, Features, and Improvements groups for new releases. Single and grouped Codex prompts preserve the approved request type and require entries in the correct weekly changelog group. Added project guidance for all future implementations.
 
 ### Features
-
-- Added lavender, terracotta, and teal menu palettes in Family personal settings, with light and dark variants and English, Danish, and Dutch labels. Existing colour choices are preserved, and saved palettes are restored when reopening the app.
 
 - Added an optional administrator implementation workspace with queued jobs, progress, preview and pull-request links, revision requests, and approval of the exact tested commit. A separately configured Linux controller runs isolated implementations and checks, publishes preview branches, and merges only after approval. TrueNAS deployment remains manual; worker credentials and a protected preview address must be configured before use.
 
