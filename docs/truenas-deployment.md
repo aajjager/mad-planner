@@ -128,4 +128,4 @@ If the new API applied database migrations, restore the pre-update database snap
 
 ## Home-network security
 
-Mad Planner has family accounts and access controls, but its current TrueNAS example uses plain HTTP. Keep it on a trusted home network and do not expose its port directly to the internet. HTTPS with a stable hostname is required before passkeys are enabled for production use.
+Mad Planner has family accounts and access controls, but its current TrueNAS example uses plain HTTP. Keep it on a trusted home network and do not expose its port directly to the internet. Use HTTPS with a stable hostname for public access and secure production cookies.
