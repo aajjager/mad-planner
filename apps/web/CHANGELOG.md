@@ -6,6 +6,8 @@ All notable user-visible changes are recorded here. Versions use year since 2026
 
 ### Improvements
 
+- Implementation workspace now keeps merged and cancelled jobs in a separate History view. Current jobs and failures needing attention remain in the main view; saved job details and review links are retained.
+
 - Added lavender, terracotta, and teal menu palettes in Family personal settings, with light and dark variants and English, Danish, and Dutch labels. Existing colour choices are preserved, and saved palettes are restored when reopening the app.
 
 - Completed feedback notices now disappear after five days and can still be dismissed earlier. Closed request history is retained, and expired completions no longer trigger browser notifications.

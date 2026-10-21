@@ -9,6 +9,45 @@ const feedback = { id: 4, status: 'approved', category: 'improvement', content: 
 afterEach(() => { cleanup(); vi.restoreAllMocks() })
 
 describe('Implementation controls', () => {
+  it('keeps actionable jobs active and completed jobs in history without deleting them', async () => {
+    const jobs = ['queued', 'ready', 'failed', 'merged', 'cancelled'].map((status, id) => ({
+      id, revision: 1, status, request_text: `${status} request`, details: { pr_number: id + 10 },
+    }))
+    const fetch = vi.spyOn(globalThis, 'fetch').mockResolvedValue(response({ enabled: true, jobs }))
+    render(<ImplementationPanel feedback={[feedback]} />)
+    await screen.findByText('failed request')
+    expect(screen.getByText('queued request')).toBeVisible()
+    expect(screen.getByText('ready request')).toBeVisible()
+    expect(screen.queryByText('merged request')).not.toBeInTheDocument()
+    expect(screen.queryByText('cancelled request')).not.toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'History (2)' }))
+    expect(screen.getByText('merged request')).toBeVisible()
+    expect(screen.getByText('cancelled request')).toBeVisible()
+    expect(screen.queryByText('failed request')).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Implement' })).not.toBeInTheDocument()
+    expect(screen.getAllByRole('link', { name: 'Review changes' })).toHaveLength(2)
+    fireEvent.click(screen.getByRole('button', { name: 'Active (3)' }))
+    expect(screen.getByText('failed request')).toBeVisible()
+    expect(fetch.mock.calls.every(([, options]) => !options?.method)).toBe(true)
+  })
+
+  it('moves a completed job into history when its status refreshes', async () => {
+    let merged = false
+    vi.spyOn(globalThis, 'fetch').mockImplementation((_, options) => {
+      if (options?.method) merged = true
+      return Promise.resolve(response({ enabled: true, jobs: [{ id: 7, revision: 1,
+        status: merged ? 'merged' : 'ready', request_text: 'Completed change', details: { head_sha: 'a'.repeat(40) } }] }))
+    })
+    vi.spyOn(window, 'confirm').mockReturnValue(true)
+    render(<ImplementationPanel feedback={[]} />)
+    fireEvent.click(await screen.findByRole('button', { name: 'Approve and merge' }))
+    await screen.findByText('No current implementations. Completed and cancelled jobs are in History.')
+    expect(screen.queryByText('Completed change')).not.toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'History (1)' }))
+    expect(screen.getByText('Completed change')).toBeVisible()
+    expect(screen.queryByRole('button', { name: 'Approve and merge' })).not.toBeInTheDocument()
+  })
+
   it('only queues approved requests, excludes questions, and requires a configured worker', async () => {
     const fetch = vi.spyOn(globalThis, 'fetch').mockResolvedValue(response({ enabled: false, jobs: [] }))
     render(<ImplementationPanel feedback={[feedback, { ...feedback, id: 5, is_question: true }, { ...feedback, id: 6, status: 'pending' }]} />)

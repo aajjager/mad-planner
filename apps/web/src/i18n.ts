@@ -1,6 +1,8 @@
 import type { Account } from './api/auth'
 
 const en = {
+  implementationHistoryEmpty: 'No completed or cancelled implementations yet.',
+  implementationActiveEmpty: 'No current implementations. Completed and cancelled jobs are in History.',
   testPreview: 'Test preview', testPreviewHelp: 'This preview uses separate test data. Your live family data is not affected.',
 implementationTitle: "Implementation workspace", implementationHelp: "Implement approved requests on the development worker, test the preview, then approve the tested commit for merging. TrueNAS deployment remains separate.", implementationSetup: "Worker connection and protected preview address need configuring before implementation is available.", implementRequest: "Implement", implementationRevision: "Revision", implementationCommit: "Commit", implementationChecksPassed: "Checks passed", implementationPreview: "Open preview", implementationReview: "Review changes", implementationApprove: "Approve and merge", implementationApproveConfirm: "Merge this tested commit into main", implementationChangeNotes: "Changes needed", implementationRequestChanges: "Request changes", implementation_queued: "Queued", implementation_implementing: "Implementing", implementation_testing: "Testing", implementation_deploying: "Preparing preview", implementation_ready: "Ready for review", implementation_approved: "Approved", implementation_merging: "Merging", implementation_merged: "Merged", implementation_failed: "Failed", implementation_cancelled: "Cancelled",
 
@@ -139,3 +141,6 @@ Object.assign(nl, {"implementationTitle": "Implementatiewerkruimte", "implementa
 
 Object.assign(da, { testPreview: 'Testvisning', testPreviewHelp: 'Denne visning bruger separate testdata. Familiens rigtige data påvirkes ikke.' })
 Object.assign(nl, { testPreview: 'Testpreview', testPreviewHelp: 'Deze preview gebruikt afzonderlijke testgegevens. Je echte gezinsgegevens worden niet gewijzigd.' })
+
+Object.assign(da, { implementationHistoryEmpty: 'Ingen afsluttede eller annullerede implementeringer endnu.', implementationActiveEmpty: 'Ingen aktuelle implementeringer. Afsluttede og annullerede opgaver findes under Historik.' })
+Object.assign(nl, { implementationHistoryEmpty: 'Nog geen voltooide of geannuleerde implementaties.', implementationActiveEmpty: 'Geen huidige implementaties. Voltooide en geannuleerde taken staan in Geschiedenis.' })

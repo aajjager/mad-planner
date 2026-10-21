@@ -8,6 +8,7 @@ interface Job {
   details: { head_sha?: string; summary?: string; preview_url?: string; pr_number?: number; tests_passed?: boolean }
 }
 const terminal = ['merged', 'failed', 'cancelled']
+const archived = ['merged', 'cancelled']
 async function request(path = '', body?: unknown) {
   const response = await fetch(`/api/v1/implementations${path}`, body === undefined ? undefined : { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
   const data = await response.json()
@@ -18,6 +19,7 @@ async function request(path = '', body?: unknown) {
 export function ImplementationPanel({ feedback }: { feedback: Feedback[] }) {
   const { account } = useAuth(); const t = translator(account?.locale)
   const [jobs, setJobs] = useState<Job[]>([])
+  const [view, setView] = useState<'active' | 'history'>('active')
   const [enabled, setEnabled] = useState(false)
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
@@ -36,12 +38,20 @@ export function ImplementationPanel({ feedback }: { feedback: Feedback[] }) {
     try { await request(path, body); await refresh() } catch (reason) { setError(reason instanceof Error ? reason.message : t('requestFailed')) } finally { setBusy(false) }
   }
   const candidates = feedback.filter((item) => item.status === 'approved' && !item.is_question && !jobs.some((job) => job.feedback_id === item.id && !terminal.includes(job.status)))
+  const currentJobs = jobs.filter((job) => !archived.includes(job.status))
+  const historyJobs = jobs.filter((job) => archived.includes(job.status))
+  const visibleJobs = view === 'active' ? currentJobs : historyJobs
   return <section className="family-panel"><h2>{t('implementationTitle')}</h2><p>{t('implementationHelp')}</p>
     {!enabled && <p className="notice">{t('implementationSetup')}</p>}
     {error && <p role="alert" className="notice notice--error">{error}</p>}
+    <nav className="feedback-tabs" aria-label={t('implementationTitle')}>
+      <button className={view === 'active' ? 'button button--primary' : 'button'} aria-pressed={view === 'active'} onClick={() => setView('active')}>{t('active')} ({currentJobs.length})</button>
+      <button className={view === 'history' ? 'button button--primary' : 'button'} aria-pressed={view === 'history'} onClick={() => setView('history')}>{t('history')} ({historyJobs.length})</button>
+    </nav>
+    {visibleJobs.length === 0 && (view === 'history' || candidates.length === 0) && <p>{t(view === 'history' ? 'implementationHistoryEmpty' : 'implementationActiveEmpty')}</p>}
     <div className="feedback-review-list">
-      {candidates.map((item) => <article key={`request-${item.id}`}><strong>{t(item.category === 'feature' ? 'featureRequest' : item.category)}</strong><p>{item.content}</p><button className="button button--primary" disabled={busy || !enabled} onClick={() => void act(`/feedback/${item.id}`, {})}>{t('implementRequest')}</button></article>)}
-      {jobs.map((job) => <article key={job.id}><header><strong>#{job.id} · {t('implementationRevision')} {job.revision}</strong><span className="tag">{t(`implementation_${job.status}` as Parameters<typeof t>[0])}</span></header><p>{job.request_text}</p>
+      {view === 'active' && candidates.map((item) => <article key={`request-${item.id}`}><strong>{t(item.category === 'feature' ? 'featureRequest' : item.category)}</strong><p>{item.content}</p><button className="button button--primary" disabled={busy || !enabled} onClick={() => void act(`/feedback/${item.id}`, {})}>{t('implementRequest')}</button></article>)}
+      {visibleJobs.map((job) => <article key={job.id}><header><strong>#{job.id} · {t('implementationRevision')} {job.revision}</strong><span className="tag">{t(`implementation_${job.status}` as Parameters<typeof t>[0])}</span></header><p>{job.request_text}</p>
         {job.details.summary && <p style={{ whiteSpace: 'pre-wrap' }}>{job.details.summary}</p>}
         {job.details.head_sha && <p>{t('implementationCommit')}: <code>{job.details.head_sha.slice(0, 12)}</code>{job.details.tests_passed && ` · ${t('implementationChecksPassed')}`}</p>}
         <div className="heading-actions">
