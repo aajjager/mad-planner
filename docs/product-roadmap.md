@@ -61,9 +61,8 @@ Original scans should be retained only when the user chooses to keep them. OCR o
 
 - Add account recovery before enabling stronger authentication requirements.
 - Add TOTP MFA with recovery codes.
-- Add WebAuthn/passkeys as the preferred passwordless option.
-- Add passkey and MFA management to personal account security settings.
-- Require HTTPS and a stable hostname on TrueNAS before production passkey enrollment.
+- Provide MFA management in personal account security settings alongside password-based login.
+- Passkeys are outside the planned scope, as requested by the administrator.
 - Add security-event logging and rate limiting for login and recovery endpoints.
 
 ## Phase 16 — Deployment resilience
@@ -109,7 +108,7 @@ Original scans should be retained only when the user chooses to keep them. OCR o
 ## Phase 25 — Guided HTTPS
 
 - Add a documented reverse-proxy setup for a stable hostname and trusted TLS certificate.
-- Validate secure-cookie, passkey, notification, upload-size, and forwarded-header settings.
+- Validate secure-cookie, notification, upload-size, and forwarded-header settings.
 - Provide an easy TrueNAS path and a generic Debian Docker path without exposing PostgreSQL publicly.
 
 ## Phase 26 — Administrator backup controls

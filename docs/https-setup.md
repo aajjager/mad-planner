@@ -1,6 +1,6 @@
 # HTTPS setup
 
-Mad Planner should use a stable hostname and HTTPS before enabling passkeys or browser notifications outside localhost. Keep the application port bound to the server itself and let a reverse proxy be the only public entry point. PostgreSQL remains private inside the Compose network.
+Mad Planner should use a stable hostname and HTTPS for secure production cookies and browser notifications outside localhost. Keep the application port bound to the server itself and let a reverse proxy be the only public entry point. PostgreSQL remains private inside the Compose network.
 
 ## Cloudflare Tunnel (recommended when the domain uses Cloudflare)
 

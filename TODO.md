@@ -110,11 +110,10 @@
   - [x] Translate the interface into English, Danish, and Dutch
   - [x] Localize dates, quantities, and units
 
-- [ ] Phase 15 — MFA and passkeys
+- [x] Phase 15 — MFA and account recovery
   - [x] Add family-scoped security-event logging
   - [x] Add owner-issued account recovery links
   - [x] Add TOTP MFA and recovery codes
-  - [ ] Add WebAuthn/passkeys after HTTPS and hostname setup
 
 - [x] Phase 16 — Deployment resilience
   - [x] Add persistent media storage
