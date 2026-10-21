@@ -1,3 +1,5 @@
+import { backgroundSubscribed } from './push'
+
 export const notificationsSupported = (): boolean =>
   'Notification' in window && 'serviceWorker' in navigator && window.isSecureContext
 
@@ -9,6 +11,7 @@ export async function enableBrowserNotifications(): Promise<boolean> {
 
 export async function showPlanReminderNotification(title: string, body: string, weekStart: string): Promise<void> {
   if (!notificationsSupported() || Notification.permission !== 'granted') return
+  if (await backgroundSubscribed().catch(() => false)) return
   const dedupeKey = `madplanner-plan-reminder-${weekStart}`
   if (window.localStorage.getItem(dedupeKey)) return
   const registration = await navigator.serviceWorker.ready
@@ -24,6 +27,7 @@ export async function showPlanReminderNotification(title: string, body: string, 
 
 export async function showFeedbackCompletionNotification(title: string, body: string, feedbackId: number): Promise<void> {
   if (!notificationsSupported() || Notification.permission !== 'granted') return
+  if (await backgroundSubscribed().catch(() => false)) return
   const dedupeKey = `madplanner-feedback-complete-${feedbackId}`
   if (window.localStorage.getItem(dedupeKey)) return
   const registration = await navigator.serviceWorker.ready

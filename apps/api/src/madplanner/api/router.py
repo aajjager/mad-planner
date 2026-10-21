@@ -1,6 +1,7 @@
 from fastapi import APIRouter
 
 from madplanner.api.routes.auth import router as auth_router
+from madplanner.api.routes.push import router as push_router
 from madplanner.api.routes.health import router as health_router
 from madplanner.api.routes.implementations import router as implementations_router
 from madplanner.api.routes.grocery import router as grocery_router
@@ -11,6 +12,7 @@ from madplanner.api.routes.recipe_scans import router as recipe_scans_router
 
 api_router = APIRouter()
 api_router.include_router(auth_router)
+api_router.include_router(push_router)
 api_router.include_router(implementations_router)
 api_router.include_router(health_router)
 api_router.include_router(grocery_router)

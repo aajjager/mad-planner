@@ -1,6 +1,11 @@
 import type { Account } from './api/auth'
 
 const en = {
+  backgroundPush: 'Background notifications on this device', backgroundPushHelp: 'Receive incomplete-plan reminders and completed-feedback updates while the app is closed. Planning reminders are sent at most once daily after 09:00 Copenhagen time. Enable separately on each device. Delivery depends on your browser and phone settings.',
+  pushUnsupported: 'This browser needs HTTPS and Web Push support. On iPhone or iPad, add Mad Planner to your Home Screen and open it there first.',
+  pushNotConfigured: 'The administrator needs to configure background push before you can enable it.',
+  pushDeviceOn: 'Background notifications are enabled on this device.', pushDeviceOff: 'Background notifications are off or paused on this device.',
+  pushEnable: 'Enable background notifications', pushDisable: 'Disable on this device', pushFailed: 'Background notification settings could not be saved. Please try again.',
   implementationHistoryEmpty: 'No completed or cancelled implementations yet.',
   implementationActiveEmpty: 'No current implementations. Completed and cancelled jobs are in History.',
   testPreview: 'Test preview', testPreviewHelp: 'This preview uses separate test data. Your live family data is not affected.',
@@ -144,3 +149,6 @@ Object.assign(nl, { testPreview: 'Testpreview', testPreviewHelp: 'Deze preview g
 
 Object.assign(da, { implementationHistoryEmpty: 'Ingen afsluttede eller annullerede implementeringer endnu.', implementationActiveEmpty: 'Ingen aktuelle implementeringer. Afsluttede og annullerede opgaver findes under Historik.' })
 Object.assign(nl, { implementationHistoryEmpty: 'Nog geen voltooide of geannuleerde implementaties.', implementationActiveEmpty: 'Geen huidige implementaties. Voltooide en geannuleerde taken staan in Geschiedenis.' })
+
+Object.assign(da, { backgroundPush: 'Baggrundsnotifikationer på denne enhed', backgroundPushHelp: 'Modtag påmindelser om ufuldstændige madplaner og afsluttet feedback, mens appen er lukket. Madplanpåmindelser sendes højst én gang dagligt efter kl. 09 dansk tid. Slå til på hver enhed. Levering afhænger af browserens og telefonens indstillinger.', pushUnsupported: 'Browseren kræver HTTPS og Web Push. På iPhone og iPad skal Mad Planner føjes til hjemmeskærmen og åbnes derfra først.', pushNotConfigured: 'Administratoren skal konfigurere baggrundsnotifikationer først.', pushDeviceOn: 'Baggrundsnotifikationer er slået til på denne enhed.', pushDeviceOff: 'Baggrundsnotifikationer er slået fra eller sat på pause på denne enhed.', pushEnable: 'Slå baggrundsnotifikationer til', pushDisable: 'Slå fra på denne enhed', pushFailed: 'Indstillingerne kunne ikke gemmes. Prøv igen.' })
+Object.assign(nl, { backgroundPush: 'Achtergrondmeldingen op dit apparaat', backgroundPushHelp: 'Ontvang herinneringen voor onvolledige maaltijdplannen en voltooide feedback terwijl de app gesloten is. Planherinneringen worden maximaal eenmaal per dag na 09:00 Deense tijd verstuurd. Schakel dit op elk apparaat in. Bezorging hangt af van je browser- en telefooninstellingen.', pushUnsupported: 'Deze browser heeft HTTPS en Web Push nodig. Voeg Mad Planner op iPhone of iPad eerst toe aan het beginscherm en open de app daar.', pushNotConfigured: 'De beheerder moet achtergrondmeldingen eerst configureren.', pushDeviceOn: 'Achtergrondmeldingen zijn ingeschakeld op dit apparaat.', pushDeviceOff: 'Achtergrondmeldingen zijn uitgeschakeld of gepauzeerd op dit apparaat.', pushEnable: 'Achtergrondmeldingen inschakelen', pushDisable: 'Uitschakelen op dit apparaat', pushFailed: 'De instellingen konden niet worden opgeslagen. Probeer het opnieuw.' })
