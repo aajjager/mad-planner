@@ -143,7 +143,8 @@
 - [x] Phase 20 — Planning automation
   - [x] Add family-configurable in-app incomplete-plan reminders for 1–4 weeks ahead
   - [x] Add installable phone-app support and per-user browser notification permission
-  - [ ] Add server-sent background push delivery after the HTTPS TrueNAS hostname is configured
+  - [x] Add server-sent background push delivery after the HTTPS TrueNAS hostname is configured
+  - [ ] Configure persistent VAPID signing keys and verify closed-app delivery on a real phone
   - [x] Generate three alternative weekly plans from tags, cuisines, meal types, seasons, and cooking time
   - [x] Let families choose three-plan review or immediate automatic filling
 

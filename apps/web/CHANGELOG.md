@@ -35,6 +35,8 @@ All notable user-visible changes are recorded here. Versions use year since 2026
 
 ### Features
 
+- Added opt-in background Web Push for incomplete meal plans and completed feedback, with per-device enable/disable, English/Danish/Dutch messages, daily planning limits, and automatic cleanup of expired subscriptions. Requires administrator VAPID setup and HTTPS; phone delivery depends on browser/OS support.
+
 - Added an optional administrator implementation workspace with queued jobs, progress, preview and pull-request links, revision requests, and approval of the exact tested commit. A separately configured Linux controller runs isolated implementations and checks, publishes preview branches, and merges only after approval. TrueNAS deployment remains manual; worker credentials and a protected preview address must be configured before use.
 
 ### Bug fixes

@@ -11,6 +11,8 @@ The project is being built incrementally as a modular monolith:
 
 ## Run the complete application
 
+For opt-in notifications while the app is closed, see [Background Web Push](docs/background-push.md). Administrator signing-key setup and HTTPS are required.
+
 Copy the example environment file, then build and start all three services:
 
 ```powershell
