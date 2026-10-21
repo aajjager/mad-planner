@@ -14,6 +14,15 @@ function browser(permission = 'granted') {
 }
 
 describe('Background push registration', () => {
+  it('reuses granted notification permission without another browser prompt', async () => {
+    const { manager } = browser()
+    const requestPermission = vi.fn()
+    vi.stubGlobal('Notification', { permission: 'granted', requestPermission })
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response('{}', { status: 201 }))
+    expect(await enableBackgroundPush('AQID')).toBe(true)
+    expect(requestPermission).not.toHaveBeenCalled()
+    expect(manager.subscribe).toHaveBeenCalledOnce()
+  })
   it('asks permission on demand and saves the encrypted browser subscription', async () => {
     const { subscription, manager } = browser()
     const fetch = vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response('{}', { status: 201 }))

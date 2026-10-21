@@ -19,7 +19,7 @@ export async function backgroundSubscribed(): Promise<boolean> {
 export async function enableBackgroundPush(publicKey: string): Promise<boolean> {
   if (!pushSupported()) return false
   // Permission must originate from the user's click, before network requests.
-  if (await Notification.requestPermission() !== 'granted') return false
+  if (Notification.permission !== 'granted' && await Notification.requestPermission() !== 'granted') return false
   const registration = await navigator.serviceWorker.ready
   const decoded = atob(publicKey.replace(/-/g, '+').replace(/_/g, '/'))
   const key = new Uint8Array(decoded.length)

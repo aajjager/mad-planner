@@ -42,8 +42,11 @@ Linux implementation worker. The API checks for notifications every minute.
 
 ## Enable a device
 
-Open **Family → Background notifications on this device**, then enable and accept
-the browser prompt. This also enables the existing account notification preference.
+Open **Family → My personal settings → Phone and browser notifications**, then
+enable the single switch and accept the browser prompt. This enables both the
+account preference and background registration. Existing opted-in accounts with
+permission already granted register automatically when opening these settings,
+without another permission prompt.
 On iPhone/iPad, install Mad Planner with **Add to Home Screen**, open that installed
 app, and then enable notifications. Browser/OS power settings and force-quitting a
 browser can delay or prevent delivery; delivery is best effort, not guaranteed.
@@ -51,8 +54,8 @@ browser can delay or prevent delivery; delivery is best effort, not guaranteed.
 Each browser must opt in. Device registration is tied to its current authenticated
 session. Logout, session expiry, removed family access, or a deleted account stops
 delivery. Sign in again and enable on the device after a session expires. Disabling
-the existing account notification preference pauses all its devices; disabling in
-the background section removes just this device's registration.
+the notification switch pauses all its devices and removes this device's
+registration. Other device registrations are retained while paused.
 
 Planning sends at most once per device per day after **09:00 Europe/Copenhagen**,
 using the family's enabled meal types, exclusions and reminder horizon. Complete

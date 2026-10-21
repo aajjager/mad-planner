@@ -6,6 +6,8 @@ All notable user-visible changes are recorded here. Versions use year since 2026
 
 ### Improvements
 
+- Combined browser and background notifications into one switch in personal settings. Enabling registers background delivery and requests permission when needed; existing granted opt-ins register automatically. Turning it off pauses account notifications and removes this device's subscription.
+
 - Implementation workspace now keeps merged and cancelled jobs in a separate History view. Current jobs and failures needing attention remain in the main view; saved job details and review links are retained.
 
 - Added lavender, terracotta, and teal menu palettes in Family personal settings, with light and dark variants and English, Danish, and Dutch labels. Existing colour choices are preserved, and saved palettes are restored when reopening the app.
