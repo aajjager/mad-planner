@@ -4,6 +4,10 @@ All notable user-visible changes are recorded here. Versions use year since 2026
 
 ## 0.10.4 — October 2026, week 4
 
+### Bug fixes
+
+- Recipe imports now select the recipe title instead of publisher or author names such as Valdemarsro. Existing saved recipes are preserved; review the title when reimporting an affected recipe.
+
 ### Features
 
 - Weekly planning preferences now search saved meal names alongside ingredients and styles, including small typos such as “bruger” for burger. Select a matching meal to prioritize it in suggested plans for any week.

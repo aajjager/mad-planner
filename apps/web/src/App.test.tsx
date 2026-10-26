@@ -279,7 +279,7 @@ describe('App', () => {
     render(<App />)
     expect(await screen.findByRole('heading', { name: 'Mad Planner 0.10.4' })).toBeInTheDocument()
     expect(screen.getAllByRole('heading', { name: 'Improvements' }).length).toBeGreaterThan(0)
-    expect(screen.getByRole('heading', { name: 'Bug fixes' })).toBeInTheDocument()
+    expect(screen.getAllByRole('heading', { name: 'Bug fixes' }).length).toBeGreaterThan(0)
     expect(screen.getByText('October 2026, week 4')).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: 'Mad Planner 0.2.5' })).toBeInTheDocument()
   })
