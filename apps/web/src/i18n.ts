@@ -228,4 +228,3 @@ Object.assign(nl, {"recipeCreationProgress": "Voortgang recept maken", "ingredie
 
 Object.assign(da, { mobileNavigation: 'Mobilnavigation' })
 Object.assign(nl, { mobileNavigation: 'Mobiele navigatie' })
-
