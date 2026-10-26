@@ -2,6 +2,12 @@
 
 All notable user-visible changes are recorded here. Versions use year since 2026.month.week in Europe/Copenhagen time: 2026 = 0, October = 10; days 1–7 = week 1, 8–14 = week 2, 15–21 = week 3, and 22–month-end = week 4. Older release numbers below are retained as historical identifiers.
 
+## 0.10.4 — October 2026, week 4
+
+### Bug fixes
+
+- Fixed implementation jobs failing on routine weekly version updates or ignored dependency symlinks. Version-only updates are checked against the current release; dependency/configuration changes and symlinks in published source still require manual review.
+
 ## 0.10.3 — October 2026, week 3
 
 ### Improvements

@@ -123,6 +123,12 @@ in ChatGPT security settings. See [Codex authentication](https://learn.chatgpt.c
 
 The controller intentionally rejects changes to worker files, Git configuration,
 AGENTS.md, environment files, and dependency manifests. Those need manual review.
+The sole manifest exception is a change to API `project.version` alone: it must
+match the current Copenhagen completion week and the first release in CHANGELOG.md.
+The runtime dependency comparison also ignores only that version metadata field.
+Ignored dependency folders are never traversed or published, including symlinks;
+the web `node_modules` symlink is unlinked before validation copies trusted modules.
+Links in actual published source remain forbidden.
 It processes one preview at a time, keeping a ready preview until a decision.
 The initial worker uses the feedback text and review notes; attachments are not
 automatically supplied to Codex. Requests must be understandable from their text
