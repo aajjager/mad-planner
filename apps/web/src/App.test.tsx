@@ -18,6 +18,27 @@ const authResponse = (input: RequestInfo | URL) => {
 }
 
 describe('App', () => {
+  it('finds a saved meal with a typo and sends its name as a planning preference', async () => {
+    window.history.pushState({}, '', '/planner?week=2027-03-15')
+    const name = 'Smoky Burger with crispy onions and homemade sauce'
+    const fetch = vi.spyOn(globalThis, 'fetch').mockImplementation((input) => {
+      const url = String(input)
+      const auth = authResponse(input)
+      if (auth) return Promise.resolve(auth)
+      if (url.includes('/meal-plans/week/suggestions')) return Promise.resolve(jsonResponse({ options: [] }))
+      if (url.includes('/meal-plans/week')) return Promise.resolve(jsonResponse({ entries: [], exclusions: [] }))
+      if (url.endsWith('/recipes')) return Promise.resolve(jsonResponse([{ id: 23, name, tags: [], ingredients: [], meal_types: ['dinner'] }]))
+      return Promise.resolve(jsonResponse([]))
+    })
+    render(<App />)
+    const search = await screen.findByRole('searchbox', { name: 'Search meals, ingredients, cuisines, or styles' })
+    fireEvent.change(search, { target: { value: 'bruger' } })
+    fireEvent.click(screen.getByRole('button', { name: `+ ${name}` }))
+    expect(screen.getByRole('button', { name: `${name} ×` })).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Suggest my week' }))
+    await waitFor(() => expect(fetch).toHaveBeenCalledWith('/api/v1/meal-plans/week/suggestions?week_start=2027-03-15', expect.objectContaining({ body: expect.stringContaining(JSON.stringify([name])) })))
+  })
+
   it.each(['lavender', 'terracotta', 'teal'])('saves and applies the %s personal palette in Family', async (theme) => {
     window.history.pushState({}, '', '/family')
     const fetch = vi.spyOn(globalThis, 'fetch').mockImplementation((input, init) => {

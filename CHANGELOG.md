@@ -4,6 +4,10 @@ All notable user-visible changes are recorded here. Versions use year since 2026
 
 ## 0.10.4 — October 2026, week 4
 
+### Features
+
+- Weekly planning preferences now search saved meal names alongside ingredients and styles, including small typos such as “bruger” for burger. Select a matching meal to prioritize it in suggested plans for any week.
+
 ### Improvements
 
 - Completed Danish and Dutch recipe filters, sorting, ratings, navigation, planner states, and backup controls. The Updates page now translates release dates, categories, and the full release history using the account language; personal language choices and saved data are preserved.

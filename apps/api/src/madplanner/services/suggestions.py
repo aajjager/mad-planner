@@ -47,7 +47,7 @@ class MealSuggestionService:
         suggestions: list[MealSuggestion] = []
         usage: Counter[int] = Counter()
         selected_ingredients: set[str] = set()
-        preferred = {tag.casefold() for tag in preferences.preferred_tags}
+        preferred = {" ".join(tag.casefold().split()) for tag in preferences.preferred_tags}
         dinner_by_date: dict[date, MealSuggestion] = {}
         carried_meals: dict[tuple[date, MealType], MealSuggestion] = {}
         consecutive_sources: set[date] = set()
@@ -128,6 +128,9 @@ class MealSuggestionService:
         for ingredient in self._ingredients(recipe):
             labels.add(ingredient)
             labels.update(word for word in ingredient.replace("-", " ").split() if len(word) > 2)
+        name = " ".join(recipe.name.casefold().split())
+        labels.add(name)
+        labels.update(name.replace("-", " ").split())
         reasons: list[str] = []
         score = 100 - repeats * 60
         if labels & _MEAL_WORDS[meal_type]:
@@ -137,6 +140,8 @@ class MealSuggestionService:
         if matching_tags:
             score += 15 * len(matching_tags)
             reasons.append(f"Matches {', '.join(sorted(matching_tags))}")
+        if name in preferred:
+            score += 35
         overlap = self._ingredients(recipe) & selected
         if overlap:
             score += min(len(overlap), 5) * 2
