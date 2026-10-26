@@ -45,6 +45,28 @@ describe('App', () => {
     expect(window.location.pathname).toBe('/recipes')
   })
 
+  it('reviews and saves the introduction from a scanned cookbook page', async () => {
+    window.history.pushState({}, '', '/recipes/scan')
+    const preview = { name: 'Chili con carne', description: 'A family favourite.', ingredients: ['350 g beef'], instructions: ['Simmer for thirty minutes.'], raw_text: 'Chili con carne', warnings: [] }
+    const fetch = vi.spyOn(globalThis, 'fetch').mockImplementation((input, init) => {
+      const url = String(input)
+      if (url.endsWith('/recipe-scans/preview')) return Promise.resolve(jsonResponse(preview))
+      if (url.endsWith('/recipes') && init?.method === 'POST') return Promise.resolve(jsonResponse({ id: 999, ...preview, tags: [], meal_types: [], recipe_types: [] }))
+      return Promise.resolve(authResponse(input) ?? jsonResponse([]))
+    })
+    render(<App />)
+    const file = new File(['photo'], 'page.jpg', { type: 'image/jpeg' })
+    fireEvent.change(await screen.findByLabelText('Recipe page photo'), { target: { files: [file] } })
+    fireEvent.click(screen.getByRole('button', { name: 'Scan page' }))
+    const description = await screen.findByLabelText('Description')
+    expect(description).toHaveValue('A family favourite.')
+    expect(screen.getByText(/Text recognition can miss/)).toBeInTheDocument()
+    fireEvent.change(description, { target: { value: 'Reviewed introduction.' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Dinner' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Save scanned recipe' }))
+    await waitFor(() => expect(fetch.mock.calls.some(([url, init]) => String(url).endsWith('/recipes') && init?.method === 'POST' && JSON.parse(String(init.body)).description === 'Reviewed introduction.')).toBe(true))
+  })
+
   it.each(['lavender', 'terracotta', 'teal'])('saves and applies the %s personal palette in Family', async (theme) => {
     window.history.pushState({}, '', '/family')
     const fetch = vi.spyOn(globalThis, 'fetch').mockImplementation((input, init) => {

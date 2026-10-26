@@ -7,7 +7,7 @@ export const guideCopy = {
     steps: [
       ['Welcome to Mad Planner', 'Keep your recipes, weekly meals, and groceries together. Follow these tips at your own pace. You can close the guide and reopen it using Welcome guide.', ''],
       ['Your recipe collection', 'Search and filter recipes, open one to see ingredients and cooking steps, and use cooking mode to follow along. Long descriptions have a Read more button. Owners and editors can use Edit recipe on their own family recipes to change details, ingredients, and steps.', '/recipes'],
-      ['Bring your own recipes', 'Open Add recipe to choose manual entry, a website URL, a cookbook page scan, or a CookBook export. Review the ingredients and steps before saving.', '/recipes/add'],
+      ['Bring your own recipes', 'Open Add recipe to choose manual entry, a website URL, a cookbook page scan, or a CookBook export. For scans, photograph one page straight on in good light. Review the description, ingredients, quantities, and steps before saving.', '/recipes/add'],
       ['Plan meals together', 'Choose meals for your week or review smart suggestions. Family settings control household size, leftovers, and meal types.', '/planner'],
       ['Shop with your family', 'Your planned meals provide the grocery list. Add extra items and tick off purchases as you shop.', '/grocery-list'],
       ['Make the app your own', 'In Family, Personal settings lets you choose your language, dark mode, menu colour (including lavender, terracotta, and teal), nutrition display, and browser notifications. These preferences belong to your own account, not the whole family.', '/family#personal-settings'],
@@ -23,7 +23,7 @@ export const guideCopy = {
     steps: [
       ['Velkommen til Mad Planner', 'Saml opskrifter, ugens måltider og indkøb ét sted. Følg guiden i dit eget tempo. Du kan lukke den og åbne den igen via Velkomstguide.', ''],
       ['Din opskriftssamling', 'Søg og filtrér opskrifter. Åbn en opskrift for at se ingredienser og fremgangsmåde, og følg trinene i madlavningstilstand. Lange beskrivelser har en Læs mere-knap. Ejere og redaktører kan bruge Redigér opskrift på familiens egne opskrifter for at ændre detaljer, ingredienser og trin.', '/recipes'],
-      ['Tilføj dine opskrifter', 'Åbn Tilføj opskrift og vælg manuel oprettelse, et link, scanning af en kogebogsside eller en CookBook-eksport. Gennemgå ingredienser og trin, før du gemmer.', '/recipes/add'],
+      ['Tilføj dine opskrifter', 'Åbn Tilføj opskrift og vælg manuel oprettelse, et link, scanning af en kogebogsside eller en CookBook-eksport. Ved scanning: fotografér én side lige forfra i godt lys. Gennemgå beskrivelse, ingredienser, mængder og trin, før du gemmer.', '/recipes/add'],
       ['Planlæg måltider sammen', 'Vælg ugens måltider eller gennemgå smarte forslag. Familieindstillinger styrer antal personer, rester og måltidstyper.', '/planner'],
       ['Køb ind med familien', 'Dine planlagte måltider danner indkøbslisten. Tilføj ekstra varer og markér dem som købt undervejs.', '/grocery-list'],
       ['Gør appen til din egen', 'Under Familie kan du vælge sprog, mørk tilstand, menufarve (blandt andet lavendel, terrakotta og blågrøn), næringsindhold og browsernotifikationer i Personlige indstillinger. Disse valg gælder din egen konto, ikke hele familien.', '/family#personal-settings'],
@@ -39,7 +39,7 @@ export const guideCopy = {
     steps: [
       ['Welkom bij Mad Planner', 'Bewaar recepten, weekmaaltijden en boodschappen op één plek. Volg de tips in je eigen tempo. Je kunt de gids sluiten en opnieuw openen via Welkomstgids.', ''],
       ['Je receptenverzameling', 'Zoek en filter recepten. Open een recept voor ingrediënten en stappen en volg de kookmodus. Lange beschrijvingen hebben een Lees meer-knop. Eigenaren en bewerkers kunnen eigen gezinsrecepten aanpassen met Recept bewerken, inclusief details, ingrediënten en stappen.', '/recipes'],
-      ['Voeg je recepten toe', 'Open Recept toevoegen en kies handmatige invoer, een websitelink, een kookboekscan of een CookBook-export. Controleer ingrediënten en stappen voordat je opslaat.', '/recipes/add'],
+      ['Voeg je recepten toe', 'Open Recept toevoegen en kies handmatige invoer, een websitelink, een kookboekscan of een CookBook-export. Fotografeer bij het scannen één pagina recht van voren bij goed licht. Controleer beschrijving, ingrediënten, hoeveelheden en stappen voordat je opslaat.', '/recipes/add'],
       ['Plan samen maaltijden', 'Kies maaltijden voor de week of bekijk slimme suggesties. Gezinsinstellingen bepalen personen, restjes en maaltijdtypen.', '/planner'],
       ['Doe samen boodschappen', 'Geplande maaltijden vormen je boodschappenlijst. Voeg extra artikelen toe en vink aankopen af tijdens het winkelen.', '/grocery-list'],
       ['Maak de app persoonlijk', 'Bij Gezin kies je onder Persoonlijke instellingen je taal, donkere modus, menukleur (waaronder lavendel, terracotta en blauwgroen), voedingswaarden en browsermeldingen. Deze voorkeuren gelden voor je eigen account, niet voor het hele gezin.', '/family#personal-settings'],

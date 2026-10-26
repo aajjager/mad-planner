@@ -3,6 +3,7 @@ from pydantic import BaseModel, Field
 
 class RecipeScanPreview(BaseModel):
     name: str
+    description: str | None = None
     ingredients: list[str] = Field(default_factory=list)
     instructions: list[str] = Field(default_factory=list)
     raw_text: str
