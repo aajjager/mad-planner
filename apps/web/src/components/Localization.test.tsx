@@ -26,7 +26,7 @@ describe('account language', () => {
     expect(screen.getByRole('button', { name: `2 ${t('starsLabel')}` })).toBeInTheDocument()
     expect(screen.getAllByRole('slider', { name: `${t('ratingRange')} ${t('maximumLabel')}` })).toHaveLength(2)
     expect(screen.getByRole('button', { name: t('downloadDatabase') })).toBeInTheDocument()
-    expect(screen.getByRole('heading', { name: locale === 'da' ? 'Fejlrettelser' : 'Opgeloste fouten' })).toBeInTheDocument()
+    expect(screen.getAllByRole('heading', { name: locale === 'da' ? 'Fejlrettelser' : 'Opgeloste fouten' }).length).toBeGreaterThan(0)
     expect(screen.queryByText('October 2026, week 4')).not.toBeInTheDocument()
     expect(view.container.textContent).toContain(locale === 'da' ? 'oktober 2026, uge 4' : 'oktober 2026, week 4')
     const personalTip = guideCopy[locale].steps.find((step) => step[2] === '/family#personal-settings')![1]

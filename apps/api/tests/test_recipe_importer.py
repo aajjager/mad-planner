@@ -193,3 +193,39 @@ def test_preview_endpoint_returns_imported_recipe() -> None:
     assert response.json()["name"] == "Danish pancakes"
     assert response.json()["suggested_recipe_types"] == ["Dessert"]
     assert response.json()["recipe_type_confidence"] == "high"
+
+
+@pytest.mark.parametrize("recipe_type", ["https://schema.org/Recipe", "http://schema.org/Recipe"])
+def test_html_recipe_name_ignores_publisher_author_and_breadcrumb_names(recipe_type: str) -> None:
+    name = "Teriyaki stir fry med hakket oksekød"
+    html = f'''<meta property="og:title" content="Generic page title">
+      <div itemscope itemtype="https://schema.org/Organization"><span itemprop="name">Valdemarsro</span></div>
+      <nav itemscope itemtype="https://schema.org/BreadcrumbList"><span itemprop="name">Recipes</span></nav>
+      <article itemscope itemtype="{recipe_type}">
+        <div itemprop="author" itemscope itemtype="https://schema.org/Person"><span itemprop="name">Ann-Christine</span></div>
+        <h1 itemprop="headline name">{name}</h1>
+        <span itemprop="recipeIngredient">200 g beef</span>
+        <div itemprop="recipeInstructions"><p>Fry.</p><p>Serve.</p></div>
+      </article>'''
+
+    class StubHttpClient:
+        def fetch(self, url: str) -> str:
+            return html
+
+    preview = RecipeImporter(http_client=StubHttpClient()).preview("https://www.valdemarsro.dk/teriyaki-stir-fry-med-hakket-oksekoed/")
+    assert preview.name == name
+    assert preview.parser == "html"
+    assert preview.ingredients == ["200 g beef"]
+    assert preview.instructions == ["Fry.", "Serve."]
+
+
+@pytest.mark.parametrize("title", [
+    '<meta property="og:title" content="Recipe title">',
+    '<meta name="twitter:title" content="Recipe title">',
+    '<h1>Recipe title</h1>',
+    '<title>Recipe title</title>',
+    '<span itemprop="name">Recipe title</span>',
+])
+def test_html_name_fallback_ignores_names_owned_by_other_entities(title: str) -> None:
+    html = '<div itemscope itemtype="https://schema.org/Organization"><span itemprop="name">Valdemarsro</span></div>' + title + '<div class="ingredients"><li>Beef</li></div>'
+    assert parse_html_recipe(html, "https://example.com/recipe").name == "Recipe title"
