@@ -11,6 +11,12 @@ function show(value = account) { return render(<MemoryRouter><WelcomeGuide accou
 afterEach(() => { cleanup(); localStorage.clear() })
 
 describe('Welcome guide', () => {
+  it.each(['en', 'da', 'nl'] as const)('introduces meal-name planning in %s without changing dismissal keys', (locale) => {
+    const step = guideCopy[locale].steps.find((step) => step[2] === '/planner')!
+    expect(step[1]).toContain('burger')
+    expect(guideStorageKey(account)).toBe('madplanner:welcome:4:15')
+  })
+
   it.each([
     ['en', 'lavender', 'terracotta', 'teal'],
     ['da', 'lavendel', 'terrakotta', 'blågrøn'],

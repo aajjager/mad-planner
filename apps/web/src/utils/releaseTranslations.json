@@ -250,5 +250,9 @@
   "Completed Danish and Dutch recipe filters, sorting, ratings, navigation, planner states, and backup controls. The Updates page now translates release dates, categories, and the full release history using the account language; personal language choices and saved data are preserved.": {
     "da": "Færdiggjorde danske og nederlandske filtre, sortering, bedømmelser, navigation, madplanvisninger og sikkerhedskopiering. Opdateringer oversætter nu datoer, kategorier og hele versionshistorikken til kontoens sprog. Sprogvalg og gemte data bevares.",
     "nl": "Deense en Nederlandse filters, sortering, beoordelingen, navigatie, planningsweergaven en back-upbediening voltooid. Updates vertaalt nu datums, categorieën en de volledige versiegeschiedenis naar de accounttaal. Taalkeuzes en opgeslagen gegevens blijven bewaard."
+  },
+  "Weekly planning preferences now search saved meal names alongside ingredients and styles, including small typos such as “bruger” for burger. Select a matching meal to prioritize it in suggested plans for any week.": {
+    "da": "Ugens planlægningsønsker søger nu efter gemte retter sammen med ingredienser og madstile, også ved små stavefejl som “bruger” for burger. Vælg en matchende ret for at prioritere den i forslag til en valgfri uge.",
+    "nl": "Weekvoorkeuren zoeken nu naar opgeslagen maaltijden naast ingrediënten en stijlen, ook bij kleine typefouten zoals “bruger” voor burger. Selecteer een passende maaltijd om deze voorrang te geven in voorgestelde plannen voor elke gewenste week."
   }
 }

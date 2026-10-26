@@ -55,11 +55,11 @@ export function PlannerPage() {
   const mealTypes = selectedMealTypes
   const days = useMemo(() => Array.from({ length: 7 }, (_, index) => addDays(weekStart, index)), [weekStart])
   const dayNames = days.map((day) => day.toLocaleDateString(locale, { weekday: 'long' }))
-  const availableTags = useMemo(() => [...new Set(recipes.flatMap((recipe) => [
+  const availableTags = useMemo(() => [...new Set([...recipes.map((recipe) => recipe.name), ...recipes.flatMap((recipe) => [
     ...recipe.tags,
     ...(recipe.cuisine ? recipe.cuisine.split(',').map((value) => value.trim()) : []),
     ...recipe.ingredients.map((ingredient) => cleanPlanningIngredient(ingredient.ingredient_name || '')).filter(Boolean),
-  ]).filter(usefulPlanningFilter))].sort((a, b) => a.localeCompare(b)), [recipes])
+  ]).filter(usefulPlanningFilter)])].sort((a, b) => a.localeCompare(b)), [recipes])
   const optionTitle = (id: string) => id === 'option-1' ? t('bestMatch') : id === 'option-2' ? t('moreVariety') : t('seasonalMix')
   const optionFocus = (id: string) => id === 'option-1' ? t('bestMatchHelp') : id === 'option-2' ? t('moreVarietyHelp') : t('seasonalMixHelp')
 
