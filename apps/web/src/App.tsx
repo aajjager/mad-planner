@@ -2,6 +2,7 @@ import { BrowserRouter, Link, NavLink, Navigate, Route, Routes } from 'react-rou
 import './App.css'
 import { EditRecipePage } from './pages/EditRecipePage'
 import { PreviewBanner } from './components/PreviewBanner'
+import { AddRecipePage } from './pages/AddRecipePage'
 import { CreateRecipePage } from './pages/CreateRecipePage'
 import { RecipeDetailPage } from './pages/RecipeDetailPage'
 import { RecipeListPage } from './pages/RecipeListPage'
@@ -33,7 +34,7 @@ function ApplicationShell() {
       <div className="app-shell">
         <header className="site-header">
           <Link className="brand" to="/recipes"><BrandMark /><span>Mad Planner</span></Link>
-          <nav aria-label="Main navigation"><Link to="/recipes">{t('recipes')}</Link><Link to="/planner">{t('planner')}</Link><Link to="/grocery-list">{t('groceries')}</Link>{canEditRecipes && <Link to="/recipes/import">{t('import')}</Link>}{canEditRecipes && <Link className="primary-link" to="/recipes/new">{t('addRecipe')}</Link>}</nav>
+          <nav aria-label="Main navigation"><Link to="/recipes">{t('recipes')}</Link><Link to="/planner">{t('planner')}</Link><Link to="/grocery-list">{t('groceries')}</Link>{canEditRecipes && <Link className="primary-link" to="/recipes/add">{t('addRecipe')}</Link>}</nav>
           <div className="account-menu"><Link className="account-link" to="/family">{account?.display_name} · {account?.family_name}<FeedbackAnswerBadge /></Link>{account?.role === 'owner' && <Link className="account-link" to="/admin">{t('admin')}</Link>}<button className="text-button" onClick={() => void logout()}>{t('signOut')}</button></div>
         </header>
         <PlanReminderBanner />
@@ -44,6 +45,7 @@ function ApplicationShell() {
           <Routes>
             <Route path="/" element={<Navigate to="/recipes" replace />} />
             <Route path="/recipes" element={<RecipeListPage />} />
+            <Route path="/recipes/add" element={canEditRecipes ? <AddRecipePage /> : <Navigate to="/recipes" replace />} />
             <Route path="/recipes/new" element={canEditRecipes ? <CreateRecipePage /> : <Navigate to="/recipes" replace />} />
             <Route path="/recipes/import" element={canEditRecipes ? <ImportRecipePage /> : <Navigate to="/recipes" replace />} />
             <Route path="/recipes/import/cookbook" element={canEditRecipes ? <CookBookImportPage /> : <Navigate to="/recipes" replace />} />
@@ -62,7 +64,7 @@ function ApplicationShell() {
         <nav className={`mobile-navigation${account?.role === 'owner' ? ' mobile-navigation--admin' : ''}`} aria-label="Mobile navigation">
           <NavLink to="/recipes"><span aria-hidden="true">▤</span>{t('recipes')}</NavLink>
           <NavLink to="/planner"><span aria-hidden="true">□</span>{t('planner')}</NavLink>
-          {canEditRecipes && <NavLink className="mobile-navigation__add" to="/recipes/new"><span aria-hidden="true">+</span>{t('addRecipe')}</NavLink>}
+          {canEditRecipes && <NavLink className="mobile-navigation__add" to="/recipes/add"><span aria-hidden="true">+</span>{t('addRecipe')}</NavLink>}
           <NavLink to="/grocery-list"><span aria-hidden="true">✓</span>{t('groceries')}</NavLink>
           <NavLink to="/family"><span aria-hidden="true">⌂</span>{t('familyNav')}<FeedbackAnswerBadge /></NavLink>
           {account?.role === 'owner' && <NavLink to="/admin"><span aria-hidden="true">⚙</span>{t('admin')}</NavLink>}

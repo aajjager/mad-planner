@@ -18,6 +18,33 @@ const authResponse = (input: RequestInfo | URL) => {
 }
 
 describe('App', () => {
+  it('groups creation methods behind Add recipe and keeps browsing uncluttered', async () => {
+    window.history.pushState({}, '', '/recipes')
+    const fetch = vi.spyOn(globalThis, 'fetch').mockImplementation((input) => Promise.resolve(authResponse(input) ?? jsonResponse([])))
+    render(<App />)
+    await screen.findByRole('heading', { name: 'Your recipes' })
+    const main = within(screen.getByRole('main'))
+    expect(main.queryByRole('link', { name: 'Scan book' })).not.toBeInTheDocument()
+    expect(main.queryByRole('link', { name: 'Import from URL' })).not.toBeInTheDocument()
+    fireEvent.click(main.getByRole('link', { name: 'Add recipe' }))
+    await screen.findByRole('heading', { name: 'How would you like to add a recipe?' })
+    for (const [name, path] of [['Import from URL', '/recipes/import'], ['Manual recipe', '/recipes/new'], ['Scan book', '/recipes/scan'], ['Import CookBook', '/recipes/import/cookbook']]) {
+      expect(main.getByRole('link', { name: new RegExp(name) })).toHaveAttribute('href', path)
+    }
+    fireEvent.click(main.getByRole('link', { name: /Import from URL/ }))
+    expect(await main.findByRole('link', { name: /Add recipe/ })).toHaveAttribute('href', '/recipes/add')
+    expect(fetch.mock.calls.every(([, init]) => !init?.method || init.method === 'GET')).toBe(true)
+  })
+
+  it.each(['viewer', 'planner'])('keeps the creation menu unavailable to %s accounts', async (role) => {
+    window.history.pushState({}, '', '/recipes/add')
+    vi.spyOn(globalThis, 'fetch').mockImplementation((input) => Promise.resolve(String(input).includes('/auth/me') ? jsonResponse({ ...account, role }) : authResponse(input) ?? jsonResponse([])))
+    render(<App />)
+    await screen.findByRole('heading', { name: 'Your recipes' })
+    expect(screen.queryByRole('link', { name: 'Add recipe' })).not.toBeInTheDocument()
+    expect(window.location.pathname).toBe('/recipes')
+  })
+
   it.each(['lavender', 'terracotta', 'teal'])('saves and applies the %s personal palette in Family', async (theme) => {
     window.history.pushState({}, '', '/family')
     const fetch = vi.spyOn(globalThis, 'fetch').mockImplementation((input, init) => {
@@ -256,10 +283,10 @@ describe('App', () => {
     window.history.pushState({}, '', '/updates')
     vi.spyOn(globalThis, 'fetch').mockImplementation((input) => Promise.resolve(authResponse(input) ?? jsonResponse([])))
     render(<App />)
-    expect(await screen.findByRole('heading', { name: 'Mad Planner 0.10.3' })).toBeInTheDocument()
-    expect(screen.getByRole('heading', { name: 'Improvements' })).toBeInTheDocument()
-    expect(screen.getByRole('heading', { name: 'Bug fixes' })).toBeInTheDocument()
-    expect(screen.getByText('October 2026, week 3')).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: 'Mad Planner 0.10.4' })).toBeInTheDocument()
+    expect(screen.getAllByRole('heading', { name: 'Improvements' }).length).toBeGreaterThan(0)
+    expect(screen.getAllByRole('heading', { name: 'Bug fixes' }).length).toBeGreaterThan(0)
+    expect(screen.getByText('October 2026, week 4')).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: 'Mad Planner 0.2.5' })).toBeInTheDocument()
   })
 

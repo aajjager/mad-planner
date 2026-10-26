@@ -14,7 +14,7 @@ export function WelcomeGuide({ account }: { account: Account }) {
   })
   const [step, setStep] = useState(0)
   const canEdit = account.role === 'owner' || account.role === 'editor'
-  const steps = copy.steps.filter((item) => canEdit || item[2] !== '/recipes/import')
+  const steps = copy.steps.filter((item) => canEdit || item[2] !== '/recipes/add')
   const [title, description, path] = steps[step]
   useEffect(() => {
     if (!open || !path.includes('#') || `${location.pathname}${location.hash}` !== path) return

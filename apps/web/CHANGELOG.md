@@ -4,6 +4,10 @@ All notable user-visible changes are recorded here. Versions use year since 2026
 
 ## 0.10.4 — October 2026, week 4
 
+### Improvements
+
+- Grouped manual recipe creation, website imports, cookbook scans, and CookBook archive imports in a guided Add recipe menu with equally sized, aligned option cards. Simplified collection and navigation actions, added return links to choose another method, and updated the welcome guide in English, Danish, and Dutch.
+
 ### Bug fixes
 
 - Fixed implementation jobs failing on routine weekly version updates or ignored dependency symlinks. Version-only updates are checked against the current release; dependency/configuration changes and symlinks in published source still require manual review.
