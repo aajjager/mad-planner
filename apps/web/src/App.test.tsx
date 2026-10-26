@@ -256,10 +256,10 @@ describe('App', () => {
     window.history.pushState({}, '', '/updates')
     vi.spyOn(globalThis, 'fetch').mockImplementation((input) => Promise.resolve(authResponse(input) ?? jsonResponse([])))
     render(<App />)
-    expect(await screen.findByRole('heading', { name: 'Mad Planner 0.10.3' })).toBeInTheDocument()
-    expect(screen.getByRole('heading', { name: 'Improvements' })).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: 'Mad Planner 0.10.4' })).toBeInTheDocument()
+    expect(screen.getAllByRole('heading', { name: 'Improvements' }).length).toBeGreaterThan(0)
     expect(screen.getByRole('heading', { name: 'Bug fixes' })).toBeInTheDocument()
-    expect(screen.getByText('October 2026, week 3')).toBeInTheDocument()
+    expect(screen.getByText('October 2026, week 4')).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: 'Mad Planner 0.2.5' })).toBeInTheDocument()
   })
 

@@ -1,3 +1,5 @@
+import translations from './releaseTranslations.json'
+import type { Account } from '../api/auth'
 import changelog from '../../CHANGELOG.md?raw'
 
 export type ChangeCategory = 'Bug fixes' | 'Features' | 'Improvements'
@@ -38,3 +40,25 @@ export function releaseVersion(date = new Date()): string {
 
 export const releases = parseReleases(changelog)
 export const currentVersion = releases[0].version
+
+// Keep original notes as translation keys so a changed note cannot reuse stale copy.
+export function localizedReleases(locale: Account['locale'] = 'en'): Release[] {
+  if (locale === 'en') return releases
+  const titles = {
+    da: { 'Bug fixes': 'Fejlrettelser', Features: 'Funktioner', Improvements: 'Forbedringer', 'Release notes': 'Udgivelsesnoter' },
+    nl: { 'Bug fixes': 'Opgeloste fouten', Features: 'Functies', Improvements: 'Verbeteringen', 'Release notes': 'Versienotities' },
+  }
+  const catalogue: Record<string, { da: string; nl: string }> = translations
+  return releases.map((release) => ({
+    ...release,
+    period: release.period.replace(/(January|February|March|April|May|June|July|August|September|October|November|December) (\d{4}), week (\d+)/, (_, month: string, year: string, week: string) => {
+      const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
+      const name = new Intl.DateTimeFormat(locale, { month: 'long', timeZone: 'UTC' }).format(new Date(Date.UTC(Number(year), months.indexOf(month), 1)))
+      return `${name} ${year}, ${locale === 'da' ? 'uge' : 'week'} ${week}`
+    }),
+    groups: release.groups.map((group) => ({
+      title: titles[locale][group.title as keyof typeof titles.da] ?? group.title,
+      notes: group.notes.map((note) => catalogue[note]?.[locale] ?? note),
+    })),
+  }))
+}

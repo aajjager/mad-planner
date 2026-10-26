@@ -18,7 +18,7 @@ import { PasswordResetPage } from './pages/PasswordResetPage'
 import { CookBookImportPage } from './pages/CookBookImportPage'
 import { UpdatesPage } from './pages/UpdatesPage'
 import { PublicRecipesPage } from './pages/PublicRecipesPage'
-import { translator } from './i18n'
+import { rememberedLocale, translator } from './i18n'
 import { PlanReminderBanner } from './components/PlanReminderBanner'
 import { FeedbackAnswerBadge } from './components/FeedbackAnswerBadge'
 import { BrandMark } from './components/BrandMark'
@@ -33,7 +33,7 @@ function ApplicationShell() {
       <div className="app-shell">
         <header className="site-header">
           <Link className="brand" to="/recipes"><BrandMark /><span>Mad Planner</span></Link>
-          <nav aria-label="Main navigation"><Link to="/recipes">{t('recipes')}</Link><Link to="/planner">{t('planner')}</Link><Link to="/grocery-list">{t('groceries')}</Link>{canEditRecipes && <Link to="/recipes/import">{t('import')}</Link>}{canEditRecipes && <Link className="primary-link" to="/recipes/new">{t('addRecipe')}</Link>}</nav>
+          <nav aria-label={t('mainNavigation')}><Link to="/recipes">{t('recipes')}</Link><Link to="/planner">{t('planner')}</Link><Link to="/grocery-list">{t('groceries')}</Link>{canEditRecipes && <Link to="/recipes/import">{t('import')}</Link>}{canEditRecipes && <Link className="primary-link" to="/recipes/new">{t('addRecipe')}</Link>}</nav>
           <div className="account-menu"><Link className="account-link" to="/family">{account?.display_name} · {account?.family_name}<FeedbackAnswerBadge /></Link>{account?.role === 'owner' && <Link className="account-link" to="/admin">{t('admin')}</Link>}<button className="text-button" onClick={() => void logout()}>{t('signOut')}</button></div>
         </header>
         <PlanReminderBanner />
@@ -59,7 +59,7 @@ function ApplicationShell() {
             <Route path="*" element={<Navigate to="/recipes" replace />} />
           </Routes>
         </main>
-        <nav className={`mobile-navigation${account?.role === 'owner' ? ' mobile-navigation--admin' : ''}`} aria-label="Mobile navigation">
+        <nav className={`mobile-navigation${account?.role === 'owner' ? ' mobile-navigation--admin' : ''}`} aria-label={t('mobileNavigation')}>
           <NavLink to="/recipes"><span aria-hidden="true">▤</span>{t('recipes')}</NavLink>
           <NavLink to="/planner"><span aria-hidden="true">□</span>{t('planner')}</NavLink>
           {canEditRecipes && <NavLink className="mobile-navigation__add" to="/recipes/new"><span aria-hidden="true">+</span>{t('addRecipe')}</NavLink>}
@@ -73,7 +73,7 @@ function ApplicationShell() {
 
 function AuthenticatedRoutes() {
   const { account, loading } = useAuth()
-  if (loading) return <div className="account-shell"><div className="notice">Opening Mad Planner…</div></div>
+  if (loading) return <div className="account-shell"><div className="notice">{translator(rememberedLocale())('openingApp')}</div></div>
   if (!account) return <AccountAccessPage />
   return <ApplicationShell />
 }
