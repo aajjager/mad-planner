@@ -28,7 +28,7 @@ export interface Recipe {
   ingredients: RecipeIngredient[]; instructions: RecipeInstruction[]; created_at: string; updated_at: string
 }
 export interface ImportedRecipePreview { name: string; description: string | null; image_url: string | null; source_url: string; author: string | null; servings: string | null; preparation_time_minutes: number | null; cooking_time_minutes: number | null; total_time_minutes: number | null; cuisine: string | null; category: string | null; nutrition: Record<string, unknown> | null; ingredients: string[]; instructions: string[]; parser: string; warnings: string[]; suggested_recipe_types: string[]; recipe_type_confidence: 'low' | 'medium' | 'high' }
-export interface RecipeScanPreview { name: string; description?: string | null; ingredients: string[]; instructions: string[]; raw_text: string; warnings: string[] }
+export interface RecipeScanPreview { confidence?: number; name: string; description?: string | null; ingredients: string[]; instructions: string[]; raw_text: string; warnings: string[] }
 export interface CookBookRecipePreview { name: string; description: string | null; image_url: string | null; servings: string | null; preparation_time_minutes: number | null; cooking_time_minutes: number | null; total_time_minutes: number | null; category: string | null; tags: string[]; ingredients: string[]; instructions: string[]; suggested_recipe_types: string[]; duplicate: boolean; warnings: string[] }
 export interface CookBookArchivePreview { recipes: CookBookRecipePreview[]; warnings: string[] }
 

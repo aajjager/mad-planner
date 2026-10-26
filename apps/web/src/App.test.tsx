@@ -67,6 +67,51 @@ describe('App', () => {
     await waitFor(() => expect(fetch.mock.calls.some(([url, init]) => String(url).endsWith('/recipes') && init?.method === 'POST' && JSON.parse(String(init.body)).description === 'Reviewed introduction.')).toBe(true))
   })
 
+  it('combines multiple photos, removes selections, and saves the chosen recipe image', async () => {
+    window.history.pushState({}, '', '/recipes/scan')
+    const first = new File(['one'], 'page-one.jpg', { type: 'image/jpeg' })
+    const second = new File(['two'], 'page-two.jpg', { type: 'image/jpeg' })
+    const removed = new File(['three'], 'remove-me.jpg', { type: 'image/jpeg' })
+    const fetch = vi.spyOn(globalThis, 'fetch').mockImplementation((input, init) => {
+      const url = String(input)
+      if (url.endsWith('/recipe-scans/preview')) return Promise.resolve(jsonResponse({ name: 'Chili', confidence: 0.9, description: 'From the book.', ingredients: init?.body === first ? ['2 onions'] : ['350 g beef'], instructions: init?.body === first ? ['Chop the onions.'] : ['Cook until ready.'], raw_text: 'Detected text', warnings: [] }))
+      if (url.endsWith('/recipes') && init?.method === 'POST') return Promise.resolve(jsonResponse({ id: 999 }))
+      if (url.endsWith('/recipes/999')) return Promise.resolve(jsonResponse({ id: 999, name: 'Chili', tags: [], ingredients: [], instructions: [], meal_types: [], recipe_types: [] }))
+      if (url.endsWith('/999/image')) return Promise.resolve(jsonResponse({ id: 999 }))
+      return Promise.resolve(authResponse(input) ?? jsonResponse([]))
+    })
+    render(<App />)
+    const picker = await screen.findByLabelText('Recipe page photo')
+    expect(picker).toHaveAttribute('multiple')
+    fireEvent.change(picker, { target: { files: [first, second] } })
+    fireEvent.change(screen.getByLabelText('Take another photo'), { target: { files: [removed] } })
+    fireEvent.click(screen.getByRole('button', { name: 'Remove remove-me.jpg' }))
+    expect(screen.queryByRole('button', { name: 'Remove remove-me.jpg' })).not.toBeInTheDocument()
+    fireEvent.click(screen.getByRole('radio', { name: /page-two.jpg/ }))
+    fireEvent.click(screen.getByRole('button', { name: 'Scan page' }))
+    await screen.findByLabelText('Description')
+    expect(screen.getByLabelText('Ingredients — one per line')).toHaveValue('2 onions\n350 g beef')
+    fireEvent.click(screen.getByRole('button', { name: 'Dinner' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Save scanned recipe' }))
+    await waitFor(() => expect(fetch.mock.calls.some(([url, init]) => String(url).endsWith('/999/image') && init?.body === second)).toBe(true))
+    expect(fetch.mock.calls.filter(([url]) => String(url).endsWith('/recipe-scans/preview'))).toHaveLength(2)
+  })
+
+  it('retains successful photos when another photo cannot be scanned', async () => {
+    window.history.pushState({}, '', '/recipes/scan')
+    const good = new File(['good'], 'good.jpg', { type: 'image/jpeg' })
+    const bad = new File(['bad'], 'bad.jpg', { type: 'image/jpeg' })
+    vi.spyOn(globalThis, 'fetch').mockImplementation((input, init) => {
+      if (String(input).endsWith('/recipe-scans/preview')) return Promise.resolve(init?.body === bad ? new Response(JSON.stringify({ detail: 'Unreadable image' }), { status: 422 }) : jsonResponse({ name: 'Chili', description: 'Still available.', ingredients: ['2 onions'], instructions: ['Cook.'], raw_text: 'Text', warnings: [] }))
+      return Promise.resolve(authResponse(input) ?? jsonResponse([]))
+    })
+    render(<App />)
+    fireEvent.change(await screen.findByLabelText('Recipe page photo'), { target: { files: [good, bad] } })
+    fireEvent.click(screen.getByRole('button', { name: 'Scan page' }))
+    expect(await screen.findByLabelText('Description')).toHaveValue('Still available.')
+    expect(screen.getByRole('alert')).toHaveTextContent('bad.jpg')
+  })
+
   it.each(['lavender', 'terracotta', 'teal'])('saves and applies the %s personal palette in Family', async (theme) => {
     window.history.pushState({}, '', '/family')
     const fetch = vi.spyOn(globalThis, 'fetch').mockImplementation((input, init) => {

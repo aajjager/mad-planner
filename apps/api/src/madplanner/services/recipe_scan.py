@@ -180,9 +180,10 @@ class RecipeScanService:
                 previews.append((parse_scanned_recipe(_layout_text(text) if enhanced else text), confidence))
         if not previews:
             raise RuntimeError("Recipe scanning is temporarily unavailable")
-        return max(previews, key=lambda item: (
+        selected, confidence = max(previews, key=lambda item: (
             bool(item[0].ingredients) + bool(item[0].instructions),
             sum(_heading(line, _INGREDIENT_HEADINGS | _INSTRUCTION_HEADINGS) for line in item[0].raw_text.splitlines()),
             sum(len(line) for line in item[0].ingredients + item[0].instructions) * item[1] ** 4,
             -len(item[0].warnings),
-        ))[0]
+        ))
+        return selected.model_copy(update={"confidence": confidence})
