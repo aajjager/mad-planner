@@ -2,6 +2,12 @@
 
 All notable user-visible changes are recorded here. Versions use year since 2026.month.week in Europe/Copenhagen time: 2026 = 0, October = 10; days 1–7 = week 1, 8–14 = week 2, 15–21 = week 3, and 22–month-end = week 4. Older release numbers below are retained as historical identifiers.
 
+## 0.10.4 — October 2026, week 4
+
+### Improvements
+
+- Completed Danish and Dutch recipe filters, sorting, ratings, navigation, planner states, and backup controls. The Updates page now translates release dates, categories, and the full release history using the account language; personal language choices and saved data are preserved.
+
 ## 0.10.3 — October 2026, week 3
 
 ### Improvements
