@@ -198,7 +198,8 @@ class RecipeService:
                 if parsed_unit
                 else None
             )
-            recipe.ingredients.append(RecipeIngredient(position=position, raw_text=item.raw_text, quantity=quantity, quantity_max=quantity_max, preparation=item.preparation, notes=item.notes, ingredient=ingredient, unit=unit))
+            notes = "\n".join(dict.fromkeys(note for note in (item.notes, parsed.notes if parsed else None) if note)) or None
+            recipe.ingredients.append(RecipeIngredient(position=position, raw_text=item.raw_text, quantity=quantity, quantity_max=quantity_max, preparation=item.preparation, notes=notes, ingredient=ingredient, unit=unit))
 
         recipe.instructions.extend(
             [

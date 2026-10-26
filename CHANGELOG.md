@@ -14,6 +14,8 @@ All notable user-visible changes are recorded here. Versions use year since 2026
 
 ### Bug fixes
 
+- Fixed saving scanned recipes with long ingredient commentary exceeding the database name limit. Ingredient names and notes are stored separately, while the complete scanned ingredient text and existing authored notes are preserved.
+
 - Improved cookbook scanning with image enlargement, local contrast correction, separate reading passes for book spreads, and column-aware text ordering. Preserved scanned introductions in an editable description and joined wrapped ingredient lines; review quantities and OCR text before saving.
 
 - Fixed implementation jobs failing on routine weekly version updates or ignored dependency symlinks. Version-only updates are checked against the current release; dependency/configuration changes and symlinks in published source still require manual review.

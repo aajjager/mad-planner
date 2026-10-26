@@ -19,6 +19,7 @@ class ParsedIngredient:
     quantity: Decimal | None = None
     quantity_max: Decimal | None = None
     unit: ParsedUnit | None = None
+    notes: str | None = None
 
 
 _UNITS: dict[str, ParsedUnit] = {}
@@ -72,6 +73,36 @@ def _decimal(value: str) -> Decimal | None:
         return None
 
 
+def _ingredient_identity(text: str) -> tuple[str, str | None]:
+    """Keep prose out of shared ingredient names without losing the source text."""
+    name, notes = text, None
+    for boundary in re.finditer(r"[.!?]\s+(?=[A-ZÀ-Þ])", text):
+        prefix = text[:boundary.start()]
+        if prefix.rsplit(" ", 1)[-1].casefold() in {"st", "dr", "mr", "mrs", "ms", "tbsp", "tsp"}:
+            continue
+        name = prefix.strip()
+        notes = text[boundary.end():].strip() or None
+        break
+    # PostgreSQL limits both name and its case-folded lookup key to 200 chars.
+    # Keep overflow as notes and leave raw_text intact on the recipe ingredient.
+    budget = 0
+    cut = 0
+    for char in name[:200]:
+        size = len(char.casefold())
+        if budget + size > 200:
+            break
+        budget += size
+        cut += 1
+    if cut < len(name):
+        word_boundary = name.rfind(" ", 0, cut + 1)
+        if word_boundary > 0:
+            cut = word_boundary
+        overflow = name[cut:].strip()
+        name = name[:cut].strip()
+        notes = "\n".join(part for part in (overflow, notes) if part) or None
+    return name, notes
+
+
 def parse_ingredient(raw_text: str) -> ParsedIngredient:
     raw_text = " ".join(raw_text.strip().split())
     if not raw_text:
@@ -79,7 +110,8 @@ def parse_ingredient(raw_text: str) -> ParsedIngredient:
 
     quantity_match = _LEADING_QUANTITY.match(raw_text)
     if quantity_match is None:
-        return ParsedIngredient(raw_text=raw_text, ingredient_name=raw_text)
+        name, notes = _ingredient_identity(raw_text)
+        return ParsedIngredient(raw_text=raw_text, ingredient_name=name, notes=notes)
 
     quantity = _decimal(quantity_match.group("first"))
     quantity_max = _decimal(quantity_match.group("second")) if quantity_match.group("second") else None
@@ -91,11 +123,12 @@ def parse_ingredient(raw_text: str) -> ParsedIngredient:
         if unit:
             remainder = remainder[unit_match.end():]
 
-    ingredient_name = remainder.lstrip(" ,.-").strip() or raw_text
+    ingredient_name, notes = _ingredient_identity(remainder.lstrip(" ,.-").strip() or raw_text)
     return ParsedIngredient(
         raw_text=raw_text,
         ingredient_name=ingredient_name,
         quantity=quantity,
         quantity_max=quantity_max,
         unit=unit,
+        notes=notes,
     )

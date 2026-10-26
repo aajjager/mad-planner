@@ -286,3 +286,23 @@ def test_scan_language_is_validated_and_passed_to_ocr(client, monkeypatch):
     invalid = client.post('/api/v1/recipe-scans/preview?language=unsupported', content=b'\xff\xd8\xffphoto', headers={'Content-Type': 'image/jpeg'})
     assert invalid.status_code == 422
     assert calls == ['auto', 'en', 'da', 'nl']
+
+
+def test_scanned_recipe_with_long_ingredient_notes_saves_and_round_trips(client):
+    raw = "1 Big Mac (McDonald's). " + "This is a long printed ingredient note. " * 12
+    payload = {'name': 'Scanned pizza regression', 'ingredients': [{'raw_text': raw, 'notes': 'Reviewed by the cook.'}], 'instructions': []}
+    response = client.post('/api/v1/recipes', json=payload)
+    assert response.status_code == 201
+    saved = response.json()
+    ingredient = saved['ingredients'][0]
+    assert ingredient['raw_text'] == raw
+    assert ingredient['ingredient_name'] == "Big Mac (McDonald's)"
+    assert len(ingredient['ingredient_name'].casefold()) <= 200
+    assert ingredient['quantity'] == '1'
+    assert ingredient['notes'] == 'Reviewed by the cook.\n' + ("This is a long printed ingredient note. " * 12).strip()
+    retrieved = client.get(f"/api/v1/recipes/{saved['id']}").json()
+    for field in ('id', 'raw_text', 'ingredient_name', 'notes'):
+        assert retrieved['ingredients'][0][field] == ingredient[field]
+    from decimal import Decimal
+    assert Decimal(retrieved['ingredients'][0]['quantity']) == Decimal(ingredient['quantity'])
+    assert client.put(f"/api/v1/recipes/{saved['id']}", json=payload).status_code == 200
