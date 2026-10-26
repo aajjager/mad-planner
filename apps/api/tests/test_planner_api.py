@@ -226,3 +226,19 @@ def test_suggestions_match_main_ingredient_preferences(client: TestClient) -> No
     first_meal = next(item for item in response.json()["options"][0]["suggestions"] if item["meal_type"] == "dinner")
     assert first_meal["recipe"]["id"] == rice["id"]
     assert "ris" in " ".join(first_meal["reasons"]).lower()
+
+
+@pytest.mark.parametrize("week", ["2026-11-02", "2027-03-17"])
+def test_suggestions_prioritize_selected_meal_names_without_changing_plan(client: TestClient, week: str) -> None:
+    burger = client.post("/api/v1/recipes", json={"name": "Smoky Burger with crispy onions", "meal_types": ["dinner"], "ingredients": [{"raw_text": "200 g beef"}]}).json()
+    existing = client.get("/api/v1/recipes").json()[0]
+    client.put(f"/api/v1/meal-plans/{week}/dinner", json={"recipe_id": existing["id"]})
+    before = client.get("/api/v1/meal-plans/week", params={"week_start": week}).json()
+    response = client.post("/api/v1/meal-plans/week/suggestions", params={"week_start": week}, json={"meal_types": ["dinner"], "preferred_tags": [burger["name"]], "include_leftover_lunches": False})
+    assert response.status_code == 200
+    for option in response.json()["options"]:
+        first = next(item for item in option["suggestions"] if item["meal_type"] == "dinner")
+        assert first["recipe"]["id"] == burger["id"]
+        assert burger["name"].casefold() in " ".join(first["reasons"])
+        assert all((item["meal_date"], item["meal_type"]) != (week, "dinner") for item in option["suggestions"])
+    assert client.get("/api/v1/meal-plans/week", params={"week_start": week}).json() == before

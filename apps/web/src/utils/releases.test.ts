@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
-import { currentVersion, parseReleases, releases, releaseVersion } from './releases'
+import { localizedReleases, currentVersion, parseReleases, releases, releaseVersion } from './releases'
 
 describe('calendar releases', () => {
   it.each([[1, 1], [7, 1], [8, 2], [14, 2], [15, 3], [18, 3], [21, 3], [22, 4], [28, 4], [29, 4], [31, 4]])('maps October day %i to week %i', (day, week) => {
@@ -24,5 +24,25 @@ describe('calendar releases', () => {
       [{ title: 'Features', notes: ['New feature'] }, { title: 'Bug fixes', notes: ['Fixed issue'] }],
       [{ title: 'Release notes', notes: ['Older entry'] }],
     ])
+  })
+})
+
+describe('translated release history', () => {
+  it.each(['da', 'nl'] as const)('translates every note and category while preserving release identities in %s', (locale) => {
+    const localized = localizedReleases(locale)
+    expect(localized.map((release) => release.version)).toEqual(releases.map((release) => release.version))
+    localized.forEach((release, index) => {
+      expect(release.period).not.toBe(releases[index].period)
+      release.groups.forEach((group, groupIndex) => {
+        const original = releases[index].groups[groupIndex]
+        expect(group.title).not.toBe(original.title)
+        expect(group.notes).toHaveLength(original.notes.length)
+        group.notes.forEach((note, noteIndex) => {
+          expect(note.trim().length).toBeGreaterThan(0)
+          expect(note).not.toBe(original.notes[noteIndex])
+        })
+      })
+    })
+    expect(localizedReleases('en')).toBe(releases)
   })
 })

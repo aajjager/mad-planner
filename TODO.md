@@ -104,6 +104,7 @@
   - [x] Add reversible cooking-step completion
   - [x] Add book-recipe OCR with review before saving
   - [x] Improve OCR accuracy, multi-column page detection, and automatic section layout
+  - [ ] Deferred: revisit cookbook scanning accuracy with the supplied multi-photo examples; check missing text, quantities, glare, curved or clipped pages, overlapping photos, and the complete review/save flow. Current OCR remains imperfect; resume this work on another day.
 
 - [ ] Phase 14 — Personal languages
   - [x] Add per-user locale settings

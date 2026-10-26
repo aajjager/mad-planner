@@ -34,8 +34,8 @@ export function GroceryListPage() {
   const grouped = useMemo(() => { const groups = new Map<string, GroceryListItem[]>(); for (const item of list?.items || []) groups.set(item.category, [...(groups.get(item.category) || []), item]); return [...groups.entries()] }, [list])
   const changeWeek = (days: number) => { setList(null); setError(''); setShowHistory(false); setParams({ week: dateKey(addDays(weekStart, days)) }) }
 
-  async function addItem(event: FormEvent) { event.preventDefault(); if (!manualText.trim()) return; setBusy(true); setError(''); try { await addManualGroceryItem(dateKey(weekStart), manualText.trim()); setManualText(''); await load() } catch (reason) { setError(reason instanceof Error ? reason.message : 'The grocery item could not be added.') } finally { setBusy(false) } }
-  async function changePurchased(item: GroceryListItem, purchased: boolean) { setBusy(true); setError(''); try { await setGroceryItemPurchased(item.id, purchased); await load() } catch (reason) { setError(reason instanceof Error ? reason.message : 'The grocery item could not be updated.') } finally { setBusy(false) } }
+  async function addItem(event: FormEvent) { event.preventDefault(); if (!manualText.trim()) return; setBusy(true); setError(''); try { await addManualGroceryItem(dateKey(weekStart), manualText.trim()); setManualText(''); await load() } catch (reason) { setError(reason instanceof Error ? reason.message : t('groceryAddFailed')) } finally { setBusy(false) } }
+  async function changePurchased(item: GroceryListItem, purchased: boolean) { setBusy(true); setError(''); try { await setGroceryItemPurchased(item.id, purchased); await load() } catch (reason) { setError(reason instanceof Error ? reason.message : t('groceryUpdateFailed')) } finally { setBusy(false) } }
 
   return <section className="page grocery-page">
     <div className="page-heading"><div><p className="eyebrow">{t('weeklyGroceries')}</p><h1>{t('shopOnce')}</h1><p>{t('groceryIntro')}</p></div></div>

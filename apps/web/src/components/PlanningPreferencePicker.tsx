@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import { matchesPlanningPreference } from '../utils/planningPreferences'
 
 interface Labels {
   title: string
@@ -26,7 +27,7 @@ export function PlanningPreferencePicker({ available, selected, onToggle, labels
   const choices = useMemo(() => {
     const unselected = available.filter((value) => !selected.includes(value))
     const query = search.trim().toLocaleLowerCase()
-    if (query) return unselected.filter((value) => value.toLocaleLowerCase().includes(query)).slice(0, 10)
+    if (query) return unselected.filter((value) => matchesPlanningPreference(value, query)).slice(0, 10)
     return shuffled(unselected, seed).slice(0, 10)
   }, [available, search, seed, selected])
 

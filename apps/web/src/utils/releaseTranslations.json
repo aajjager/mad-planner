@@ -1,0 +1,262 @@
+{
+  "Combined browser and background notifications into one switch in personal settings. Enabling registers background delivery and requests permission when needed; existing granted opt-ins register automatically. Turning it off pauses account notifications and removes this device's subscription.": {
+    "da": "Samlede browser- og baggrundsnotifikationer i én kontakt under personlige indstillinger. Aktivering registrerer baggrundslevering og beder om tilladelse efter behov; eksisterende tilladelser registreres automatisk. Deaktivering pauser kontonotifikationer og fjerner enhedens abonnement.",
+    "nl": "Browser- en achtergrondmeldingen samengevoegd in één schakelaar bij persoonlijke instellingen. Inschakelen registreert achtergrondbezorging en vraagt zo nodig toestemming; bestaande toestemmingen worden automatisch geregistreerd. Uitschakelen pauzeert accountmeldingen en verwijdert het abonnement van dit apparaat."
+  },
+  "Implementation workspace now keeps merged and cancelled jobs in a separate History view. Current jobs and failures needing attention remain in the main view; saved job details and review links are retained.": {
+    "da": "Implementering viser nu sammenflettede og annullerede opgaver i separat Historik. Aktuelle opgaver og fejl vises fortsat i hovedvisningen; detaljer og gennemgangslinks bevares.",
+    "nl": "De implementatiewerkruimte toont samengevoegde en geannuleerde taken apart in Geschiedenis. Huidige taken en fouten blijven in het hoofdoverzicht; details en beoordelingslinks blijven bewaard."
+  },
+  "Added lavender, terracotta, and teal menu palettes in Family personal settings, with light and dark variants and English, Danish, and Dutch labels. Existing colour choices are preserved, and saved palettes are restored when reopening the app.": {
+    "da": "Tilføjede lavendel, terrakotta og blågrøn som menufarver med lyse og mørke varianter og engelske, danske og nederlandske navne. Eksisterende farvevalg bevares og gendannes, når appen åbnes igen.",
+    "nl": "Lavendel, terracotta en blauwgroen toegevoegd als menukleuren met lichte en donkere varianten en Engelse, Deense en Nederlandse namen. Bestaande kleurkeuzes blijven bewaard en worden bij heropenen hersteld."
+  },
+  "Completed feedback notices now disappear after five days and can still be dismissed earlier. Closed request history is retained, and expired completions no longer trigger browser notifications.": {
+    "da": "Beskeder om afsluttet feedback forsvinder nu efter fem dage og kan afvises tidligere. Historikken bevares, og udløbne afslutninger udløser ikke browsernotifikationer.",
+    "nl": "Meldingen over afgeronde feedback verdwijnen na vijf dagen en kunnen eerder worden gesloten. De geschiedenis blijft bewaard en verlopen afrondingen veroorzaken geen browsermeldingen meer."
+  },
+  "Owners and editors can edit saved family recipes using the prefilled recipe form, including details, ingredients, and instructions. Recipe identity, pictures, source nutrition, ratings, sharing, and meal-plan links are retained.": {
+    "da": "Ejere og redaktører kan redigere familiens gemte opskrifter i en udfyldt formular med detaljer, ingredienser og trin. Identitet, billeder, oprindelige næringsdata, bedømmelser, deling og madplanlinks bevares.",
+    "nl": "Eigenaren en bewerkers kunnen opgeslagen gezinsrecepten aanpassen met een vooraf ingevuld formulier voor details, ingrediënten en stappen. Identiteit, foto's, oorspronkelijke voedingswaarden, beoordelingen, delen en planningslinks blijven bewaard."
+  },
+  "Guide navigation now opens the relevant page and scrolls to and highlights the specific Family settings section, including sections that load after opening the page.": {
+    "da": "Guidens navigation åbner nu den relevante side og ruller til og fremhæver den konkrete familieindstilling, også når den indlæses senere.",
+    "nl": "De gids opent de relevante pagina, scrolt naar de juiste gezinsinstelling en markeert deze, ook wanneer die later wordt geladen."
+  },
+  "Expanded the welcome guide with personal preferences, account security, shared family planning options, recipe types, member invitations, and permissions. The Family page offers a direct shortcut to these tips.": {
+    "da": "Udvidede velkomstguiden med personlige valg, kontosikkerhed, fælles planlægning, opskriftstyper, invitationer og rettigheder. Familiesiden har en direkte genvej til disse tips.",
+    "nl": "De welkomstgids uitgebreid met persoonlijke voorkeuren, accountbeveiliging, gezinsplanning, recepttypen, uitnodigingen en rechten. De gezinspagina heeft een directe snelkoppeling naar deze tips."
+  },
+  "Added an interactive first-visit welcome guide covering recipes, importing, meal planning, groceries, family feedback, and Updates. Reopen it anytime; tips respect account permissions and are available in English, Danish, and Dutch. Guide dismissal is remembered per account in the current browser.": {
+    "da": "Tilføjede en interaktiv velkomstguide til opskrifter, import, madplan, indkøb, feedback og opdateringer. Den kan genåbnes, respekterer rettigheder og findes på engelsk, dansk og nederlandsk. Lukning huskes pr. konto i den aktuelle browser.",
+    "nl": "Een interactieve welkomstgids toegevoegd voor recepten, importeren, planning, boodschappen, feedback en updates. De gids kan opnieuw worden geopend, respecteert rechten en is beschikbaar in het Engels, Deens en Nederlands. Sluiten wordt per account in deze browser onthouden."
+  },
+  "Recipe descriptions now collapse to five visible lines, adapting to screen width, with Read more / Read less controls when the text overflows. The full saved description is preserved.": {
+    "da": "Opskriftsbeskrivelser foldes nu sammen til fem synlige linjer efter skærmbredden med Læs mere og Læs mindre ved overløb. Hele den gemte beskrivelse bevares.",
+    "nl": "Receptbeschrijvingen worden ingeklapt tot vijf zichtbare regels, passend bij de schermbreedte, met Lees meer en Lees minder bij overloop. De volledige opgeslagen beschrijving blijft bewaard."
+  },
+  "Recipe imports now preserve paragraph-based instruction steps, including Valdemarsro recipes, instead of combining the whole method into one step. Previously flattened imports need reimporting to recover their original steps.": {
+    "da": "Opskriftsimport bevarer nu afsnit som separate trin, også fra Valdemarsro. Tidligere sammenlagte trin kræver ny import for at gendannes.",
+    "nl": "Receptimport behoudt alinea's als afzonderlijke stappen, ook van Valdemarsro. Eerder samengevoegde stappen vereisen opnieuw importeren om ze te herstellen."
+  },
+  "Long recipe descriptions now start with a short preview and offer Show more / Show less, keeping the full saved text available.": {
+    "da": "Lange opskriftsbeskrivelser starter nu med en kort forhåndsvisning og Vis mere eller Vis mindre; hele teksten bevares.",
+    "nl": "Lange receptbeschrijvingen beginnen met een korte preview en Toon meer of Toon minder; de volledige tekst blijft bewaard."
+  },
+  "Added a family deletion warning that names the family and requires typing delete before permanent deletion is enabled.": {
+    "da": "Tilføjede en advarsel ved familiesletning, som navngiver familien og kræver indtastning af delete før permanent sletning.",
+    "nl": "Een waarschuwing bij gezinsverwijdering toegevoegd met de gezinsnaam en verplichte invoer van delete vóór definitieve verwijdering."
+  },
+  "Administrators can mark feedback as a question and send or revise an answer. Requesters see red unread-answer counts on their family links, can read and acknowledge replies in Family settings, and keep answers in their closed request history.": {
+    "da": "Administratorer kan markere feedback som spørgsmål og sende eller rette svar. Brugere ser røde tællere for ulæste svar ved familielinks, kan læse og kvittere under Familie og beholder svarene i historikken.",
+    "nl": "Beheerders kunnen feedback als vraag markeren en antwoorden verzenden of aanpassen. Gebruikers zien rode aantallen ongelezen antwoorden bij gezinslinks, kunnen antwoorden bij Gezin lezen en bevestigen en behouden ze in de geschiedenis."
+  },
+  "Aligned release numbers with the calendar month and four week buckets; the Updates page and family version link now use the packaged changelog.": {
+    "da": "Tilpassede versionsnumre til kalendermåneder og fire ugegrupper. Opdateringer og familiens versionslink bruger nu den medfølgende ændringslog.",
+    "nl": "Versienummers afgestemd op kalendermaanden en vier weekgroepen. Updates en de versielink bij Gezin gebruiken nu het meegeleverde wijzigingsoverzicht."
+  },
+  "Added visible Bug fixes, Features, and Improvements groups for new releases. Single and grouped Codex prompts preserve the approved request type and require entries in the correct weekly changelog group. Added project guidance for all future implementations.": {
+    "da": "Tilføjede grupperne Fejlrettelser, Funktioner og Forbedringer i nye udgivelser. Codex-prompter bevarer ønskets godkendte kategori og kræver en post i den rette ugegruppe. Tilføjede projektvejledning til fremtidigt arbejde.",
+    "nl": "De groepen Opgeloste fouten, Functies en Verbeteringen toegevoegd aan nieuwe versies. Codex-prompts behouden de goedgekeurde categorie en vereisen een vermelding in de juiste weekgroep. Projectrichtlijnen voor toekomstig werk toegevoegd."
+  },
+  "Added opt-in background Web Push for incomplete meal plans and completed feedback, with per-device enable/disable, English/Danish/Dutch messages, daily planning limits, and automatic cleanup of expired subscriptions. Requires administrator VAPID setup and HTTPS; phone delivery depends on browser/OS support.": {
+    "da": "Tilføjede valgfri Web Push i baggrunden til ufuldstændige madplaner og afsluttet feedback med tilvalg pr. enhed, engelske, danske og nederlandske beskeder, daglige grænser og oprydning af udløbne abonnementer. Kræver VAPID-opsætning og HTTPS; telefonlevering afhænger af browser og styresystem.",
+    "nl": "Optionele Web Push op de achtergrond toegevoegd voor onvolledige plannen en afgeronde feedback, met instelling per apparaat, Engelse, Deense en Nederlandse berichten, dagelijkse limieten en opruiming van verlopen abonnementen. Vereist VAPID-configuratie en HTTPS; telefoonbezorging hangt af van browser en besturingssysteem."
+  },
+  "Added an optional administrator implementation workspace with queued jobs, progress, preview and pull-request links, revision requests, and approval of the exact tested commit. A separately configured Linux controller runs isolated implementations and checks, publishes preview branches, and merges only after approval. TrueNAS deployment remains manual; worker credentials and a protected preview address must be configured before use.": {
+    "da": "Tilføjede valgfri implementering for administratorer med kø, fremdrift, forhåndsvisning, ændringslinks, revisionsønsker og godkendelse af det testede commit. En separat Linux-controller implementerer og tester isoleret, udgiver testgrene og sammenfletter kun efter godkendelse. TrueNAS-opdatering er manuel; arbejdsforbindelse og beskyttet forhåndsvisning skal konfigureres.",
+    "nl": "Een optionele implementatiewerkruimte voor beheerders toegevoegd met wachtrij, voortgang, preview, wijzigingslinks, revisieverzoeken en goedkeuring van de geteste commit. Een aparte Linux-controller implementeert en test geïsoleerd, publiceert previewbranches en voegt alleen na goedkeuring samen. TrueNAS wordt handmatig bijgewerkt; workerverbinding en beveiligde preview moeten worden ingesteld."
+  },
+  "Fixed HTML tags and encoded characters appearing in imported recipe instructions, including HelloFresh recipes. Previously saved recipes also display readable instructions without needing to be imported again.": {
+    "da": "Rettede HTML-tags og kodede tegn i importerede trin, også fra HelloFresh. Allerede gemte opskrifter viser også læsbare trin uden ny import.",
+    "nl": "HTML-tags en gecodeerde tekens in geïmporteerde stappen hersteld, ook van HelloFresh. Bestaande recepten tonen eveneens leesbare stappen zonder opnieuw te importeren."
+  },
+  "Added the public IP address to administrator login history for new successful and failed login attempts, including MFA failures. Existing history remains available and is marked as not recorded.": {
+    "da": "Tilføjede offentlig IP-adresse til administratorens loginhistorik for nye vellykkede og mislykkede forsøg, også MFA-fejl. Ældre historik bevares og markeres som ikke registreret.",
+    "nl": "Het openbare IP-adres toegevoegd aan nieuwe geslaagde en mislukte aanmeldingen in de beheerdersgeschiedenis, inclusief MFA-fouten. Oudere geschiedenis blijft bewaard met de melding dat het adres niet is vastgelegd."
+  },
+  "Limited the initial security history to the newest 30 events, with filters for successful logins, failed logins, password resets, and MFA changes plus on-demand access to older events.": {
+    "da": "Sikkerhedshistorikken viser først de nyeste 30 hændelser med filtre til vellykkede og mislykkede login, nulstilling af adgangskoder og MFA-ændringer samt adgang til ældre hændelser efter behov.",
+    "nl": "De beveiligingsgeschiedenis toont eerst de nieuwste 30 gebeurtenissen, met filters voor geslaagde en mislukte aanmeldingen, wachtwoordherstel en MFA-wijzigingen en toegang tot oudere gebeurtenissen op aanvraag."
+  },
+  "Restored nutrition estimates for older imported recipes by reading quantities and units from their original ingredient text, with broader Danish, English, and Dutch food recognition.": {
+    "da": "Gendannede næringsestimater til ældre importerede opskrifter ved at læse mængder og enheder fra oprindelig ingredienstekst med bredere dansk, engelsk og nederlandsk genkendelse.",
+    "nl": "Voedingsschattingen voor oudere imports hersteld door hoeveelheden en eenheden uit oorspronkelijke ingrediënttekst te lezen, met bredere Deense, Engelse en Nederlandse herkenning."
+  },
+  "Labelled estimated nutrition as per serving, whole recipe, or whole baking batch so totals such as cookie calories are not presented as a single serving.": {
+    "da": "Markerede estimeret næring pr. portion, hel opskrift eller hel bageportion, så samlet energi fra eksempelvis småkager ikke vises som én portion.",
+    "nl": "Geschatte voedingswaarden aangeduid per portie, volledig recept of volledige bakhoeveelheid, zodat bijvoorbeeld alle koekjes niet als één portie worden getoond."
+  },
+  "Improved book-recipe scanning with two complementary page-layout passes, expanded multilingual section headings, better numbered-step handling, wrapped instruction recovery, and clearer missing-section warnings.": {
+    "da": "Forbedrede kogebogsscanning med to supplerende layoutgennemgange, flere flersprogede overskrifter, bedre nummererede trin og linjeombrydninger samt tydeligere advarsler om manglende afsnit.",
+    "nl": "Kookboekscans verbeterd met twee aanvullende layoutanalyses, meer meertalige koppen, betere genummerde stappen en regelafbrekingen en duidelijkere waarschuwingen voor ontbrekende secties."
+  },
+  "Split personal feedback history into Open and Closed request views, with Open shown by default.": {
+    "da": "Opdelte personlig feedbackhistorik i Åbne og Lukkede ønsker med Åbne som standard.",
+    "nl": "Persoonlijke feedbackgeschiedenis opgesplitst in Open en Gesloten verzoeken, standaard geopend op Open."
+  },
+  "Added owner access to Administration from the mobile navigation and improved phone layouts for feedback review and approval controls.": {
+    "da": "Tilføjede ejeradgang til Administration fra mobilnavigationen og forbedrede mobilvisningen af feedbackgennemgang og godkendelse.",
+    "nl": "Eigenaren toegang tot Beheer gegeven vanuit de mobiele navigatie en mobiele weergaven voor feedbackbeoordeling en goedkeuring verbeterd."
+  },
+  "Added an optional Cloudflare Tunnel deployment for HTTPS without router port forwarding.": {
+    "da": "Tilføjede valgfri Cloudflare Tunnel til HTTPS uden portvideresendelse på routeren.",
+    "nl": "Optionele Cloudflare Tunnel toegevoegd voor HTTPS zonder poortdoorschakeling op de router."
+  },
+  "Limited recipe rating filters and rating sorting to ratings made by the current family on its own recipes.": {
+    "da": "Begrænsede bedømmelsesfiltre og sortering til familiens egne bedømmelser af egne opskrifter.",
+    "nl": "Beoordelingsfilters en sortering beperkt tot beoordelingen van het huidige gezin op eigen recepten."
+  },
+  "Added branded home-screen icons based on the Mad Planner bowl-and-heart logo.": {
+    "da": "Tilføjede hjemmeskærmsikoner med Mad Planners skål- og hjertelogo.",
+    "nl": "Beginschermpictogrammen met het kom-en-hartlogo van Mad Planner toegevoegd."
+  },
+  "Added editable, per-recipe tag suggestions for multi-selected recipes, with separate accept and deny actions.": {
+    "da": "Tilføjede redigerbare tagforslag pr. opskrift ved flervalg med separat accept og afvisning.",
+    "nl": "Bewerkbare tagsuggesties per recept toegevoegd bij meervoudige selectie, met afzonderlijk accepteren en afwijzen."
+  },
+  "Added monthly and weekly version history to the in-app Updates page.": {
+    "da": "Tilføjede måneds- og ugeopdelt versionshistorik under Opdateringer.",
+    "nl": "Maandelijkse en wekelijkse versiegeschiedenis toegevoegd aan Updates."
+  },
+  "Added removal of recipes shared with the current family without deleting the source family’s recipe.": {
+    "da": "Tilføjede fjernelse af delte opskrifter fra den aktuelle familie uden at slette kildefamiliens opskrift.",
+    "nl": "Verwijderen van gedeelde recepten uit het huidige gezin toegevoegd zonder het bronrecept te verwijderen."
+  },
+  "Added direct clipboard screenshot pasting to feedback submissions.": {
+    "da": "Tilføjede direkte indsættelse af skærmbilleder fra udklipsholderen i feedback.",
+    "nl": "Rechtstreeks plakken van schermafbeeldingen vanuit het klembord aan feedback toegevoegd."
+  },
+  "Made the full recipe card clickable while selecting multiple recipes.": {
+    "da": "Gjorde hele opskriftskortet klikbart ved flervalg.",
+    "nl": "De volledige receptkaart klikbaar gemaakt bij meervoudige selectie."
+  },
+  "Added required improvement, bug, and feature-request categories to feedback submissions; existing pending and approved requests are placed under Feature request.": {
+    "da": "Tilføjede påkrævede kategorier for forbedringer, fejl og funktionsønsker i feedback. Eksisterende afventende og godkendte ønsker placeres under Funktionsønske.",
+    "nl": "Verplichte categorieën voor verbeteringen, fouten en functieverzoeken toegevoegd aan feedback. Bestaande wachtende en goedgekeurde verzoeken zijn onder Functieverzoek geplaatst."
+  },
+  "Added category-based administrator prompts that combine all approved requests of one type for Codex.": {
+    "da": "Tilføjede administratorprompter, der samler alle godkendte ønsker af én kategori til Codex.",
+    "nl": "Beheerdersprompts toegevoegd die alle goedgekeurde verzoeken van één categorie bundelen voor Codex."
+  },
+  "Added a single administrator action to complete every approved request in a category and notify all requesters.": {
+    "da": "Tilføjede én administratorhandling til at afslutte alle godkendte ønsker i en kategori og give alle anmodere besked.",
+    "nl": "Eén beheerdersactie toegevoegd om alle goedgekeurde verzoeken in een categorie af te ronden en alle aanvragers te informeren."
+  },
+  "Added category-specific in-app and browser completion notifications for the original requester.": {
+    "da": "Tilføjede kategorispecifikke afslutningsbeskeder i appen og browseren til den oprindelige anmoder.",
+    "nl": "Categoriespecifieke afrondingsmeldingen in de app en browser toegevoegd voor de oorspronkelijke aanvrager."
+  },
+  "Added multi-select recipe management for publishing or unpublishing recipes and adding or removing tags in one action.": {
+    "da": "Tilføjede flervalg til offentlig eller privat deling og tilføjelse eller fjernelse af tags på flere opskrifter ad gangen.",
+    "nl": "Meervoudige selectie toegevoegd om recepten openbaar of privé te maken en tags tegelijk toe te voegen of te verwijderen."
+  },
+  "Added an opt-in public recipe library where families can browse and import independent recipe copies.": {
+    "da": "Tilføjede et valgfrit offentligt opskriftsbibliotek, hvor familier kan gennemse og importere selvstændige kopier.",
+    "nl": "Een optionele openbare receptenbibliotheek toegevoegd waar gezinnen recepten kunnen bekijken en zelfstandige kopieën importeren."
+  },
+  "Added optional image, PDF, or text attachments to feedback and improvement requests.": {
+    "da": "Tilføjede valgfrie billeder, PDF- og tekstfiler som bilag til feedback og ønsker.",
+    "nl": "Optionele afbeeldingen, PDF- en tekstbijlagen toegevoegd aan feedback en verzoeken."
+  },
+  "Added private automatic recipe analysis that suggests useful tags and meal classifications from recipe text and ingredients.": {
+    "da": "Tilføjede privat automatisk opskriftsanalyse, der foreslår nyttige tags og måltidskategorier fra tekst og ingredienser.",
+    "nl": "Privé automatische receptanalyse toegevoegd die nuttige tags en maaltijdindelingen voorstelt op basis van tekst en ingrediënten."
+  },
+  "Improved tag contrast across all accent colors when dark mode is enabled.": {
+    "da": "Forbedrede tagkontrast for alle accentfarver i mørk tilstand.",
+    "nl": "Tagcontrast verbeterd voor alle accentkleuren in donkere modus."
+  },
+  "Added a first-install choice between example recipes and an empty collection.": {
+    "da": "Tilføjede valg mellem eksempelopskrifter og en tom samling ved første installation.",
+    "nl": "Keuze tussen voorbeeldrecepten en een lege verzameling toegevoegd bij de eerste installatie."
+  },
+  "Added user feedback submissions and an administrator approval backlog.": {
+    "da": "Tilføjede brugerfeedback og en godkendelsesliste for administratorer.",
+    "nl": "Gebruikersfeedback en een goedkeuringslijst voor beheerders toegevoegd."
+  },
+  "Added administrator completion tracking and in-app notifications for the user who requested an improvement.": {
+    "da": "Tilføjede administratorregistrering af afslutninger og beskeder i appen til den bruger, der ønskede forbedringen.",
+    "nl": "Afronding door beheerders en meldingen in de app toegevoegd voor de gebruiker die de verbetering aanvroeg."
+  },
+  "Added separate active and archived administrator feedback views, with permanent deletion for archived requests.": {
+    "da": "Tilføjede separate aktive og arkiverede administratorvisninger med permanent sletning af arkiverede ønsker.",
+    "nl": "Afzonderlijke actieve en gearchiveerde beheerdersweergaven toegevoegd, met definitieve verwijdering van gearchiveerde verzoeken."
+  },
+  "Added combinable family-rating and calories-per-serving range filters to the recipe collection.": {
+    "da": "Tilføjede kombinerbare intervaller for familiens bedømmelser og kalorier pr. portion i opskriftssamlingen.",
+    "nl": "Combineerbare bereikfilters voor gezinsbeoordelingen en calorieën per portie toegevoegd aan de receptenverzameling."
+  },
+  "Added CookBook Manager YAML ZIP preview and bulk import with duplicate-name detection and recipe-type fallback.": {
+    "da": "Tilføjede forhåndsvisning og masseimport af CookBook Manager YAML ZIP med kontrol af dubletnavne og reservetype.",
+    "nl": "Preview en bulkimport van CookBook Manager YAML ZIP toegevoegd met detectie van dubbele namen en een terugvalrecepttype."
+  },
+  "Fixed CookBook imports failing when one recipe repeats the same ingredient in multiple sections.": {
+    "da": "Rettede fejl ved CookBook-import, når samme ingrediens gentages i flere afsnit.",
+    "nl": "CookBook-import hersteld wanneer hetzelfde ingrediënt in meerdere secties voorkomt."
+  },
+  "Limited recipe-card descriptions to six lines so long imported text keeps the collection compact.": {
+    "da": "Begrænsede kortbeskrivelser til seks linjer, så lange importerede tekster ikke fylder samlingen.",
+    "nl": "Beschrijvingen op receptkaarten beperkt tot zes regels om lange geïmporteerde teksten compact te houden."
+  },
+  "Added an Updates page showing the installed version and release highlights.": {
+    "da": "Tilføjede Opdateringer med installeret version og højdepunkter.",
+    "nl": "Updates toegevoegd met de geïnstalleerde versie en hoogtepunten."
+  },
+  "Moved the Updates link into Family settings to keep the main header uncluttered.": {
+    "da": "Flyttede linket Opdateringer til Familie for at holde hovedmenuen overskuelig.",
+    "nl": "De Updates-link naar Gezin verplaatst om de hoofdnavigatie overzichtelijk te houden."
+  },
+  "Added an installation-administrator control for downloading portable PostgreSQL database backups.": {
+    "da": "Tilføjede administratoradgang til at hente portable PostgreSQL-sikkerhedskopier.",
+    "nl": "Beheerders een mogelijkheid gegeven om draagbare PostgreSQL-back-ups te downloaden."
+  },
+  "Matched the backup client to PostgreSQL 18 so administrator downloads work with the deployed database.": {
+    "da": "Tilpassede sikkerhedskopiklienten til PostgreSQL 18, så administratorens downloads virker med den installerede database.",
+    "nl": "De back-upclient afgestemd op PostgreSQL 18 zodat beheerdersdownloads met de geïnstalleerde database werken."
+  },
+  "Added a separate administrator download for all uploaded recipe photos.": {
+    "da": "Tilføjede separat administratordownload af alle uploadede opskriftsbilleder.",
+    "nl": "Een afzonderlijke beheerdersdownload voor alle geüploade receptfoto's toegevoegd."
+  },
+  "Added non-destructive database-backup validation using a disposable PostgreSQL database.": {
+    "da": "Tilføjede kontrol af databasesikkerhedskopier i en midlertidig PostgreSQL-database uden at ændre aktive data.",
+    "nl": "Controle van databaseback-ups in een tijdelijke PostgreSQL-database toegevoegd zonder actieve gegevens te wijzigen."
+  },
+  "Fixed web backup validation so the uploaded dump is applied to the disposable database before checks run.": {
+    "da": "Rettede webkontrol af sikkerhedskopier, så den uploadede kopi gendannes i testdatabasen før kontrollerne.",
+    "nl": "Webcontrole van back-ups hersteld zodat de geüploade kopie vóór de controles in de testdatabase wordt hersteld."
+  },
+  "Added guided HTTPS configuration for Debian and TrueNAS reverse proxies, including secure cookies and loopback binding.": {
+    "da": "Tilføjede HTTPS-vejledning til Debian- og TrueNAS-proxyer med sikre cookies og lokal netværksbinding.",
+    "nl": "HTTPS-instructies toegevoegd voor Debian- en TrueNAS-proxy's met veilige cookies en lokale netwerkbinding."
+  },
+  "Made smart planning reuse surplus recipe portions on the same meal across consecutive days without duplicating grocery quantities.": {
+    "da": "Smart planlægning genbruger nu overskydende portioner til samme måltid på sammenhængende dage uden dobbelte indkøbsmængder.",
+    "nl": "Slim plannen hergebruikt overtollige porties voor dezelfde maaltijd op opeenvolgende dagen zonder dubbele boodschappenhoeveelheden."
+  },
+  "Fixed consecutive leftover meals falling back to lunch when applying a suggested plan.": {
+    "da": "Rettede at sammenhængende restemåltider blev til frokost ved anvendelse af et foreslået ugeprogram.",
+    "nl": "Hersteld dat opeenvolgende restjesmaaltijden naar lunch terugvielen bij het toepassen van een voorgesteld plan."
+  },
+  "Added copyable Codex implementation prompts that require tests, a changelog update, and a final commit request.": {
+    "da": "Tilføjede kopierbare Codex-prompter med krav om tests, ændringslog og afsluttende commitforespørgsel.",
+    "nl": "Kopieerbare Codex-prompts toegevoegd die tests, een wijzigingsoverzicht en een afsluitend commitverzoek vereisen."
+  },
+  "Fixed “Copy for Codex” on local HTTP installations by adding a compatible clipboard fallback.": {
+    "da": "Rettede Kopiér til Codex på lokale HTTP-installationer med en kompatibel udklipsholderløsning.",
+    "nl": "Kopiëren voor Codex hersteld op lokale HTTP-installaties met een compatibele klembordoplossing."
+  },
+  "Completed Danish and Dutch recipe filters, sorting, ratings, navigation, planner states, and backup controls. The Updates page now translates release dates, categories, and the full release history using the account language; personal language choices and saved data are preserved.": {
+    "da": "Færdiggjorde danske og nederlandske filtre, sortering, bedømmelser, navigation, madplanvisninger og sikkerhedskopiering. Opdateringer oversætter nu datoer, kategorier og hele versionshistorikken til kontoens sprog. Sprogvalg og gemte data bevares.",
+    "nl": "Deense en Nederlandse filters, sortering, beoordelingen, navigatie, planningsweergaven en back-upbediening voltooid. Updates vertaalt nu datums, categorieën en de volledige versiegeschiedenis naar de accounttaal. Taalkeuzes en opgeslagen gegevens blijven bewaard."
+  },
+  "Weekly planning preferences now search saved meal names alongside ingredients and styles, including small typos such as “bruger” for burger. Select a matching meal to prioritize it in suggested plans for any week.": {
+    "da": "Ugens planlægningsønsker søger nu efter gemte retter sammen med ingredienser og madstile, også ved små stavefejl som “bruger” for burger. Vælg en matchende ret for at prioritere den i forslag til en valgfri uge.",
+    "nl": "Weekvoorkeuren zoeken nu naar opgeslagen maaltijden naast ingrediënten en stijlen, ook bij kleine typefouten zoals “bruger” voor burger. Selecteer een passende maaltijd om deze voorrang te geven in voorgestelde plannen voor elke gewenste week."
+  },
+  "Recipe imports now select the recipe title instead of publisher or author names such as Valdemarsro. Existing saved recipes are preserved; review the title when reimporting an affected recipe.": {
+    "da": "Importerede opskrifter bruger nu opskriftens titel i stedet for udgiverens eller forfatterens navn som Valdemarsro. Gemte opskrifter bevares; kontrollér titlen, når du importerer en berørt opskrift igen.",
+    "nl": "Geïmporteerde recepten gebruiken nu de recepttitel in plaats van de naam van de uitgever of auteur, zoals Valdemarsro. Opgeslagen recepten blijven behouden; controleer de titel wanneer je een getroffen recept opnieuw importeert."
+  }
+}

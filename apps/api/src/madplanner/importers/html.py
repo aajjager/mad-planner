@@ -23,6 +23,28 @@ def _content(document: HTMLParser, *selectors: str) -> str | None:
     return None
 
 
+def _recipe_name(document: HTMLParser) -> str | None:
+    recipe_names: list[str] = []
+    unscoped_names: list[str] = []
+    for node in document.css('[itemprop~="name"]'):
+        owner = node.parent
+        while owner is not None and "itemscope" not in owner.attributes:
+            owner = owner.parent
+        value = _node_text(node)
+        if not value:
+            continue
+        if owner is None:
+            unscoped_names.append(value)
+        elif any(kind.rstrip("/").rsplit("/", 1)[-1] == "Recipe"
+                 for kind in owner.attributes.get("itemtype", "").split()):
+            recipe_names.append(value)
+    if recipe_names:
+        return recipe_names[0]
+    return _content(document, 'meta[property="og:title"]', 'meta[name="twitter:title"]', "h1") or (
+        unscoped_names[0] if unscoped_names else _content(document, "title")
+    )
+
+
 def _texts(document: HTMLParser, selectors: tuple[str, ...]) -> list[str]:
     values: list[str] = []
     seen: set[str] = set()
@@ -85,10 +107,7 @@ def parse_html_recipe(html: str, source_url: str) -> ImportedRecipePreview:
     if not ingredients and not instructions:
         raise RecipeParseError("No recipe data was found on this page")
 
-    name = _content(
-        document, '[itemprop="name"]', 'meta[property="og:title"]',
-        'meta[name="twitter:title"]', "h1", "title",
-    )
+    name = _recipe_name(document)
     if not name:
         raise RecipeParseError("The recipe name could not be found on this page")
 

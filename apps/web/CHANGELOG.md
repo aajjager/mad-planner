@@ -4,6 +4,20 @@ All notable user-visible changes are recorded here. Versions use year since 2026
 
 ## 0.10.4 — October 2026, week 4
 
+### Bug fixes
+
+- Fixed saving scanned recipes with long ingredient commentary exceeding the database name limit. Ingredient names and notes are stored separately, while the complete scanned ingredient text and existing authored notes are preserved.
+
+- Improved cookbook scanning with image enlargement, local contrast correction, separate reading passes for book spreads, and column-aware text ordering. Preserved scanned introductions in an editable description and joined wrapped ingredient lines; review quantities and OCR text before saving.
+
+- Fixed implementation jobs failing on routine weekly version updates or ignored dependency symlinks. Version-only updates are checked against the current release; dependency/configuration changes and symlinks in published source still require manual review.
+
+- Recipe imports now select the recipe title instead of publisher or author names such as Valdemarsro. Existing saved recipes are preserved; review the title when reimporting an affected recipe.
+
+### Features
+
+- Weekly planning preferences now search saved meal names alongside ingredients and styles, including small typos such as “bruger” for burger. Select a matching meal to prioritize it in suggested plans for any week.
+
 ### Improvements
 
 - Improved book OCR with verified higher-accuracy English, Danish, and Dutch models, language selection, focused reading of ingredient columns, and grouping of wrapped ingredient notes. Photo-only images can be excluded from text scanning, unreliable photo text is ignored, and ingredient-only pages explicitly ask for cooking instructions instead of inventing steps.
@@ -12,13 +26,8 @@ All notable user-visible changes are recorded here. Versions use year since 2026
 
 - Grouped manual recipe creation, website imports, cookbook scans, and CookBook archive imports in a guided Add recipe menu with equally sized, aligned option cards. Simplified collection and navigation actions, added return links to choose another method, and updated the welcome guide in English, Danish, and Dutch.
 
-### Bug fixes
+- Completed Danish and Dutch recipe filters, sorting, ratings, navigation, planner states, and backup controls. The Updates page now translates release dates, categories, and the full release history using the account language; personal language choices and saved data are preserved.
 
-- Fixed saving scanned recipes with long ingredient commentary exceeding the database name limit. Ingredient names and notes are stored separately, while the complete scanned ingredient text and existing authored notes are preserved.
-
-- Improved cookbook scanning with image enlargement, local contrast correction, separate reading passes for book spreads, and column-aware text ordering. Preserved scanned introductions in an editable description and joined wrapped ingredient lines; review quantities and OCR text before saving.
-
-- Fixed implementation jobs failing on routine weekly version updates or ignored dependency symlinks. Version-only updates are checked against the current release; dependency/configuration changes and symlinks in published source still require manual review.
 
 ## 0.10.3 — October 2026, week 3
 
