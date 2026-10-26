@@ -9,6 +9,8 @@ The project is being built incrementally as a modular monolith:
 - PostgreSQL database
 - Docker Compose deployment
 
+For recipe photographs, see [Book scanning](docs/book-scanning.md). OCR runs locally with bundled English, Danish, and Dutch models.
+
 ## Run the complete application
 
 For opt-in notifications while the app is closed, see [Background Web Push](docs/background-push.md). Administrator signing-key setup and HTTPS are required.

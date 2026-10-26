@@ -50,7 +50,7 @@ describe('App', () => {
     const preview = { name: 'Chili con carne', description: 'A family favourite.', ingredients: ['350 g beef'], instructions: ['Simmer for thirty minutes.'], raw_text: 'Chili con carne', warnings: [] }
     const fetch = vi.spyOn(globalThis, 'fetch').mockImplementation((input, init) => {
       const url = String(input)
-      if (url.endsWith('/recipe-scans/preview')) return Promise.resolve(jsonResponse(preview))
+      if (url.includes('/recipe-scans/preview')) return Promise.resolve(jsonResponse(preview))
       if (url.endsWith('/recipes') && init?.method === 'POST') return Promise.resolve(jsonResponse({ id: 999, ...preview, tags: [], meal_types: [], recipe_types: [] }))
       return Promise.resolve(authResponse(input) ?? jsonResponse([]))
     })
@@ -74,7 +74,7 @@ describe('App', () => {
     const removed = new File(['three'], 'remove-me.jpg', { type: 'image/jpeg' })
     const fetch = vi.spyOn(globalThis, 'fetch').mockImplementation((input, init) => {
       const url = String(input)
-      if (url.endsWith('/recipe-scans/preview')) return Promise.resolve(jsonResponse({ name: 'Chili', confidence: 0.9, description: 'From the book.', ingredients: init?.body === first ? ['2 onions'] : ['350 g beef'], instructions: init?.body === first ? ['Chop the onions.'] : ['Cook until ready.'], raw_text: 'Detected text', warnings: [] }))
+      if (url.includes('/recipe-scans/preview')) return Promise.resolve(jsonResponse({ name: 'Chili', confidence: 0.9, description: 'From the book.', ingredients: init?.body === first ? ['2 onions'] : ['350 g beef'], instructions: init?.body === first ? ['Chop the onions.'] : ['Cook until ready.'], raw_text: 'Detected text', warnings: [] }))
       if (url.endsWith('/recipes') && init?.method === 'POST') return Promise.resolve(jsonResponse({ id: 999 }))
       if (url.endsWith('/recipes/999')) return Promise.resolve(jsonResponse({ id: 999, name: 'Chili', tags: [], ingredients: [], instructions: [], meal_types: [], recipe_types: [] }))
       if (url.endsWith('/999/image')) return Promise.resolve(jsonResponse({ id: 999 }))
@@ -94,7 +94,7 @@ describe('App', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Dinner' }))
     fireEvent.click(screen.getByRole('button', { name: 'Save scanned recipe' }))
     await waitFor(() => expect(fetch.mock.calls.some(([url, init]) => String(url).endsWith('/999/image') && init?.body === second)).toBe(true))
-    expect(fetch.mock.calls.filter(([url]) => String(url).endsWith('/recipe-scans/preview'))).toHaveLength(2)
+    expect(fetch.mock.calls.filter(([url]) => String(url).includes('/recipe-scans/preview'))).toHaveLength(2)
   })
 
   it('retains successful photos when another photo cannot be scanned', async () => {
@@ -102,7 +102,7 @@ describe('App', () => {
     const good = new File(['good'], 'good.jpg', { type: 'image/jpeg' })
     const bad = new File(['bad'], 'bad.jpg', { type: 'image/jpeg' })
     vi.spyOn(globalThis, 'fetch').mockImplementation((input, init) => {
-      if (String(input).endsWith('/recipe-scans/preview')) return Promise.resolve(init?.body === bad ? new Response(JSON.stringify({ detail: 'Unreadable image' }), { status: 422 }) : jsonResponse({ name: 'Chili', description: 'Still available.', ingredients: ['2 onions'], instructions: ['Cook.'], raw_text: 'Text', warnings: [] }))
+      if (String(input).includes('/recipe-scans/preview')) return Promise.resolve(init?.body === bad ? new Response(JSON.stringify({ detail: 'Unreadable image' }), { status: 422 }) : jsonResponse({ name: 'Chili', description: 'Still available.', ingredients: ['2 onions'], instructions: ['Cook.'], raw_text: 'Text', warnings: [] }))
       return Promise.resolve(authResponse(input) ?? jsonResponse([]))
     })
     render(<App />)
@@ -110,6 +110,29 @@ describe('App', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Scan page' }))
     expect(await screen.findByLabelText('Description')).toHaveValue('Still available.')
     expect(screen.getByRole('alert')).toHaveTextContent('bad.jpg')
+  })
+
+  it.each([false, true])('keeps food images out of recipe text with explicit photo-only selection %s', async (photoOnly) => {
+    window.history.pushState({}, '', '/recipes/scan')
+    const food = new File(['food'], 'food.jpg', { type: 'image/jpeg' })
+    const page = new File(['page'], 'page.jpg', { type: 'image/jpeg' })
+    const fetch = vi.spyOn(globalThis, 'fetch').mockImplementation((input, init) => {
+      if (String(input).includes('/recipe-scans/preview')) return Promise.resolve(jsonResponse(init?.body === food ? { usable: false, name: 'Scanned recipe', ingredients: [], instructions: [], raw_text: 'Ed r + a', warnings: [] } : { usable: true, name: 'FAST FOOD PIZZA', ingredients: ['1 Chicken snack'], instructions: [], raw_text: 'INGREDIENTS', warnings: ['No instruction steps were detected.'] }))
+      return Promise.resolve(authResponse(input) ?? jsonResponse([]))
+    })
+    render(<App />)
+    fireEvent.change(await screen.findByLabelText('Recipe page photo'), { target: { files: [food, page] } })
+    if (photoOnly) fireEvent.click(screen.getAllByRole('checkbox', { name: 'Read text from this photo' })[0])
+    fireEvent.change(screen.getByLabelText('Recipe text language'), { target: { value: 'en' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Scan page' }))
+    expect(await screen.findByLabelText('Recipe name')).toHaveValue('FAST FOOD PIZZA')
+    expect(screen.getByText(/No cooking instructions were found/)).toBeInTheDocument()
+    expect(screen.getByLabelText('Instructions — one per line')).toHaveValue('')
+    const requests = fetch.mock.calls.filter(([url]) => String(url).includes('/recipe-scans/preview'))
+    expect(requests).toHaveLength(photoOnly ? 1 : 2)
+    expect(requests.every(([url]) => String(url).includes('language=en'))).toBe(true)
+    expect(screen.getByRole('radio', { name: /food.jpg/ })).toBeChecked()
+    if (!photoOnly) expect(screen.getByText(/These photos were kept as images only/)).toBeInTheDocument()
   })
 
   it.each(['lavender', 'terracotta', 'teal'])('saves and applies the %s personal palette in Family', async (theme) => {

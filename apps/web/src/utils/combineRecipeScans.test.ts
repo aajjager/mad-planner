@@ -29,6 +29,19 @@ describe('combining recipe photos', () => {
     ])
     expect(result.instructions).toEqual(['Add the tomatoes and simmer gently for thirty minutes before serving.'])
   })
+  it('ignores food-only OCR and favours a complete title and quantities over slightly higher confidence', () => {
+    const result = combineRecipeScans([
+      scan('food photo', { usable: false, confidence: 0.2, name: 'Ed r + a', ingredients: ['7 nonsense'] }),
+      scan('page', { confidence: 0.9, name: 'FAST FOOD PIZZA', ingredients: ['1 Chicken snack. Crunchy and spicy.', '2 Bags of cheese. Add more if desired.'] }),
+      scan('cut-off', { confidence: 0.94, name: 'AST FOOD PIZZA', ingredients: ['Chicken snack. Crunchy and spicy.', '2 Bags of cheese. Add more if desired.'] }),
+    ])
+    expect(result.name).toBe('FAST FOOD PIZZA')
+    expect(result.ingredients).toHaveLength(2)
+    expect(result.ingredients[0]).toMatch(/^1 Chicken/)
+    expect(result.raw_text).not.toContain('food photo')
+    expect(result.instructions).toEqual([])
+  })
+
   it('retains a description and warnings from another photo when absent in the clearest one', () => {
     const result = combineRecipeScans([scan('one', { description: 'Family favourite.', warnings: ['Review text'] }), scan('two', { confidence: 0.95 })])
     expect(result.description).toBe('Family favourite.')

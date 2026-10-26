@@ -6,6 +6,8 @@ All notable user-visible changes are recorded here. Versions use year since 2026
 
 ### Improvements
 
+- Improved book OCR with verified higher-accuracy English, Danish, and Dutch models, language selection, focused reading of ingredient columns, and grouping of wrapped ingredient notes. Photo-only images can be excluded from text scanning, unreliable photo text is ignored, and ingredient-only pages explicitly ask for cooking instructions instead of inventing steps.
+
 - Cookbook scanning now accepts up to six photos of the same recipe, including page views and close-ups. Add or remove photos, follow per-photo progress, combine overlapping text into one editable preview using recognition confidence, and choose the saved recipe image. Failed photos are reported while successful scans remain available for review. Updated guidance in English, Danish, and Dutch.
 
 - Grouped manual recipe creation, website imports, cookbook scans, and CookBook archive imports in a guided Add recipe menu with equally sized, aligned option cards. Simplified collection and navigation actions, added return links to choose another method, and updated the welcome guide in English, Danish, and Dutch.

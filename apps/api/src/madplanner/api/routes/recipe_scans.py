@@ -1,4 +1,4 @@
-from typing import Annotated
+from typing import Annotated, Literal
 
 from fastapi import APIRouter, Depends, HTTPException, Request
 
@@ -12,7 +12,7 @@ _SIGNATURES = {"image/jpeg": b"\xff\xd8\xff", "image/png": b"\x89PNG\r\n\x1a\n",
 
 
 @router.post("/preview", response_model=RecipeScanPreview)
-async def scan_recipe_preview(request: Request, _permission: Annotated[AuthContext, Depends(require_recipe_editor)]):
+async def scan_recipe_preview(request: Request, _permission: Annotated[AuthContext, Depends(require_recipe_editor)], language: Literal["auto", "en", "da", "nl"] = "auto"):
     content_type = request.headers.get("content-type", "").split(";", 1)[0].casefold()
     signature = _SIGNATURES.get(content_type)
     image = await request.body()
@@ -22,7 +22,7 @@ async def scan_recipe_preview(request: Request, _permission: Annotated[AuthConte
     if len(image) > 15 * 1024 * 1024:
         raise HTTPException(status_code=413, detail="Scanned pages must be 15 MB or smaller")
     try:
-        return RecipeScanService().preview(image)
+        return RecipeScanService().preview(image, language=language)
     except ValueError as error:
         raise HTTPException(status_code=422, detail=str(error)) from error
     except RuntimeError as error:

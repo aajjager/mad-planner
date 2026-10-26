@@ -271,3 +271,18 @@ def test_bulk_update_rejects_a_recipe_not_owned_by_the_family(client: TestClient
     recipient = TestClient(app)
     recipient.post(f"/api/v1/auth/invitations/{provisioned.json()['token']}/accept", json={"display_name": "Other", "password": "test-password-456"})
     assert recipient.patch("/api/v1/recipes/bulk", json={"recipe_ids": [recipe["id"]], "is_public": True}).status_code == 422
+
+
+def test_scan_language_is_validated_and_passed_to_ocr(client, monkeypatch):
+    from madplanner.schemas.recipe_scan import RecipeScanPreview
+    calls = []
+    def preview(self, image, language='auto'):
+        calls.append(language)
+        return RecipeScanPreview(name='Test recipe', raw_text='Text')
+    monkeypatch.setattr('madplanner.services.recipe_scan.RecipeScanService.preview', preview)
+    for language in ['auto', 'en', 'da', 'nl']:
+        result = client.post('/api/v1/recipe-scans/preview', params={'language': language}, content=b'\xff\xd8\xffphoto', headers={'Content-Type': 'image/jpeg'})
+        assert result.status_code == 200
+    invalid = client.post('/api/v1/recipe-scans/preview?language=unsupported', content=b'\xff\xd8\xffphoto', headers={'Content-Type': 'image/jpeg'})
+    assert invalid.status_code == 422
+    assert calls == ['auto', 'en', 'da', 'nl']

@@ -90,6 +90,6 @@ h1 { font-family:inherit; font-size:clamp(2.25rem,5vw,3.75rem); font-weight:750;
 .recipe-method:focus-visible { outline:3px solid var(--green); outline-offset:3px; }
 @media(max-width:600px) { .recipe-methods { grid-template-columns:1fr; } }
 
-.scan-photo-row { display:flex; align-items:center; justify-content:space-between; gap:16px; padding:10px 0; }
+.scan-photo-row { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:16px; padding:10px 0; }
 .scan-photo-row label { overflow-wrap:anywhere; min-width:0; }
 .scan-photo-row button { flex-shrink:0; }

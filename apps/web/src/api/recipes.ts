@@ -28,7 +28,7 @@ export interface Recipe {
   ingredients: RecipeIngredient[]; instructions: RecipeInstruction[]; created_at: string; updated_at: string
 }
 export interface ImportedRecipePreview { name: string; description: string | null; image_url: string | null; source_url: string; author: string | null; servings: string | null; preparation_time_minutes: number | null; cooking_time_minutes: number | null; total_time_minutes: number | null; cuisine: string | null; category: string | null; nutrition: Record<string, unknown> | null; ingredients: string[]; instructions: string[]; parser: string; warnings: string[]; suggested_recipe_types: string[]; recipe_type_confidence: 'low' | 'medium' | 'high' }
-export interface RecipeScanPreview { confidence?: number; name: string; description?: string | null; ingredients: string[]; instructions: string[]; raw_text: string; warnings: string[] }
+export interface RecipeScanPreview { usable?: boolean; confidence?: number; name: string; description?: string | null; ingredients: string[]; instructions: string[]; raw_text: string; warnings: string[] }
 export interface CookBookRecipePreview { name: string; description: string | null; image_url: string | null; servings: string | null; preparation_time_minutes: number | null; cooking_time_minutes: number | null; total_time_minutes: number | null; category: string | null; tags: string[]; ingredients: string[]; instructions: string[]; suggested_recipe_types: string[]; duplicate: boolean; warnings: string[] }
 export interface CookBookArchivePreview { recipes: CookBookRecipePreview[]; warnings: string[] }
 
@@ -67,7 +67,7 @@ export const bulkUpdateRecipes = (data: RecipeBulkUpdate) => request<Recipe[]>('
 export const uploadRecipeImage = (id: number, file: File) => request<Recipe>(`/api/v1/recipes/${id}/image`, { method: 'POST', headers: { 'Content-Type': file.type }, body: file })
 export const previewRecipeImport = (url: string) => request<ImportedRecipePreview>('/api/v1/recipe-imports/preview', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ url }) })
 export const previewCookBookArchive = (file: File) => request<CookBookArchivePreview>('/api/v1/recipe-imports/cookbook/preview', { method: 'POST', headers: { 'Content-Type': 'application/zip' }, body: file })
-export const scanRecipeImage = (file: File) => request<RecipeScanPreview>('/api/v1/recipe-scans/preview', { method: 'POST', headers: { 'Content-Type': file.type }, body: file })
+export const scanRecipeImage = (file: File, language = 'auto') => request<RecipeScanPreview>(`/api/v1/recipe-scans/preview?language=${encodeURIComponent(language)}`, { method: 'POST', headers: { 'Content-Type': file.type }, body: file })
 
 export function parseServingCount(value: string | null): string | undefined {
   if (!value) return undefined
