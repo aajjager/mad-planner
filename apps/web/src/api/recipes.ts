@@ -85,3 +85,8 @@ export function inferMealTypes(category: string | null): RecipeMealType[] {
 }
 
 export const replaceRecipe = (id: number, recipe: RecipeWrite) => request<Recipe>(`/api/v1/recipes/${id}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(recipe) })
+
+export interface SharingPreferences { always_share: boolean; families: Array<{ id: number; name: string; hidden: boolean }> }
+export const getSharingPreferences = () => request<SharingPreferences>('/api/v1/recipes/sharing/preferences')
+export const setAlwaysShare = (enabled: boolean) => request('/api/v1/recipes/sharing/always', { method: 'PUT', body: JSON.stringify({ enabled }) })
+export const setHiddenFamily = (id: number, enabled: boolean) => request(`/api/v1/recipes/sharing/hidden/${id}`, { method: 'PUT', body: JSON.stringify({ enabled }) })

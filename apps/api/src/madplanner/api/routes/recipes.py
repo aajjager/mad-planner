@@ -3,11 +3,14 @@ from typing import Annotated
 from uuid import uuid4
 
 from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
+from sqlalchemy import select
+from pydantic import BaseModel
+from madplanner.models import Family
 from sqlalchemy.orm import Session
 
 from madplanner.db.session import get_session
 from madplanner.core.config import get_settings
-from madplanner.api.routes.auth import require_auth, require_recipe_editor
+from madplanner.api.routes.auth import require_auth, require_recipe_editor, require_owner
 from madplanner.services.auth import AuthContext
 from madplanner.repositories.recipes import RecipeRepository
 from madplanner.schemas.recipe import RecipeBulkUpdate, RecipeMealTypesUpdate, RecipeMetadataSuggestions, RecipeRatingUpdate, RecipeResponse, RecipeShareTarget, RecipeSharesUpdate, RecipeTagsUpdate, RecipeVisibilityUpdate, RecipeWrite
@@ -39,9 +42,40 @@ def list_recipe_share_targets(service: Annotated[RecipeService, Depends(get_reci
     return service.list_share_targets()
 
 
+class SharingPreference(BaseModel):
+    enabled: bool
+
+
+@router.get("/sharing/preferences")
+def sharing_preferences(context: Annotated[AuthContext, Depends(require_auth)], session: Annotated[Session, Depends(get_session)]):
+    families = session.scalars(select(Family).where(Family.id != context.family.id).order_by(Family.name, Family.id))
+    return {"always_share": context.family.always_share_recipes, "families": [{"id": family.id, "name": family.name, "hidden": family.id in context.user.hidden_recipe_family_ids} for family in families]}
+
+
+@router.put("/sharing/always")
+def always_share(data: SharingPreference, context: Annotated[AuthContext, Depends(require_owner)], session: Annotated[Session, Depends(get_session)]):
+    context.family.always_share_recipes = data.enabled
+    session.commit()
+    return {"enabled": context.family.always_share_recipes}
+
+
+@router.put("/sharing/hidden/{family_id}")
+def hide_family(family_id: int, data: SharingPreference, context: Annotated[AuthContext, Depends(require_auth)], session: Annotated[Session, Depends(get_session)]):
+    if family_id == context.family.id or session.get(Family, family_id) is None:
+        raise HTTPException(status_code=422, detail="Choose another family")
+    hidden = set(context.user.hidden_recipe_family_ids)
+    if data.enabled:
+        hidden.add(family_id)
+    else:
+        hidden.discard(family_id)
+    context.user.hidden_recipe_family_ids = sorted(hidden)
+    session.commit()
+    return {"enabled": data.enabled}
+
+
 @router.get("/public", response_model=list[RecipeResponse])
-def list_public_recipes(service: Annotated[RecipeService, Depends(get_recipe_service)]):
-    return service.list_public_recipes()
+def list_public_recipes(service: Annotated[RecipeService, Depends(get_recipe_service)], context: Annotated[AuthContext, Depends(require_auth)]):
+    return service.list_public_recipes(context.user.hidden_recipe_family_ids)
 
 
 @router.post("/public/{recipe_id}/import", response_model=RecipeResponse, status_code=status.HTTP_201_CREATED)

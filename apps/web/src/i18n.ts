@@ -1,6 +1,8 @@
 import type { Account } from './api/auth'
 
 const en = {
+  communityPreferences: 'Community recipe preferences', alwaysShareRecipes: 'Always share my family recipes with everyone', alwaysShareHelp: 'The owner can share all existing and future family recipes. Turning this off preserves recipes shared individually.', hideFamiliesHelp: 'Hide families from your community browsing only. Uncheck a family to show its recipes again. Saved copies and other accounts are unchanged.', hideFamilyRecipes: 'Hide recipes from',
+
   combinedNotificationsHelp: 'Receive meal-plan reminders and completed-feedback updates, including while the app is closed. Allow notifications on each device. Turning this off pauses notifications on all your devices.',
   backgroundPush: 'Background notifications on this device', backgroundPushHelp: 'Receive incomplete-plan reminders and completed-feedback updates while the app is closed. Planning reminders are sent at most once daily after 09:00 Copenhagen time. Enable separately on each device. Delivery depends on your browser and phone settings.',
   pushUnsupported: 'This browser needs HTTPS and Web Push support. On iPhone or iPad, add Mad Planner to your Home Screen and open it there first.',
@@ -228,3 +230,6 @@ Object.assign(nl, {"recipeCreationProgress": "Voortgang recept maken", "ingredie
 
 Object.assign(da, { mobileNavigation: 'Mobilnavigation' })
 Object.assign(nl, { mobileNavigation: 'Mobiele navigatie' })
+
+Object.assign(da, { communityPreferences: 'Indstillinger for fælles opskrifter', alwaysShareRecipes: 'Del altid familiens opskrifter med alle', alwaysShareHelp: 'Ejeren kan dele alle nuværende og fremtidige familieopskrifter. Deaktivering bevarer individuelt delte opskrifter.', hideFamiliesHelp: 'Skjul familier fra din egen visning af fælles opskrifter. Fjern markeringen for at vise dem igen. Gemte kopier og andre konti ændres ikke.', hideFamilyRecipes: 'Skjul opskrifter fra' })
+Object.assign(nl, { communityPreferences: 'Voorkeuren voor gedeelde recepten', alwaysShareRecipes: 'Deel mijn gezinsrecepten altijd met iedereen', alwaysShareHelp: 'De eigenaar kan alle bestaande en toekomstige gezinsrecepten delen. Uitschakelen behoudt afzonderlijk gedeelde recepten.', hideFamiliesHelp: 'Verberg gezinnen alleen in je eigen overzicht van gedeelde recepten. Vink uit om ze opnieuw te tonen. Opgeslagen kopieën en andere accounts blijven ongewijzigd.', hideFamilyRecipes: 'Verberg recepten van' })
