@@ -282,5 +282,9 @@
   "Grouped manual recipe creation, website imports, cookbook scans, and CookBook archive imports in a guided Add recipe menu with equally sized, aligned option cards. Simplified collection and navigation actions, added return links to choose another method, and updated the welcome guide in English, Danish, and Dutch.": {
     "da": "Samlede manuel oprettelse, webimport, kogebogsscanning og import af CookBook-arkiver i en trinvis Tilføj opskrift-menu med ensartede valgkort. Forenklede opskriftsoversigt og navigation, tilføjede returlinks til metodevalg og opdaterede velkomstguiden på engelsk, dansk og nederlandsk.",
     "nl": "Handmatige invoer, website-import, kookboekscans en CookBook-archieven samengebracht in een begeleid Recept toevoegen-menu met even grote, uitgelijnde keuzekaarten. Collectie en navigatie zijn vereenvoudigd, teruglinks laten een andere methode kiezen en de Engelse, Deense en Nederlandse welkomstgids is bijgewerkt."
+  },
+  "Added an owner-controlled option to share all existing and future family recipes with everyone. Each account can hide recipes from selected families in community browsing and show them again; saved copies and individually shared recipes are preserved.": {
+    "da": "Tilføjede en ejerstyret mulighed for at dele alle nuværende og fremtidige familieopskrifter med alle. Hver konto kan skjule opskrifter fra udvalgte familier i fællesvisningen og vise dem igen; gemte kopier og individuelt delte opskrifter bevares.",
+    "nl": "Een optie toegevoegd waarmee de eigenaar alle bestaande en toekomstige gezinsrecepten met iedereen kan delen. Elk account kan recepten van geselecteerde gezinnen verbergen in het gedeelde overzicht en opnieuw tonen; opgeslagen kopieën en afzonderlijk gedeelde recepten blijven behouden."
   }
 }
