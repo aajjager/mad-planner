@@ -103,8 +103,8 @@ class RecipeService:
             return False
         return self.repository.remove_received_share(recipe_id)
 
-    def list_public_recipes(self) -> list[RecipeResponse]:
-        return [self._to_response(recipe) for recipe in self.repository.list_public()]
+    def list_public_recipes(self, hidden_family_ids: list[int] | None = None) -> list[RecipeResponse]:
+        return [self._to_response(recipe) for recipe in self.repository.list_public() if recipe.family_id not in (hidden_family_ids or [])]
 
     def update_visibility(self, recipe_id: int, data: RecipeVisibilityUpdate) -> RecipeResponse | None:
         recipe = self.repository.get_owned(recipe_id)

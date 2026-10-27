@@ -306,3 +306,44 @@ def test_scanned_recipe_with_long_ingredient_notes_saves_and_round_trips(client)
     from decimal import Decimal
     assert Decimal(retrieved['ingredients'][0]['quantity']) == Decimal(ingredient['quantity'])
     assert client.put(f"/api/v1/recipes/{saved['id']}", json=payload).status_code == 200
+
+
+def test_always_share_and_personal_family_filter_preserve_data(client: TestClient) -> None:
+    original = client.post('/api/v1/recipes', json={'name': 'Existing private recipe'}).json()
+    invitation = client.post('/api/v1/auth/families/invitations', json={'family_name': 'Neighbour', 'email': 'neighbour@example.com'}).json()
+    recipient = TestClient(app)
+    recipient.post(f"/api/v1/auth/invitations/{invitation['token']}/accept", json={'display_name': 'Neighbour', 'password': 'test-password-456'})
+    assert recipient.get('/api/v1/recipes/public').json() == []
+    assert client.put('/api/v1/recipes/sharing/always', json={'enabled': True}).status_code == 200
+    future = client.post('/api/v1/recipes', json={'name': 'Future recipe'}).json()
+    assert len(recipient.get('/api/v1/recipes/public').json()) == 2
+    imported = recipient.post(f"/api/v1/recipes/public/{original['id']}/import").json()
+    family = recipient.get('/api/v1/recipes/sharing/preferences').json()['families'][0]
+    assert recipient.put(f"/api/v1/recipes/sharing/hidden/{family['id']}", json={'enabled': True}).status_code == 200
+    assert recipient.get('/api/v1/recipes/public').json() == []
+    assert recipient.get(f"/api/v1/recipes/{imported['id']}").status_code == 200
+    assert client.get(f"/api/v1/recipes/{original['id']}").status_code == 200
+    recipient.put(f"/api/v1/recipes/sharing/hidden/{family['id']}", json={'enabled': False})
+    assert len(recipient.get('/api/v1/recipes/public').json()) == 2
+    client.put(f"/api/v1/recipes/{future['id']}/visibility", json={'is_public': True})
+    client.put('/api/v1/recipes/sharing/always', json={'enabled': False})
+    assert [r['id'] for r in recipient.get('/api/v1/recipes/public').json()] == [future['id']]
+    assert recipient.put('/api/v1/recipes/sharing/hidden/999999', json={'enabled': True}).status_code == 422
+    anonymous = TestClient(app)
+    assert anonymous.put('/api/v1/recipes/sharing/always', json={'enabled': True}).status_code == 401
+
+
+def test_viewer_filter_is_personal_and_cannot_enable_family_sharing(client: TestClient) -> None:
+    invitation = client.post('/api/v1/auth/family/invitations', json={'email': 'viewer@example.com', 'role': 'viewer'}).json()
+    viewer = TestClient(app)
+    assert viewer.post(f"/api/v1/auth/invitations/{invitation['token']}/accept", json={'display_name': 'Viewer', 'password': 'test-password-456'}).status_code == 201
+    assert viewer.put('/api/v1/recipes/sharing/always', json={'enabled': True}).status_code == 403
+    invitation = client.post('/api/v1/auth/families/invitations', json={'family_name': 'Other', 'email': 'other@example.com'}).json()
+    other = TestClient(app)
+    other.post(f"/api/v1/auth/invitations/{invitation['token']}/accept", json={'display_name': 'Other', 'password': 'test-password-456'})
+    other.post('/api/v1/recipes', json={'name': 'Other soup'})
+    other.put('/api/v1/recipes/sharing/always', json={'enabled': True})
+    family = viewer.get('/api/v1/recipes/sharing/preferences').json()['families'][0]
+    assert viewer.put(f"/api/v1/recipes/sharing/hidden/{family['id']}", json={'enabled': True}).status_code == 200
+    assert viewer.get('/api/v1/recipes/public').json() == []
+    assert len(client.get('/api/v1/recipes/public').json()) == 1

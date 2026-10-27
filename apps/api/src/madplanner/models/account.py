@@ -19,6 +19,7 @@ class Family(Base):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     name: Mapped[str] = mapped_column(String(120))
+    always_share_recipes: Mapped[bool] = mapped_column(Boolean, default=False, server_default="false")
     household_size: Mapped[int] = mapped_column(Integer, default=2, server_default="2")
     leftovers_enabled: Mapped[bool] = mapped_column(Boolean, default=True, server_default="true")
     cooking_mode_enabled: Mapped[bool] = mapped_column(Boolean, default=True, server_default="true")
@@ -50,6 +51,7 @@ class User(Base):
     normalized_email: Mapped[str] = mapped_column(String(320), unique=True, index=True)
     display_name: Mapped[str] = mapped_column(String(120))
     password_hash: Mapped[str] = mapped_column(String(255))
+    hidden_recipe_family_ids: Mapped[list[int]] = mapped_column(JSON, default=list, server_default="[]")
     locale: Mapped[str] = mapped_column(String(10), default="en", server_default="en")
     show_nutrition: Mapped[bool] = mapped_column(Boolean, default=True, server_default="true")
     dark_mode: Mapped[bool] = mapped_column(Boolean, default=False, server_default="false")

@@ -16,6 +16,8 @@ All notable user-visible changes are recorded here. Versions use year since 2026
 
 ### Features
 
+- Added an owner-controlled option to share all existing and future family recipes with everyone. Each account can hide recipes from selected families in community browsing and show them again; saved copies and individually shared recipes are preserved.
+
 - Weekly planning preferences now search saved meal names alongside ingredients and styles, including small typos such as “bruger” for burger. Select a matching meal to prioritize it in suggested plans for any week.
 
 ### Improvements

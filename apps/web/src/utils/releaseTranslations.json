@@ -286,5 +286,10 @@
   "Refined the recipe collection with aligned cards, shorter previews, and an adjustable Compact, Comfortable, or Large layout. Comfortable shows two columns on wider screens; Compact also fits two cards on most phones. Card size is remembered in the current browser, and the welcome guide explains the control in English, Danish, and Dutch.": {
     "da": "Forbedrede opskriftssamlingen med ensartede kort, kortere tekstuddrag og valg mellem kompakt, behagelig og stor visning. Behagelig viser to kolonner på bredere skærme; kompakt viser også to kort på de fleste telefoner. Størrelsen huskes i den aktuelle browser, og velkomstguiden forklarer valget på engelsk, dansk og nederlandsk.",
     "nl": "De receptenverzameling verfijnd met uitgelijnde kaarten, kortere voorbeelden en een compacte, comfortabele of grote weergave. Comfortabel toont twee kolommen op bredere schermen; Compact past ook twee kaarten op de meeste telefoons. Deze browser onthoudt de grootte en de welkomstgids legt de bediening uit in het Engels, Deens en Nederlands."
+  },
+  "Added an owner-controlled option to share all existing and future family recipes with everyone. Each account can hide recipes from selected families in community browsing and show them again; saved copies and individually shared recipes are preserved.": {
+    "da": "Tilføjede en ejerstyret mulighed for at dele alle nuværende og fremtidige familieopskrifter med alle. Hver konto kan skjule opskrifter fra udvalgte familier i fællesvisningen og vise dem igen; gemte kopier og individuelt delte opskrifter bevares.",
+    "nl": "Een optie toegevoegd waarmee de eigenaar alle bestaande en toekomstige gezinsrecepten met iedereen kan delen. Elk account kan recepten van geselecteerde gezinnen verbergen in het gedeelde overzicht en opnieuw tonen; opgeslagen kopieën en afzonderlijk gedeelde recepten blijven behouden."
+
   }
 }
