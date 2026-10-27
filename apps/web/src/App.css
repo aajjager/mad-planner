@@ -93,3 +93,32 @@ h1 { font-family:inherit; font-size:clamp(2.25rem,5vw,3.75rem); font-weight:750;
 .scan-photo-row { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:16px; padding:10px 0; }
 .scan-photo-row label { overflow-wrap:anywhere; min-width:0; }
 .scan-photo-row button { flex-shrink:0; }
+
+/* Collection sizing is independent of recipe content and public-library cards. */
+.recipe-view-controls { display:flex; flex-wrap:wrap; align-items:center; justify-content:flex-end; gap:12px; margin:0 0 24px; font-size:.9rem; }
+.recipe-view-controls label { font-weight:700; }
+.recipe-view-controls input { width:140px; min-height:44px; accent-color:var(--dark-sage); }
+.recipe-view-controls output { min-width:100px; color:var(--muted); }
+.recipe-collection { grid-template-columns:repeat(2,minmax(0,1fr)); align-items:stretch; }
+.recipe-collection .recipe-card { display:flex; flex-direction:column; height:100%; min-width:0; }
+.recipe-collection .recipe-card__image { flex:none; height:auto; aspect-ratio:16 / 9; }
+.recipe-collection .recipe-card__body { padding:18px; min-width:0; overflow-wrap:anywhere; }
+.recipe-collection .recipe-card p { -webkit-line-clamp:3; line-clamp:3; }
+.recipe-collection .recipe-meta { flex-wrap:wrap; gap:6px 12px; }
+.recipe-collection--compact { grid-template-columns:repeat(3,minmax(0,1fr)); gap:14px; }
+.recipe-collection--compact .recipe-card__body { padding:14px; }
+.recipe-collection--compact .recipe-card p { -webkit-line-clamp:2; line-clamp:2; }
+.recipe-collection--large { grid-template-columns:minmax(0,1fr); }
+.recipe-collection--large .recipe-card__image { max-height:360px; }
+.recipe-collection--large .recipe-card p { -webkit-line-clamp:6; line-clamp:6; }
+@media (max-width:800px) { .recipe-collection--compact { grid-template-columns:repeat(2,minmax(0,1fr)); } }
+@media (max-width:560px) {
+  .recipe-collection--comfortable { grid-template-columns:minmax(0,1fr); }
+  .recipe-collection--compact { gap:10px; }
+  .recipe-collection--compact .recipe-card { border-radius:16px; }
+  .recipe-collection--compact .recipe-card__body { padding:12px; }
+  .recipe-collection--compact h2 { font-size:1rem; }
+  .recipe-collection--compact .tag-list { gap:4px; }
+  .recipe-view-controls { justify-content:flex-start; }
+}
+@media (max-width:359px) { .recipe-collection--compact { grid-template-columns:minmax(0,1fr); } }

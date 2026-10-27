@@ -20,6 +20,8 @@ All notable user-visible changes are recorded here. Versions use year since 2026
 
 ### Improvements
 
+- Refined the recipe collection with aligned cards, shorter previews, and an adjustable Compact, Comfortable, or Large layout. Comfortable shows two columns on wider screens; Compact also fits two cards on most phones. Card size is remembered in the current browser, and the welcome guide explains the control in English, Danish, and Dutch.
+
 - Improved book OCR with verified higher-accuracy English, Danish, and Dutch models, language selection, focused reading of ingredient columns, and grouping of wrapped ingredient notes. Photo-only images can be excluded from text scanning, unreliable photo text is ignored, and ingredient-only pages explicitly ask for cooking instructions instead of inventing steps.
 
 - Cookbook scanning now accepts up to six photos of the same recipe, including page views and close-ups. Add or remove photos, follow per-photo progress, combine overlapping text into one editable preview using recognition confidence, and choose the saved recipe image. Failed photos are reported while successful scans remain available for review. Updated guidance in English, Danish, and Dutch.
