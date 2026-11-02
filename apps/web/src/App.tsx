@@ -24,6 +24,7 @@ import { PlanReminderBanner } from './components/PlanReminderBanner'
 import { FeedbackAnswerBadge } from './components/FeedbackAnswerBadge'
 import { BrandMark } from './components/BrandMark'
 import { FeedbackCompletionNotifier } from './components/FeedbackCompletionNotifier'
+import { RecipeBrowseMemory } from './components/RecipeBrowseMemory'
 import { WelcomeGuide } from './components/WelcomeGuide'
 
 function ApplicationShell() {
@@ -78,7 +79,7 @@ function AuthenticatedRoutes() {
   const { account, loading } = useAuth()
   if (loading) return <div className="account-shell"><div className="notice">{translator(rememberedLocale())('openingApp')}</div></div>
   if (!account) return <AccountAccessPage />
-  return <ApplicationShell />
+  return <RecipeBrowseMemory key={`${account.family_id}:${account.id}`}><ApplicationShell /></RecipeBrowseMemory>
 }
 
 function App() {

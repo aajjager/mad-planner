@@ -4,6 +4,10 @@ All notable user-visible changes are recorded here. Versions use year since 2026
 
 ## 0.11.1 — November 2026, week 1
 
+### Improvements
+
+- Returning from a recipe now restores the collection scroll position after recipes load, including browser Back and All recipes navigation. Search, filters, and sorting are retained during the signed-in session so browsing can continue from the same place.
+
 ### Features
 
 - Added a clearer plate, fork, and checkmark app logo with opaque Home Screen icons for iPhone and iPad. Updated the in-app mark, browser icon, install manifest, notification icons, and offline cache to use the new artwork.

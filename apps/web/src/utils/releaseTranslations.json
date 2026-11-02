@@ -294,5 +294,9 @@
   "Added a clearer plate, fork, and checkmark app logo with opaque Home Screen icons for iPhone and iPad. Updated the in-app mark, browser icon, install manifest, notification icons, and offline cache to use the new artwork.": {
     "da": "Tilføjede et tydeligere applogo med tallerken, gaffel og flueben samt uigennemsigtige hjemmeskærmsikoner til iPhone og iPad. Opdaterede logoet i appen, browserikonet, installationsmanifestet, notifikationsikonerne og offlinecachen til den nye grafik.",
     "nl": "Een duidelijker applogo met bord, vork en vinkje toegevoegd, met ondoorzichtige beginschermiconen voor iPhone en iPad. Het logo in de app, browsericoon, installatiemanifest, meldingsiconen en offlinecache gebruiken nu het nieuwe ontwerp."
+  },
+  "Returning from a recipe now restores the collection scroll position after recipes load, including browser Back and All recipes navigation. Search, filters, and sorting are retained during the signed-in session so browsing can continue from the same place.": {
+    "da": "Når du vender tilbage fra en opskrift, gendannes rullepositionen i samlingen, efter opskrifterne er indlæst, både med browserens Tilbage og Alle opskrifter. Søgning, filtre og sortering bevares under den aktuelle login-session, så du kan fortsætte samme sted.",
+    "nl": "Bij terugkeer vanuit een recept wordt de scrolpositie in de verzameling hersteld nadat de recepten zijn geladen, zowel via Terug in de browser als Alle recepten. Zoeken, filters en sortering blijven tijdens de aangemelde sessie behouden, zodat je op dezelfde plek verder kunt bladeren."
   }
 }

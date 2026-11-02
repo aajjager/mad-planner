@@ -5,6 +5,7 @@ import { useAuth } from '../auth/AuthContext'
 import { translator } from '../i18n'
 import { RatingStars } from '../components/RatingStars'
 import { FamilyShareIcon } from '../components/FamilyShareIcon'
+import { useRecipeBrowseMemory } from '../utils/recipeBrowseMemory'
 import { RangeFilter } from '../components/RangeFilter'
 
 function recipeCalories(recipe: Recipe): number | null {
@@ -18,6 +19,8 @@ function recipeCalories(recipe: Recipe): number | null {
 
 export function RecipeListPage() {
   const { account } = useAuth(); const t = translator(account?.locale)
+  const memory = useRecipeBrowseMemory()
+  const saved = memory.filters()
   const [cardSize, setCardSize] = useState(() => {
     try { const saved = localStorage.getItem('madplanner.recipeCardSize'); return saved === '0' || saved === '2' ? Number(saved) : 1 } catch { return 1 }
   })
@@ -28,14 +31,28 @@ export function RecipeListPage() {
   }
   const [recipes, setRecipes] = useState<Recipe[]>([])
   const [state, setState] = useState<'loading' | 'ready' | 'error'>('loading')
-  const [search, setSearch] = useState(''); const [tag, setTag] = useState(''); const [cuisine, setCuisine] = useState(''); const [recipeType, setRecipeType] = useState('')
-  const [sort, setSort] = useState<'name' | 'rating'>('name')
-  const [ratingLow, setRatingLow] = useState(0); const [ratingHigh, setRatingHigh] = useState(5); const [includeUnrated, setIncludeUnrated] = useState(true)
-  const [calorieLow, setCalorieLow] = useState(0); const [calorieHigh, setCalorieHigh] = useState<number | null>(null); const [includeUnknownCalories, setIncludeUnknownCalories] = useState(true)
+  const [search, setSearch] = useState(saved?.search ?? ''); const [tag, setTag] = useState(saved?.tag ?? ''); const [cuisine, setCuisine] = useState(saved?.cuisine ?? ''); const [recipeType, setRecipeType] = useState(saved?.recipeType ?? '')
+  const [sort, setSort] = useState<'name' | 'rating'>(saved?.sort ?? 'name')
+  const [ratingLow, setRatingLow] = useState(saved?.ratingLow ?? 0); const [ratingHigh, setRatingHigh] = useState(saved?.ratingHigh ?? 5); const [includeUnrated, setIncludeUnrated] = useState(saved?.includeUnrated ?? true)
+  const [calorieLow, setCalorieLow] = useState(saved?.calorieLow ?? 0); const [calorieHigh, setCalorieHigh] = useState<number | null>(saved?.calorieHigh ?? null); const [includeUnknownCalories, setIncludeUnknownCalories] = useState(saved?.includeUnknownCalories ?? true)
   const [selecting, setSelecting] = useState(false); const [selected, setSelected] = useState<number[]>([]); const [bulkTags, setBulkTags] = useState(''); const [bulkBusy, setBulkBusy] = useState(false); const [bulkError, setBulkError] = useState('')
   const [tagSuggestions, setTagSuggestions] = useState<{ id: number; name: string; tags: string }[]>([])
 
   useEffect(() => { listRecipes().then((items) => { setRecipes(items); setState('ready') }).catch(() => setState('error')) }, [])
+  useEffect(() => {
+    memory.rememberFilters({ search, tag, cuisine, recipeType, sort, ratingLow, ratingHigh, includeUnrated, calorieLow, calorieHigh, includeUnknownCalories })
+  }, [memory, search, tag, cuisine, recipeType, sort, ratingLow, ratingHigh, includeUnrated, calorieLow, calorieHigh, includeUnknownCalories])
+  useEffect(() => {
+    if (state !== 'ready') return
+    // Wait until the fetched cards have been laid out, not the short loading page.
+    const target = memory.position()
+    const record = () => { memory.rememberPosition(window.scrollY) }
+    const frame = requestAnimationFrame(() => {
+      window.scrollTo({ top: target, left: 0, behavior: 'instant' })
+      window.addEventListener('scroll', record, { passive: true })
+    })
+    return () => { cancelAnimationFrame(frame); window.removeEventListener('scroll', record) }
+  }, [memory, state])
   const tags = useMemo(() => [...new Set(recipes.flatMap((recipe) => recipe.tags))].sort((a, b) => a.localeCompare(b)), [recipes])
   const cuisines = useMemo(() => [...new Set(recipes.map((recipe) => recipe.cuisine).filter((value): value is string => Boolean(value)))].sort((a, b) => a.localeCompare(b)), [recipes])
   const recipeTypes = useMemo(() => [...new Set(recipes.flatMap((recipe) => recipe.recipe_types || []))].sort((a, b) => a.localeCompare(b)), [recipes])
@@ -74,6 +91,6 @@ export function RecipeListPage() {
     {selecting && <section className="bulk-recipe-actions"><strong>{selected.length} {t('selected')}</strong><button className="button" disabled={bulkBusy} onClick={() => setSelected(filteredRecipes.filter((recipe) => recipe.owned_by_current_family).map((recipe) => recipe.id))}>{t('selectVisible')}</button><button className="button button--primary" disabled={bulkBusy || selected.length === 0} onClick={() => void applyBulk({ is_public: true })}>{t('makePublic')}</button><button className="button" disabled={bulkBusy || selected.length === 0} onClick={() => void applyBulk({ is_public: false })}>{t('makePrivate')}</button><button className="button" disabled={bulkBusy || selected.length === 0} onClick={() => void suggestSelectedTags()}>{t('suggestTagsSelected')}</button><input value={bulkTags} placeholder={t('tagsPlaceholder')} onChange={(event) => setBulkTags(event.target.value)} /><button className="button" disabled={bulkBusy || selected.length === 0 || chosenTags().length === 0} onClick={() => void applyBulk({ add_tags: chosenTags() })}>{t('addTags')}</button><button className="button button--danger" disabled={bulkBusy || selected.length === 0 || chosenTags().length === 0} onClick={() => void applyBulk({ remove_tags: chosenTags() })}>{t('removeTags')}</button>{bulkError && <span className="notice notice--error">{bulkError}</span>}</section>}
     {tagSuggestions.length > 0 && <section className="family-panel tag-suggestion-review"><h2>{t('reviewTagSuggestions')}</h2><p>{t('reviewTagSuggestionsHelp')}</p>{tagSuggestions.map((item) => <article key={item.id}><strong>{item.name}</strong><input aria-label={`${t('suggestedTags')} ${item.name}`} value={item.tags} onChange={(event) => setTagSuggestions((current) => current.map((value) => value.id === item.id ? { ...value, tags: event.target.value } : value))} /><div className="form-actions"><button className="button button--primary" disabled={!item.tags.trim()} onClick={() => void acceptSuggestedTags(item)}>{t('accept')}</button><button className="button" onClick={() => setTagSuggestions((current) => current.filter((value) => value.id !== item.id))}>{t('deny')}</button></div></article>)}</section>}
     {recipes.length > 0 && filteredRecipes.length === 0 && <div className="empty-state empty-state--compact"><h2>{t('noMatches')}</h2><p>{t('noMatchesHelp')}</p><button className="button" onClick={clearFilters}>{t('clearFilters')}</button></div>}
-    {filteredRecipes.length > 0 && <div className={`recipe-grid recipe-collection recipe-collection--${['compact', 'comfortable', 'large'][cardSize]}`}>{filteredRecipes.map((recipe) => <div className={`selectable-recipe${selected.includes(recipe.id) ? ' selectable-recipe--selected' : ''}`} key={recipe.id}>{selecting && recipe.owned_by_current_family && <button className="recipe-selector" aria-pressed={selected.includes(recipe.id)} aria-label={`${t('select')} ${recipe.name}`} onClick={() => toggleSelected(recipe.id)}>{selected.includes(recipe.id) ? '✓' : ''}</button>}<Link className="recipe-card" to={`/recipes/${recipe.id}`} onClick={(event) => { if (selecting && recipe.owned_by_current_family) { event.preventDefault(); toggleSelected(recipe.id) } }}><div className="recipe-card__image">{recipe.image_url ? <img src={recipe.image_url} alt="" /> : <span>M</span>}{(recipe.owned_by_current_family === false || recipe.shared_with_families?.length > 0) && <span className="recipe-share-badge" title={recipe.owned_by_current_family === false ? `${t('sharedBy')} ${recipe.owner_family_name}` : `${t('sharedWith')} ${recipe.shared_with_families.join(', ')}`}><FamilyShareIcon /></span>}</div><div className="recipe-card__body"><div className="recipe-meta">{recipe.category && <span>{recipe.category}</span>}{recipe.total_time_minutes !== null && <span>{recipe.total_time_minutes} min</span>}{recipeCalories(recipe) !== null && <span>{Math.round(recipeCalories(recipe)!)} kcal</span>}</div><h2>{recipe.name}</h2>{recipe.owned_by_current_family && recipe.family_rating != null && <RatingStars value={null} average={recipe.family_rating} count={recipe.rating_count} label={t('familyRating')} />}<p>{recipe.description || t('openRecipe')}</p>{recipe.tags.length > 0 && <div className="tag-list">{recipe.tags.slice(0, 3).map((item) => <span className="tag" key={item}>{item}</span>)}</div>}</div></Link></div>)}</div>}
+    {filteredRecipes.length > 0 && <div className={`recipe-grid recipe-collection recipe-collection--${['compact', 'comfortable', 'large'][cardSize]}`}>{filteredRecipes.map((recipe) => <div className={`selectable-recipe${selected.includes(recipe.id) ? ' selectable-recipe--selected' : ''}`} key={recipe.id}>{selecting && recipe.owned_by_current_family && <button className="recipe-selector" aria-pressed={selected.includes(recipe.id)} aria-label={`${t('select')} ${recipe.name}`} onClick={() => toggleSelected(recipe.id)}>{selected.includes(recipe.id) ? '✓' : ''}</button>}<Link className="recipe-card" to={`/recipes/${recipe.id}`} onClick={(event) => { memory.rememberPosition(window.scrollY); if (selecting && recipe.owned_by_current_family) { event.preventDefault(); toggleSelected(recipe.id) } }}><div className="recipe-card__image">{recipe.image_url ? <img src={recipe.image_url} alt="" /> : <span>M</span>}{(recipe.owned_by_current_family === false || recipe.shared_with_families?.length > 0) && <span className="recipe-share-badge" title={recipe.owned_by_current_family === false ? `${t('sharedBy')} ${recipe.owner_family_name}` : `${t('sharedWith')} ${recipe.shared_with_families.join(', ')}`}><FamilyShareIcon /></span>}</div><div className="recipe-card__body"><div className="recipe-meta">{recipe.category && <span>{recipe.category}</span>}{recipe.total_time_minutes !== null && <span>{recipe.total_time_minutes} min</span>}{recipeCalories(recipe) !== null && <span>{Math.round(recipeCalories(recipe)!)} kcal</span>}</div><h2>{recipe.name}</h2>{recipe.owned_by_current_family && recipe.family_rating != null && <RatingStars value={null} average={recipe.family_rating} count={recipe.rating_count} label={t('familyRating')} />}<p>{recipe.description || t('openRecipe')}</p>{recipe.tags.length > 0 && <div className="tag-list">{recipe.tags.slice(0, 3).map((item) => <span className="tag" key={item}>{item}</span>)}</div>}</div></Link></div>)}</div>}
   </section>
 }
