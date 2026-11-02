@@ -36,4 +36,11 @@ describe('Background service worker', () => {
     handlers.push({ data: { json: () => { throw new Error('bad json') } }, waitUntil: vi.fn() })
     expect(showNotification).toHaveBeenCalledWith('Mad Planner', expect.objectContaining({ body: '' }))
   })
+  it('opens Updates for weekly release notices', async () => {
+    const { handlers, openWindow } = worker()
+    let done: Promise<unknown> | undefined
+    handlers.notificationclick({ notification: { close: vi.fn(), data: { url: '/updates' } }, waitUntil: (promise: Promise<unknown>) => { done = promise } })
+    await done
+    expect(openWindow).toHaveBeenCalledWith('https://planner.test/updates')
+  })
 })

@@ -3,13 +3,14 @@ import base64
 from datetime import UTC, datetime, timedelta
 import json
 import logging
+from importlib.resources import files
 from urllib.parse import urlsplit
 from zoneinfo import ZoneInfo
 
 from cryptography.hazmat.primitives.asymmetric import ec
 from sqlalchemy import select, text
 
-from madplanner.models import FamilyMembership, FeedbackSubmission, UserSession
+from madplanner.models import FamilyMembership, UserSession
 from madplanner.models.push import PushSubscription
 from madplanner.repositories.planner import MealPlanRepository
 from madplanner.services.planner import MealPlanService
@@ -67,10 +68,20 @@ def send_push(subscription, payload, settings):
 
 
 MESSAGES = {
-    'en': ('Your upcoming meal plan needs attention', 'Open Mad Planner to finish planning.', 'Your feedback has been completed', 'Open Family to review the update.'),
-    'da': ('Din kommende madplan mangler måltider', 'Åbn Mad Planner for at færdiggøre planen.', 'Din feedback er gennemført', 'Åbn Familie for at se opdateringen.'),
-    'nl': ('Je komende maaltijdplan heeft aandacht nodig', 'Open Mad Planner om je planning af te maken.', 'Je feedback is uitgevoerd', 'Open Gezin om de update te bekijken.'),
+    'en': ('Your upcoming meal plan needs attention', 'Open Mad Planner to finish planning.', 'This week’s Mad Planner updates', 'Open Updates to see the new patch notes.'),
+    'da': ('Din kommende madplan mangler måltider', 'Åbn Mad Planner for at færdiggøre planen.', 'Ugens Mad Planner-opdateringer', 'Åbn Opdateringer for at se de nye udgivelsesnoter.'),
+    'nl': ('Je komende maaltijdplan heeft aandacht nodig', 'Open Mad Planner om je planning af te maken.', 'De Mad Planner-updates van deze week', 'Open Updates voor de nieuwe versienotities.'),
 }
+
+
+def weekly_release(now):
+    local = now.astimezone(ZoneInfo('Europe/Copenhagen'))
+    expected = f'{local.year - 2026}.{local.month}.{min(4, (local.day - 1) // 7 + 1)}'
+    try:
+        release = json.loads(files('madplanner').joinpath('release-notes.json').read_text())
+    except (OSError, ValueError):
+        return None
+    return expected if release.get('version') == expected and release.get('has_changes') is True else None
 
 
 def dispatch(db, settings, now=None, sender=send_push):
@@ -101,14 +112,11 @@ def dispatch(db, settings, now=None, sender=send_push):
             if reminders.weeks:
                 week = reminders.weeks[0].week_start.isoformat()
                 events.append((f'plan:{local.date()}:{family.id}', {'title': messages[0], 'body': messages[1], 'url': f'/planner?week={week}', 'tag': 'madplanner-incomplete-plan'}))
-        feedback = db.scalars(select(FeedbackSubmission).where(
-            FeedbackSubmission.user_id == user.id, FeedbackSubmission.family_id == family.id,
-            FeedbackSubmission.status == 'done', FeedbackSubmission.completion_seen_at.is_(None),
-            FeedbackSubmission.completed_at > now - timedelta(days=5),
-            FeedbackSubmission.completed_at >= sub.created_at)).all()
-        for item in feedback:
-            events.append((f'feedback:{item.id}:{aware(item.completed_at).isoformat()}', {'title': messages[2], 'body': messages[3], 'url': '/family', 'tag': f'madplanner-feedback-{item.id}'}))
-        remembered = {key: value for key, value in (sub.sent or {}).items() if value > (now - timedelta(days=7)).isoformat()}
+        release = weekly_release(now)
+        if release and local.hour >= 9:
+            events.append((f'release:{release}', {'title': messages[2], 'body': messages[3], 'url': '/updates', 'tag': f'madplanner-release-{release}'}))
+        # A calendar release week can exceed seven days at month-end.
+        remembered = {key: value for key, value in (sub.sent or {}).items() if key == f'release:{release}' or value > (now - timedelta(days=7)).isoformat()}
         for key, payload in events:
             if key in remembered:
                 continue

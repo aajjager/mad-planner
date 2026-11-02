@@ -6,6 +6,8 @@ All notable user-visible changes are recorded here. Versions use year since 2026
 
 ### Improvements
 
+- Replaced individual feedback-completion notifications with one patch-note notification per device and release week, only when the installed weekly release contains changes. Notifications open Updates, respect personal notification settings and quiet hours, and leave meal-planning reminders unchanged.
+
 - The installed app now opens on Recipes, which occupies the centre of the five-item mobile navigation. Planner, groceries, family settings, and role-appropriate shortcuts remain available; owners can add recipes from the Recipes page, and the installed-app identity is preserved.
 
 - The Updates page now shows one-sentence change summaries by default. Select a release number to expand or collapse that week’s full, translated notes without losing the original changelog details.

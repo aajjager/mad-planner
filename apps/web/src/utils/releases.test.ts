@@ -16,6 +16,7 @@ describe('calendar releases', () => {
     const root = readFileSync('../../CHANGELOG.md', 'utf8')
     expect(readFileSync('CHANGELOG.md', 'utf8')).toBe(root)
     expect(readFileSync('../api/pyproject.toml', 'utf8')).toContain(`version = "${currentVersion}"`)
+    expect(JSON.parse(readFileSync('../api/src/madplanner/release-notes.json', 'utf8'))).toEqual({ version: currentVersion, has_changes: releases[0].groups.some((group) => group.notes.length > 0) })
     expect(releases.some((release) => release.version === '0.2.5')).toBe(true)
   })
   it('preserves categories and legacy notes without merging releases', () => {

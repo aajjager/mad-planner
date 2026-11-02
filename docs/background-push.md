@@ -59,9 +59,12 @@ registration. Other device registrations are retained while paused.
 
 Planning sends at most once per device per day after **09:00 Europe/Copenhagen**,
 using the family's enabled meal types, exclusions and reminder horizon. Complete
-plans and disabled family reminders do not generate reminders. Feedback notices
-cover new, unread completions after device registration and within the existing
-five-day visibility window. The normal in-app notices remain available.
+plans and disabled family reminders do not generate reminders. Individual feedback
+completions no longer send notifications. Patch notes send once per device and
+release week after 09:00 Copenhagen time, only if the installed release matches
+the current calendar release week and contains changes. Additional changes in
+the same release week do not send another notice. Empty or outdated releases
+stay quiet. The normal in-app completion notices remain available.
 
 Payloads use the user's current English, Danish or Dutch locale and generic text;
 they do not include recipe names, feedback contents, credentials or family names.
@@ -85,10 +88,11 @@ deduplication, expired sessions/endpoints, temporary failures, real payload
 encryption/signing with a mocked transport, service-worker display and safe click
 destinations. They do not demonstrate delivery through an actual phone provider.
 
-After configuring HTTPS/VAPID, enable one test device, close the app, and complete
-one of that account's feedback requests from Admin. Check delivery within a few
-minutes, click through to Family, and verify logout and disable stop further
-delivery. Test daily planning separately with an incomplete upcoming plan and
+After configuring HTTPS/VAPID, enable one test device, close the app, and install
+a release containing changes for the current release week. After 09:00 Copenhagen
+time, check delivery within a few minutes and click through to Updates. Repeated
+completion actions must stay quiet. Verify that logout and disabling notifications
+stop delivery. A device that already received this week’s notice will stay quiet. Test daily planning separately with an incomplete upcoming plan and
 family reminders enabled. Check OS permissions and API logs if delivery fails;
 do not paste subscription secrets or signing keys into support messages.
 

@@ -1,26 +1,22 @@
-import { cleanup, render, waitFor } from '@testing-library/react'
-import { afterEach, expect, it, vi } from 'vitest'
-import type { Feedback } from '../api/auth'
-import { listMyFeedback } from '../api/auth'
-import { showFeedbackCompletionNotification } from '../notifications'
+import { cleanup, render } from '@testing-library/react'
+import { afterEach, beforeEach, expect, it, vi } from 'vitest'
+import { showWeeklyReleaseNotification } from '../notifications'
 import { FeedbackCompletionNotifier } from './FeedbackCompletionNotifier'
-
-vi.mock('../api/auth', () => ({ listMyFeedback: vi.fn() }))
-vi.mock('../auth/AuthContext', () => ({ useAuth: () => ({ account: { locale: 'en', browser_notifications_enabled: true } }) }))
-vi.mock('../notifications', () => ({ showFeedbackCompletionNotification: vi.fn() }))
-afterEach(() => { cleanup(); vi.clearAllMocks() })
-
-it('notifies only undismissed completions younger than five days, excluding questions', async () => {
-  const now = Date.now()
-  const recent = { id: 1, content: 'Recent completion', category: 'improvement', status: 'done', completed_at: new Date(now - 86400000).toISOString(), completion_seen_at: null } as Feedback
-  vi.mocked(listMyFeedback).mockResolvedValue([
-    recent,
-    { ...recent, id: 2, completed_at: new Date(now - 5 * 86400000).toISOString() },
-    { ...recent, id: 3, completion_seen_at: new Date(now).toISOString() },
-    { ...recent, id: 4, is_question: true },
-    { ...recent, id: 5, completed_at: null },
-  ])
+const state = vi.hoisted(() => ({ enabled: true, version: '0.11.1', notes: ['A new change.'] as string[] }))
+vi.mock('../auth/AuthContext', () => ({ useAuth: () => ({ account: { id: 1, family_id: 2, locale: 'en', browser_notifications_enabled: state.enabled } }) }))
+vi.mock('../utils/releases', () => ({ releaseVersion: () => '0.11.1', releases: [{ get version() { return state.version }, groups: [{ get notes() { return state.notes } }] }] }))
+vi.mock('../notifications', () => ({ showWeeklyReleaseNotification: vi.fn().mockResolvedValue(undefined) }))
+beforeEach(() => { vi.useFakeTimers(); vi.setSystemTime(new Date('2026-11-02T12:00:00Z')); state.enabled = true; state.version = '0.11.1'; state.notes = ['A new change.'] })
+afterEach(() => { cleanup(); vi.useRealTimers(); vi.clearAllMocks() })
+it('offers a release notice instead of polling individual feedback', () => {
   render(<FeedbackCompletionNotifier />)
-  await waitFor(() => expect(showFeedbackCompletionNotification).toHaveBeenCalledTimes(1))
-  expect(showFeedbackCompletionNotification).toHaveBeenCalledWith(expect.any(String), recent.content, recent.id)
+  expect(showWeeklyReleaseNotification).toHaveBeenCalledWith(expect.any(String), expect.any(String), '0.11.1', 1, 2)
+})
+it.each(['disabled', 'empty', 'old', 'quiet'])('does not notify for %s releases', (kind) => {
+  if (kind === 'disabled') state.enabled = false
+  if (kind === 'empty') state.notes = []
+  if (kind === 'old') state.version = '0.10.4'
+  if (kind === 'quiet') vi.setSystemTime(new Date('2026-11-02T03:00:00Z'))
+  render(<FeedbackCompletionNotifier />)
+  expect(showWeeklyReleaseNotification).not.toHaveBeenCalled()
 })

@@ -36,6 +36,7 @@ def env(monkeypatch):
     settings = get_settings()
     for key, value in {'push_enabled': True, 'push_vapid_private_key': SecretStr('test-key'), 'push_vapid_public_key': 'test-public', 'push_vapid_subject': 'mailto:admin@example.com'}.items():
         monkeypatch.setattr(settings, key, value)
+    monkeypatch.setattr('madplanner.services.push.weekly_release', lambda _: None)
     client = TestClient(app)
     client.post('/api/v1/auth/setup', json={'email': 'owner@example.com', 'display_name': 'Owner', 'family_name': 'Test', 'password': 'long-password-123'})
     try:
@@ -106,9 +107,9 @@ def test_dispatch_deduplicates_translates_scopes_and_respects_preferences(env):
         db.add(FeedbackSubmission(user_id=999, family_id=1, content='Another account', status='done', category='bug', completed_at=now))
         db.add(FeedbackSubmission(user_id=1, family_id=999, content='Another family', status='done', category='bug', completed_at=now))
         db.commit()
-        assert dispatch(db, settings, now=now, sender=send) == 2
+        assert dispatch(db, settings, now=now, sender=send) == 1
         assert dispatch(db, settings, now=now, sender=send) == 0
-        assert {p['url'].split('?')[0] for p in delivered} == {'/family', '/planner'}
+        assert {p['url'].split('?')[0] for p in delivered} == {'/planner'}
         assert all('Private request content' not in str(p) for p in delivered)
         assert delivered[0]['title'] == 'Din kommende madplan mangler måltider'
         user.browser_notifications_enabled = False
@@ -175,3 +176,39 @@ def test_transport_encrypts_payload_signs_vapid_and_disables_redirects(env, monk
     assert captured['headers']['authorization'].startswith('vapid ')
     assert captured['allow_redirects'] is False
     assert captured['timeout'] == 10
+
+
+def test_weekly_patch_push_is_quiet_deduplicated_and_survives_long_release_week(env, monkeypatch):
+    client, engine, settings = env
+    monkeypatch.setattr('madplanner.services.push.weekly_release', lambda _: '0.10.4')
+    client.post('/api/v1/push/subscriptions', json=subscription())
+    now = datetime(2026, 10, 22, 12, tzinfo=UTC)
+    delivered = []
+    with Session(engine) as db:
+        user = db.get(User, 1)
+        user.browser_notifications_enabled = True
+        user.locale = 'nl'
+        session = db.get(UserSession, db.scalar(select(PushSubscription)).session_id)
+        session.expires_at = now + timedelta(days=20)
+        session.active_family.plan_reminders_enabled = False
+        db.commit()
+        send = lambda _, payload, __: delivered.append(payload) or 'sent'
+        assert dispatch(db, settings, now=now.replace(hour=3), sender=send) == 0
+        assert dispatch(db, settings, now=now, sender=send) == 1
+        assert dispatch(db, settings, now=now + timedelta(days=9), sender=send) == 0
+        assert delivered[0]['url'] == '/updates'
+        assert delivered[0]['title'] == 'De Mad Planner-updates van deze week'
+        monkeypatch.setattr('madplanner.services.push.weekly_release', lambda _: None)
+        assert dispatch(db, settings, now=now + timedelta(days=10), sender=send) == 0
+
+
+def test_release_eligibility_uses_copenhagen_week_and_requires_notes(tmp_path, monkeypatch):
+    import json
+    from madplanner.services.push import weekly_release
+    monkeypatch.setattr('madplanner.services.push.files', lambda _: tmp_path)
+    source = tmp_path / 'release-notes.json'
+    source.write_text(json.dumps({'version': '0.11.1', 'has_changes': True}))
+    assert weekly_release(datetime(2026, 10, 31, 23, 30, tzinfo=UTC)) == '0.11.1'
+    assert weekly_release(datetime(2026, 11, 8, 12, tzinfo=UTC)) is None
+    source.write_text(json.dumps({'version': '0.11.1', 'has_changes': False}))
+    assert weekly_release(datetime(2026, 11, 2, 12, tzinfo=UTC)) is None

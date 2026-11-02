@@ -19,7 +19,7 @@ self.addEventListener('fetch', (event) => {
 function notificationTarget(value) {
   try {
     const url = new URL(value || '/family', self.location.origin)
-    return url.origin === self.location.origin && ['/family', '/planner'].includes(url.pathname) ? url.href : self.location.origin + '/family'
+    return url.origin === self.location.origin && ['/family', '/planner', '/updates'].includes(url.pathname) ? url.href : self.location.origin + '/family'
   } catch { return self.location.origin + '/family' }
 }
 
