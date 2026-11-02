@@ -62,3 +62,13 @@ export function localizedReleases(locale: Account['locale'] = 'en'): Release[] {
     })),
   }))
 }
+
+// Keep the canonical note intact; only the overview uses its opening sentence.
+export function releaseNoteSummary(note: string, locale: Account['locale'] = 'en'): string {
+  const text = note.trim()
+  if (typeof Intl.Segmenter === 'function') {
+    const first = new Intl.Segmenter(locale, { granularity: 'sentence' }).segment(text)[Symbol.iterator]().next().value
+    return first?.segment.trim() || text
+  }
+  return text.match(/^.*?[.!?](?:\s|$)/)?.[0].trim() || text
+}

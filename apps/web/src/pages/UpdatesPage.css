@@ -8,3 +8,9 @@
 .release-card ul { display:grid; gap:12px; margin:0; padding:14px 24px 28px 48px; line-height:1.5; }
 @media (max-width:600px) { .updates-page .page-heading { gap:20px; }.release-card header { align-items:flex-start; }.release-card ul { padding-left:42px; } }
 .release-card section h3 { margin:20px 24px 0; font-size:1rem; }
+
+.release-toggle { display:inline-flex; align-items:center; gap:12px; padding:6px 0; border:0; background:none; color:inherit; font:inherit; text-align:left; cursor:pointer; }
+.release-toggle:hover { color:var(--terracotta); }
+.release-toggle:focus-visible { outline:3px solid var(--terracotta); outline-offset:5px; border-radius:4px; }
+.release-toggle span { font-size:1rem; }
+.release-details-hint { color:var(--muted); line-height:1.5; }

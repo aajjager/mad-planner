@@ -6,6 +6,8 @@ All notable user-visible changes are recorded here. Versions use year since 2026
 
 ### Improvements
 
+- The Updates page now shows one-sentence change summaries by default. Select a release number to expand or collapse that week’s full, translated notes without losing the original changelog details.
+
 - Returning from a recipe now restores the collection scroll position after recipes load, including browser Back and All recipes navigation. Search, filters, and sorting are retained during the signed-in session so browsing can continue from the same place.
 
 ### Features

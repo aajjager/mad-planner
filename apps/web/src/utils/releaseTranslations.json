@@ -298,5 +298,9 @@
   "Returning from a recipe now restores the collection scroll position after recipes load, including browser Back and All recipes navigation. Search, filters, and sorting are retained during the signed-in session so browsing can continue from the same place.": {
     "da": "Når du vender tilbage fra en opskrift, gendannes rullepositionen i samlingen, efter opskrifterne er indlæst, både med browserens Tilbage og Alle opskrifter. Søgning, filtre og sortering bevares under den aktuelle login-session, så du kan fortsætte samme sted.",
     "nl": "Bij terugkeer vanuit een recept wordt de scrolpositie in de verzameling hersteld nadat de recepten zijn geladen, zowel via Terug in de browser als Alle recepten. Zoeken, filters en sortering blijven tijdens de aangemelde sessie behouden, zodat je op dezelfde plek verder kunt bladeren."
+  },
+  "The Updates page now shows one-sentence change summaries by default. Select a release number to expand or collapse that week’s full, translated notes without losing the original changelog details.": {
+    "da": "Opdateringssiden viser nu ændringer med én sætning som standard. Vælg et versionsnummer for at folde ugens fulde, oversatte noter ud eller ind uden at miste de oprindelige detaljer.",
+    "nl": "De Updates-pagina toont standaard samenvattingen van één zin per wijziging. Kies een versienummer om de volledige, vertaalde notities van die week uit of in te klappen; de oorspronkelijke details blijven behouden."
   }
 }
