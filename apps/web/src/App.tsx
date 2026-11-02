@@ -63,13 +63,17 @@ function ApplicationShell() {
             <Route path="*" element={<Navigate to="/recipes" replace />} />
           </Routes>
         </main>
-        <nav className={`mobile-navigation${account?.role === 'owner' ? ' mobile-navigation--admin' : ''}`} aria-label={t('mobileNavigation')}>
-          <NavLink to="/recipes"><span aria-hidden="true">▤</span>{t('recipes')}</NavLink>
+        <nav className="mobile-navigation" aria-label={t('mobileNavigation')}>
           <NavLink to="/planner"><span aria-hidden="true">□</span>{t('planner')}</NavLink>
-          {canEditRecipes && <NavLink className="mobile-navigation__add" to="/recipes/add"><span aria-hidden="true">+</span>{t('addRecipe')}</NavLink>}
           <NavLink to="/grocery-list"><span aria-hidden="true">✓</span>{t('groceries')}</NavLink>
-          <NavLink to="/family"><span aria-hidden="true">⌂</span>{t('familyNav')}<FeedbackAnswerBadge /></NavLink>
-          {account?.role === 'owner' && <NavLink to="/admin"><span aria-hidden="true">⚙</span>{t('admin')}</NavLink>}
+          <NavLink className="mobile-navigation__recipes" to="/recipes"><span aria-hidden="true">▤</span>{t('recipes')}</NavLink>
+          {account?.role === 'owner' ? <>
+            <NavLink to="/family"><span aria-hidden="true">⌂</span>{t('familyNav')}<FeedbackAnswerBadge /></NavLink>
+            <NavLink to="/admin"><span aria-hidden="true">⚙</span>{t('admin')}</NavLink>
+          </> : <>
+            {canEditRecipes ? <NavLink className="mobile-navigation__add" to="/recipes/add"><span aria-hidden="true">+</span>{t('addRecipe')}</NavLink> : <NavLink to="/updates"><span aria-hidden="true">✦</span>{t('updates')}</NavLink>}
+            <NavLink to="/family"><span aria-hidden="true">⌂</span>{t('familyNav')}<FeedbackAnswerBadge /></NavLink>
+          </>}
         </nav>
       </div>
   )

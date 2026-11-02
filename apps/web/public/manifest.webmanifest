@@ -2,14 +2,30 @@
   "name": "Mad Planner",
   "short_name": "Mad Planner",
   "description": "Private family meal and grocery planning.",
-  "start_url": "/planner",
+  "start_url": "/recipes",
   "scope": "/",
   "display": "standalone",
   "background_color": "#f6f1e7",
   "theme_color": "#275f4e",
   "icons": [
-    { "src": "/favicon-v2.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
-    { "src": "/icon-v2-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
-    { "src": "/icon-v2-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
-  ]
+    {
+      "src": "/favicon-v2.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-v2-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-v2-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "id": "/planner"
 }

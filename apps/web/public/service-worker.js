@@ -1,4 +1,4 @@
-const CACHE_NAME = 'madplanner-shell-v4'
+const CACHE_NAME = 'madplanner-shell-v5'
 const SHELL = ['/', '/manifest.webmanifest', '/favicon-v2.svg', '/apple-touch-icon-v2.png', '/icon-v2-192.png', '/icon-v2-512.png']
 
 self.addEventListener('install', (event) => {

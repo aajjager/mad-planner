@@ -302,5 +302,9 @@
   "The Updates page now shows one-sentence change summaries by default. Select a release number to expand or collapse that week’s full, translated notes without losing the original changelog details.": {
     "da": "Opdateringssiden viser nu ændringer med én sætning som standard. Vælg et versionsnummer for at folde ugens fulde, oversatte noter ud eller ind uden at miste de oprindelige detaljer.",
     "nl": "De Updates-pagina toont standaard samenvattingen van één zin per wijziging. Kies een versienummer om de volledige, vertaalde notities van die week uit of in te klappen; de oorspronkelijke details blijven behouden."
+  },
+  "The installed app now opens on Recipes, which occupies the centre of the five-item mobile navigation. Planner, groceries, family settings, and role-appropriate shortcuts remain available; owners can add recipes from the Recipes page, and the installed-app identity is preserved.": {
+    "da": "Den installerede app åbner nu på Opskrifter, som står i midten af mobilnavigationens fem punkter. Madplan, indkøb, familieindstillinger og genveje efter rolle er fortsat tilgængelige; ejere kan tilføje opskrifter fra opskriftssiden, og den installerede apps identitet bevares.",
+    "nl": "De geïnstalleerde app opent nu op Recepten, midden in de mobiele navigatie met vijf onderdelen. Planner, boodschappen, gezinsinstellingen en snelkoppelingen voor je rol blijven beschikbaar; eigenaren kunnen recepten toevoegen vanaf de receptenpagina en de identiteit van de geïnstalleerde app blijft behouden."
   }
 }

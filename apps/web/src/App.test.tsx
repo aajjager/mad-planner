@@ -18,6 +18,24 @@ const authResponse = (input: RequestInfo | URL) => {
 }
 
 describe('App', () => {
+  it.each(['owner', 'editor', 'planner', 'viewer'])('opens Recipes at the site root and centres it in the %s mobile navigation', async (role) => {
+    window.history.pushState({}, '', '/')
+    vi.spyOn(globalThis, 'fetch').mockImplementation((input) => Promise.resolve(String(input).includes('/auth/me') ? jsonResponse({ ...account, role }) : authResponse(input) ?? jsonResponse([])))
+    render(<App />)
+    await screen.findByRole('heading', { name: 'Your recipes' })
+    expect(window.location.pathname).toBe('/recipes')
+    const nav = within(screen.getByRole('navigation', { name: 'Mobile navigation' }))
+    const links = nav.getAllByRole('link')
+    expect(links).toHaveLength(5)
+    expect(links[2]).toHaveAttribute('href', '/recipes')
+    expect(links[2]).toHaveAttribute('aria-current', 'page')
+    expect(nav.getByRole('link', { name: 'Planner' })).toHaveAttribute('href', '/planner')
+    expect(nav.getByRole('link', { name: 'Groceries' })).toHaveAttribute('href', '/grocery-list')
+    expect(nav.getByRole('link', { name: /Family/ })).toHaveAttribute('href', '/family')
+    expect(Boolean(nav.queryByRole('link', { name: 'Admin' }))).toBe(role === 'owner')
+    expect(Boolean(screen.queryAllByRole('link', { name: 'Add recipe' }).length)).toBe(['owner', 'editor'].includes(role))
+  })
+
   it('groups creation methods behind Add recipe and keeps browsing uncluttered', async () => {
     window.history.pushState({}, '', '/recipes')
     const fetch = vi.spyOn(globalThis, 'fetch').mockImplementation((input) => Promise.resolve(authResponse(input) ?? jsonResponse([])))
