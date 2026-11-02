@@ -290,6 +290,9 @@
   "Added an owner-controlled option to share all existing and future family recipes with everyone. Each account can hide recipes from selected families in community browsing and show them again; saved copies and individually shared recipes are preserved.": {
     "da": "Tilføjede en ejerstyret mulighed for at dele alle nuværende og fremtidige familieopskrifter med alle. Hver konto kan skjule opskrifter fra udvalgte familier i fællesvisningen og vise dem igen; gemte kopier og individuelt delte opskrifter bevares.",
     "nl": "Een optie toegevoegd waarmee de eigenaar alle bestaande en toekomstige gezinsrecepten met iedereen kan delen. Elk account kan recepten van geselecteerde gezinnen verbergen in het gedeelde overzicht en opnieuw tonen; opgeslagen kopieën en afzonderlijk gedeelde recepten blijven behouden."
-
+  },
+  "Added a clearer plate, fork, and checkmark app logo with opaque Home Screen icons for iPhone and iPad. Updated the in-app mark, browser icon, install manifest, notification icons, and offline cache to use the new artwork.": {
+    "da": "Tilføjede et tydeligere applogo med tallerken, gaffel og flueben samt uigennemsigtige hjemmeskærmsikoner til iPhone og iPad. Opdaterede logoet i appen, browserikonet, installationsmanifestet, notifikationsikonerne og offlinecachen til den nye grafik.",
+    "nl": "Een duidelijker applogo met bord, vork en vinkje toegevoegd, met ondoorzichtige beginschermiconen voor iPhone en iPad. Het logo in de app, browsericoon, installatiemanifest, meldingsiconen en offlinecache gebruiken nu het nieuwe ontwerp."
   }
 }

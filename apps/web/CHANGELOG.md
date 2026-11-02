@@ -2,6 +2,12 @@
 
 All notable user-visible changes are recorded here. Versions use year since 2026.month.week in Europe/Copenhagen time: 2026 = 0, October = 10; days 1–7 = week 1, 8–14 = week 2, 15–21 = week 3, and 22–month-end = week 4. Older release numbers below are retained as historical identifiers.
 
+## 0.11.1 — November 2026, week 1
+
+### Features
+
+- Added a clearer plate, fork, and checkmark app logo with opaque Home Screen icons for iPhone and iPad. Updated the in-app mark, browser icon, install manifest, notification icons, and offline cache to use the new artwork.
+
 ## 0.10.4 — October 2026, week 4
 
 ### Bug fixes

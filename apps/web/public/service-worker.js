@@ -1,5 +1,5 @@
-const CACHE_NAME = 'madplanner-shell-v3'
-const SHELL = ['/', '/manifest.webmanifest', '/favicon.svg', '/apple-touch-icon.png', '/icon-192.png', '/icon-512.png']
+const CACHE_NAME = 'madplanner-shell-v4'
+const SHELL = ['/', '/manifest.webmanifest', '/favicon-v2.svg', '/apple-touch-icon-v2.png', '/icon-v2-192.png', '/icon-v2-512.png']
 
 self.addEventListener('install', (event) => {
   event.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.addAll(SHELL)))
@@ -27,7 +27,7 @@ self.addEventListener('push', (event) => {
   let payload = {}
   try { payload = event.data?.json() || {} } catch { /* Show a safe generic notice. */ }
   event.waitUntil(self.registration.showNotification(typeof payload.title === 'string' ? payload.title : 'Mad Planner', {
-    body: typeof payload.body === 'string' ? payload.body : '', icon: '/icon-192.png', badge: '/icon-192.png',
+    body: typeof payload.body === 'string' ? payload.body : '', icon: '/icon-v2-192.png', badge: '/icon-v2-192.png',
     tag: typeof payload.tag === 'string' ? payload.tag : 'madplanner-update',
     data: { url: notificationTarget(payload.url) },
   }))

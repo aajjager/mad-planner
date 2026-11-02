@@ -122,3 +122,5 @@ h1 { font-family:inherit; font-size:clamp(2.25rem,5vw,3.75rem); font-weight:750;
   .recipe-view-controls { justify-content:flex-start; }
 }
 @media (max-width:359px) { .recipe-collection--compact { grid-template-columns:minmax(0,1fr); } }
+
+.brand-mark img { display:block; width:100%; height:100%; border-radius:inherit; }
