@@ -2,6 +2,12 @@
 
 All notable user-visible changes are recorded here. Versions use year since 2026.month.week in Europe/Copenhagen time: 2026 = 0, October = 10; days 1–7 = week 1, 8–14 = week 2, 15–21 = week 3, and 22–month-end = week 4. Older release numbers below are retained as historical identifiers.
 
+## 0.11.4 — November 2026, week 4
+
+### Improvements
+
+- Administrators can remove finished, cancelled, or failed implementations from their lists and restore them from Removed. Request text, feedback, commit references, and review history are preserved, while active work cannot be hidden.
+
 ## 0.11.1 — November 2026, week 1
 
 ### Improvements
