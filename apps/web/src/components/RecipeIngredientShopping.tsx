@@ -1,3 +1,4 @@
+import { AppIcon } from './AppIcon'
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext'
@@ -37,7 +38,7 @@ export function RecipeIngredientShopping({ recipe }: { recipe: Recipe }) {
       <div className="heading-actions"><button type="button" className="button" disabled={busy} onClick={() => setSelected(recipe.ingredients.map((item) => item.id))}>{t('selectAllIngredients')}</button><button type="button" className="button" disabled={busy || !selected.length} onClick={() => setSelected([])}>{t('clearIngredientSelection')}</button></div>
     </div>}
     <ul className="ingredient-list">{recipe.ingredients.map((item) => <li key={item.id}>
-      {canShop ? <div className="ingredient-shopping__row"><label><input type="checkbox" checked={selected.includes(item.id)} disabled={busy} onChange={() => setSelected((current) => current.includes(item.id) ? current.filter((id) => id !== item.id) : [...current, item.id])} aria-label={`${t('select')} ${item.raw_text}`} /><span>{item.raw_text}</span></label><button type="button" className="button" disabled={busy || !week} aria-label={`${t('addIngredientToShopping')} ${item.raw_text}`} onClick={() => void add([item.id])}>{t('addIngredientToShopping')}</button></div> : item.raw_text}
+      {canShop ? <div className="ingredient-shopping__row"><label><input type="checkbox" checked={selected.includes(item.id)} disabled={busy} onChange={() => setSelected((current) => current.includes(item.id) ? current.filter((id) => id !== item.id) : [...current, item.id])} aria-label={`${t('select')} ${item.raw_text}`} /><span>{item.raw_text}</span></label><button type="button" className="button" disabled={busy || !week} aria-label={`${t('addIngredientToShopping')} ${item.raw_text}`} title={t('addIngredientToShopping')} onClick={() => void add([item.id])}><AppIcon name="plus" /></button></div> : item.raw_text}
     </li>)}</ul>
     {canShop && <><div className="heading-actions"><button type="button" className="button button--primary" disabled={busy || !week || !selected.length} onClick={() => void add(selected)}>{t('addSelectedIngredients')} ({selected.length})</button><Link to={`/grocery-list?week=${week}`}>{t('groceryList')}</Link></div>{added > 0 && <p role="status">{t('ingredientsAddedToShopping')} {added}</p>}{error && <p className="notice notice--error" role="alert">{error}</p>}</>}
   </div>

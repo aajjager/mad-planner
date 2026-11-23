@@ -1,4 +1,4 @@
-import { cleanup, render, screen } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { RangeFilter } from './RangeFilter'
 import { RatingStars } from './RatingStars'
@@ -20,6 +20,7 @@ describe('account language', () => {
     const t = translator(locale)
     const view = render(<MemoryRouter><RecipeListPage /><RangeFilter label={t('ratingRange')} minimum={0} maximum={5} low={0} high={5} step={0.5} suffix="★" onChange={() => {}} /><RatingStars value={2} average={2} count={2} label={t('yourRating')} onChange={() => {}} /><BackupPanel reportError={() => {}} /><UpdatesPage /></MemoryRouter>)
     expect(await screen.findByText('Original family recipe')).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: t('collectionFilters') }))
     for (const label of ['sortRecipes', 'cuisineFilter', 'recipeTypeFilter'] as const) expect(screen.getByLabelText(t(label))).toBeInTheDocument()
     expect(screen.queryByText('Sort recipes')).not.toBeInTheDocument()
     expect(screen.queryByText('Family rating')).not.toBeInTheDocument()

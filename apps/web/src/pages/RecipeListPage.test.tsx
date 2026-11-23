@@ -4,17 +4,54 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { RecipeListPage } from './RecipeListPage'
 import { guideCopy } from '../components/welcomeGuideContent'
 
-vi.mock('../auth/AuthContext', () => ({ useAuth: () => ({ account: { role: 'viewer', locale: 'en' } }) }))
+const auth = vi.hoisted(() => ({ role: 'viewer' }))
+vi.mock('../auth/AuthContext', () => ({ useAuth: () => ({ account: { role: auth.role, locale: 'en' } }) }))
 vi.mock('../api/recipes', () => ({ listRecipes: () => Promise.resolve([
-  { id: 1, name: 'Apple soup', description: 'A warm soup.', tags: [], recipe_types: [], nutrition: null, total_time_minutes: 20 },
-  { id: 2, name: 'Burger', description: 'A family favourite.', tags: [], recipe_types: [], nutrition: null, total_time_minutes: 30 },
+  { id: 1, owned_by_current_family: true, family_rating: 4, name: 'Apple soup', description: 'A warm soup.', tags: [], recipe_types: [], nutrition: null, total_time_minutes: 20 },
+  { id: 2, owned_by_current_family: true, family_rating: 3, name: 'Burger', description: 'A family favourite.', tags: [], recipe_types: [], nutrition: null, total_time_minutes: 30 },
 ]) }))
 
-beforeEach(() => localStorage.clear())
+beforeEach(() => { localStorage.clear(); auth.role = 'viewer' })
 afterEach(() => { cleanup(); vi.restoreAllMocks() })
 const show = () => render(<MemoryRouter><RecipeListPage /></MemoryRouter>)
 
 describe('recipe collection sizing', () => {
+  it('keeps adding prominent and groups secondary collection actions', async () => {
+    auth.role = 'owner'
+    show()
+    await screen.findByText('Apple soup')
+    expect(screen.getByRole('link', { name: 'Add recipe' })).toHaveAttribute('href', '/recipes/add')
+    const more = screen.getByLabelText('More recipe actions')
+    const menu = more.closest('details')!
+    expect(menu).not.toHaveAttribute('open')
+    fireEvent.click(more)
+    expect(menu).toHaveAttribute('open')
+    expect(screen.getByRole('link', { name: 'Browse public recipes' })).toHaveAttribute('href', '/recipes/public')
+    fireEvent.click(screen.getByRole('button', { name: 'Select recipes' }))
+    expect(menu).not.toHaveAttribute('open')
+    expect(screen.getByRole('button', { name: 'Select Apple soup' })).toHaveAttribute('aria-pressed', 'false')
+    fireEvent.click(screen.getByRole('button', { name: 'Select Apple soup' }))
+    expect(screen.getByRole('button', { name: 'Select Apple soup' })).toHaveAttribute('aria-pressed', 'true')
+  })
+
+  it('keeps search available and preserves filters when the panel closes', async () => {
+    show()
+    const toggle = await screen.findByRole('button', { name: 'Filters' })
+    expect(toggle).toHaveAttribute('aria-expanded', 'false')
+    expect(screen.queryByRole('combobox', { name: 'Sort recipes' })).not.toBeInTheDocument()
+    fireEvent.change(screen.getByRole('searchbox'), { target: { value: 'Apple' } })
+    fireEvent.click(toggle)
+    fireEvent.change(screen.getByRole('combobox', { name: 'Sort recipes' }), { target: { value: 'rating' } })
+    fireEvent.click(toggle)
+    expect(screen.getByRole('searchbox')).toHaveValue('Apple')
+    expect(screen.queryByText('Burger')).not.toBeInTheDocument()
+    fireEvent.click(toggle)
+    expect(screen.getByRole('combobox', { name: 'Sort recipes' })).toHaveValue('rating')
+    fireEvent.click(screen.getByRole('button', { name: 'Clear filters' }))
+    expect(screen.getByRole('searchbox')).toHaveValue('')
+    expect(screen.getByText('Burger')).toBeInTheDocument()
+  })
+
   it('remembers the chosen size without losing search or recipe links', async () => {
     const view = show()
     const slider = await screen.findByRole('slider', { name: 'Recipe card size' })
