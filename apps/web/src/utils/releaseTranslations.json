@@ -314,5 +314,9 @@
   "Administrators can remove finished, cancelled, or failed implementations from their lists and restore them from Removed. Request text, feedback, commit references, and review history are preserved, while active work cannot be hidden.": {
     "da": "Administratorer kan fjerne afsluttede, annullerede eller mislykkede implementeringer fra listerne og gendanne dem under Fjernede. Ønskets tekst, feedback, commitreferencer og gennemgangshistorik bevares, mens aktive opgaver ikke kan skjules.",
     "nl": "Beheerders kunnen afgeronde, geannuleerde of mislukte implementaties uit de lijsten verwijderen en via Verwijderd terugzetten. Verzoektekst, feedback, commitverwijzingen en beoordelingsgeschiedenis blijven behouden; actief werk kan niet worden verborgen."
+  },
+  "Added Beverages as a selectable recipe type when importing, scanning, creating, or editing recipes. Existing families receive the option without overwriting custom types, and beverage recipes are not automatically assigned to a planner meal.": {
+    "da": "Tilføjede Beverages som valgfri opskriftstype ved import, scanning, oprettelse og redigering af opskrifter. Eksisterende familier får valget uden at få overskrevet egne typer, og drikkevarer knyttes ikke automatisk til et måltid i madplanen.",
+    "nl": "Beverages toegevoegd als selecteerbaar recepttype bij importeren, scannen, maken en bewerken van recepten. Bestaande gezinnen krijgen de optie zonder aangepaste typen te overschrijven; dranken worden niet automatisch aan een maaltijd in de planner gekoppeld."
   }
 }

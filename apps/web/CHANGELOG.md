@@ -4,6 +4,10 @@ All notable user-visible changes are recorded here. Versions use year since 2026
 
 ## 0.11.4 — November 2026, week 4
 
+### Features
+
+- Added Beverages as a selectable recipe type when importing, scanning, creating, or editing recipes. Existing families receive the option without overwriting custom types, and beverage recipes are not automatically assigned to a planner meal.
+
 ### Improvements
 
 - Administrators can remove finished, cancelled, or failed implementations from their lists and restore them from Removed. Request text, feedback, commit references, and review history are preserved, while active work cannot be hidden.
