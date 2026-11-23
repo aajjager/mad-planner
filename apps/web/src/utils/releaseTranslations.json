@@ -322,5 +322,9 @@
   "Recipe pages now let owners, editors, and planners add one ingredient or a selection to a chosen week’s shopping list. Quantities, units, and recipe references are preserved as manual shopping items, without changing the recipe or meal plan.": {
     "da": "Ejere, redaktører og planlæggere kan nu tilføje én eller flere valgte ingredienser fra en opskrift til en valgfri uges indkøbsliste. Mængder, enheder og opskriftsreferencer bevares som manuelt tilføjede varer uden at ændre opskriften eller madplanen.",
     "nl": "Eigenaren, bewerkers en planners kunnen nu één ingrediënt of een selectie vanaf een recept toevoegen aan de boodschappenlijst van een gekozen week. Hoeveelheden, eenheden en receptverwijzingen blijven bewaard als handmatige boodschappen, zonder het recept of de maaltijdplanning te wijzigen."
+  },
+  "Refreshed the app with a calm mobile-first design, cleaner typography, neutral surfaces, consistent controls, and a flat icon-based bottom navigation. Recipe search stays visible while advanced filters open on demand; ingredients and cooking steps appear before expandable recipe options, with existing data, permissions, colour choices, and dark mode preserved.": {
+    "da": "Opdaterede appen med et roligt mobilvenligt design, enklere typografi, neutrale flader, ensartede kontroller og en flad bundmenu med ikoner. Opskriftssøgning er altid synlig, mens avancerede filtre åbnes efter behov; ingredienser og trin vises før opskriftsindstillinger, der kan foldes ud, og eksisterende data, rettigheder, farvevalg og mørk tilstand bevares.",
+    "nl": "De app heeft een rustig mobiel ontwerp met heldere typografie, neutrale vlakken, consistente bediening en een platte onderste navigatie met iconen. Recepten zoeken blijft zichtbaar en geavanceerde filters openen op verzoek; ingrediënten en kookstappen staan vóór uitklapbare receptopties, met behoud van gegevens, rechten, kleurkeuzes en donkere modus."
   }
 }

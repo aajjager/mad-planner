@@ -1,6 +1,7 @@
 import { createContext, useContext, useState } from 'react'
 
 export interface RecipeBrowseFilters {
+  filtersOpen?: boolean
   search: string; tag: string; cuisine: string; recipeType: string; sort: 'name' | 'rating'
   ratingLow: number; ratingHigh: number; includeUnrated: boolean
   calorieLow: number; calorieHigh: number | null; includeUnknownCalories: boolean

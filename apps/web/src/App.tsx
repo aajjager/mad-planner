@@ -1,5 +1,6 @@
 import { BrowserRouter, Link, NavLink, Navigate, Route, Routes } from 'react-router-dom'
 import './App.css'
+import { AppIcon } from './components/AppIcon'
 import { EditRecipePage } from './pages/EditRecipePage'
 import { PreviewBanner } from './components/PreviewBanner'
 import { AddRecipePage } from './pages/AddRecipePage'
@@ -64,15 +65,15 @@ function ApplicationShell() {
           </Routes>
         </main>
         <nav className="mobile-navigation" aria-label={t('mobileNavigation')}>
-          <NavLink to="/planner"><span aria-hidden="true">□</span>{t('planner')}</NavLink>
-          <NavLink to="/grocery-list"><span aria-hidden="true">✓</span>{t('groceries')}</NavLink>
-          <NavLink className="mobile-navigation__recipes" to="/recipes"><span aria-hidden="true">▤</span>{t('recipes')}</NavLink>
+          <NavLink to="/planner"><AppIcon name="planner" />{t('planner')}</NavLink>
+          <NavLink to="/grocery-list"><AppIcon name="groceries" />{t('groceries')}</NavLink>
+          <NavLink className="mobile-navigation__recipes" to="/recipes"><AppIcon name="recipes" />{t('recipes')}</NavLink>
           {account?.role === 'owner' ? <>
-            <NavLink to="/family"><span aria-hidden="true">⌂</span>{t('familyNav')}<FeedbackAnswerBadge /></NavLink>
-            <NavLink to="/admin"><span aria-hidden="true">⚙</span>{t('admin')}</NavLink>
+            <NavLink to="/family"><AppIcon name="family" />{t('familyNav')}<FeedbackAnswerBadge /></NavLink>
+            <NavLink to="/admin"><AppIcon name="settings" />{t('admin')}</NavLink>
           </> : <>
-            {canEditRecipes ? <NavLink className="mobile-navigation__add" to="/recipes/add"><span aria-hidden="true">+</span>{t('addRecipe')}</NavLink> : <NavLink to="/updates"><span aria-hidden="true">✦</span>{t('updates')}</NavLink>}
-            <NavLink to="/family"><span aria-hidden="true">⌂</span>{t('familyNav')}<FeedbackAnswerBadge /></NavLink>
+            {canEditRecipes ? <NavLink className="mobile-navigation__add" to="/recipes/add"><AppIcon name="plus" />{t('addRecipe')}</NavLink> : <NavLink to="/updates"><AppIcon name="updates" />{t('updates')}</NavLink>}
+            <NavLink to="/family"><AppIcon name="family" />{t('familyNav')}<FeedbackAnswerBadge /></NavLink>
           </>}
         </nav>
       </div>
