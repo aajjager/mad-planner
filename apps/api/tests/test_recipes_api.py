@@ -1,5 +1,6 @@
 import pytest
 from fastapi.testclient import TestClient
+
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
 from sqlalchemy.pool import StaticPool
@@ -347,3 +348,18 @@ def test_viewer_filter_is_personal_and_cannot_enable_family_sharing(client: Test
     assert viewer.put(f"/api/v1/recipes/sharing/hidden/{family['id']}", json={'enabled': True}).status_code == 200
     assert viewer.get('/api/v1/recipes/public').json() == []
     assert len(client.get('/api/v1/recipes/public').json()) == 1
+
+
+def test_beverage_type_can_be_selected_when_saving_an_import(client: TestClient) -> None:
+    types = client.get('/api/v1/auth/family/recipe-types').json()
+    beverage = next(item for item in types if item['name'] == 'Beverages')
+    assert beverage['meal_type'] is None
+    result = client.post('/api/v1/recipes', json={
+        'name': 'Lemonade', 'source_url': 'https://example.com/lemonade',
+        'recipe_types': ['Beverages'], 'ingredients': [{'raw_text': '2 lemons'}],
+        'instructions': [{'text': 'Mix with water and chill.'}],
+    })
+    assert result.status_code == 201
+    saved = client.get(f"/api/v1/recipes/{result.json()['id']}").json()
+    assert saved['recipe_types'] == ['Beverages']
+    assert saved['meal_types'] == []

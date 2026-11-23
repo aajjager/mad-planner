@@ -16,7 +16,7 @@ from madplanner.services.starter_recipes import add_starter_recipes
 
 DEFAULT_RECIPE_TYPES = (
     ("Breakfast", "breakfast"), ("Lunch", "lunch"), ("Dinner", "dinner"),
-    ("Bake-off", None), ("Cake", None), ("Dessert", None), ("Bread", None), ("Snack", None),
+    ("Bake-off", None), ("Cake", None), ("Dessert", None), ("Bread", None), ("Snack", None), ("Beverages", None),
 )
 
 

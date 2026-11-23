@@ -310,5 +310,17 @@
   "Replaced individual feedback-completion notifications with one patch-note notification per device and release week, only when the installed weekly release contains changes. Notifications open Updates, respect personal notification settings and quiet hours, and leave meal-planning reminders unchanged.": {
     "da": "Erstattede notifikationer for hver afsluttet feedback med én notifikation om udgivelsesnoter pr. enhed og udgivelsesuge, kun når den installerede ugeversion indeholder ændringer. Notifikationerne åbner Opdateringer, følger personlige indstillinger og stille timer og ændrer ikke påmindelser om madplanen.",
     "nl": "Meldingen per afgeronde feedback vervangen door één melding over versienotities per apparaat en releaseweek, alleen wanneer de geïnstalleerde weekversie wijzigingen bevat. Meldingen openen Updates, volgen persoonlijke instellingen en stille uren en laten maaltijdplanningsherinneringen ongewijzigd."
+  },
+  "Administrators can remove finished, cancelled, or failed implementations from their lists and restore them from Removed. Request text, feedback, commit references, and review history are preserved, while active work cannot be hidden.": {
+    "da": "Administratorer kan fjerne afsluttede, annullerede eller mislykkede implementeringer fra listerne og gendanne dem under Fjernede. Ønskets tekst, feedback, commitreferencer og gennemgangshistorik bevares, mens aktive opgaver ikke kan skjules.",
+    "nl": "Beheerders kunnen afgeronde, geannuleerde of mislukte implementaties uit de lijsten verwijderen en via Verwijderd terugzetten. Verzoektekst, feedback, commitverwijzingen en beoordelingsgeschiedenis blijven behouden; actief werk kan niet worden verborgen."
+  },
+  "Added Beverages as a selectable recipe type when importing, scanning, creating, or editing recipes. Existing families receive the option without overwriting custom types, and beverage recipes are not automatically assigned to a planner meal.": {
+    "da": "Tilføjede Beverages som valgfri opskriftstype ved import, scanning, oprettelse og redigering af opskrifter. Eksisterende familier får valget uden at få overskrevet egne typer, og drikkevarer knyttes ikke automatisk til et måltid i madplanen.",
+    "nl": "Beverages toegevoegd als selecteerbaar recepttype bij importeren, scannen, maken en bewerken van recepten. Bestaande gezinnen krijgen de optie zonder aangepaste typen te overschrijven; dranken worden niet automatisch aan een maaltijd in de planner gekoppeld."
+  },
+  "Recipe pages now let owners, editors, and planners add one ingredient or a selection to a chosen week’s shopping list. Quantities, units, and recipe references are preserved as manual shopping items, without changing the recipe or meal plan.": {
+    "da": "Ejere, redaktører og planlæggere kan nu tilføje én eller flere valgte ingredienser fra en opskrift til en valgfri uges indkøbsliste. Mængder, enheder og opskriftsreferencer bevares som manuelt tilføjede varer uden at ændre opskriften eller madplanen.",
+    "nl": "Eigenaren, bewerkers en planners kunnen nu één ingrediënt of een selectie vanaf een recept toevoegen aan de boodschappenlijst van een gekozen week. Hoeveelheden, eenheden en receptverwijzingen blijven bewaard als handmatige boodschappen, zonder het recept of de maaltijdplanning te wijzigen."
   }
 }

@@ -26,3 +26,10 @@
 .recipe-description .text-button { margin-top:8px; color:var(--green); text-decoration:underline; }
 .recipe-description .recipe-description-text { line-height:1.65; }
 .recipe-description-text--collapsed { display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:5; line-clamp:5; max-height:8.25em; overflow:hidden; }
+
+.ingredient-shopping__tools { display:grid; gap:10px; margin-bottom:16px; }
+.ingredient-shopping__tools p { margin:0; line-height:1.5; }
+.ingredient-shopping__row { display:flex; align-items:center; flex-wrap:wrap; gap:10px; }
+.ingredient-shopping__row label { display:flex; min-height:44px; align-items:center; gap:10px; flex:1 1 170px; cursor:pointer; }
+.ingredient-shopping__row input { flex:none; width:20px; height:20px; margin:0; }
+.ingredient-shopping__row .button { min-height:44px; padding:8px 12px; font-size:.8rem; }

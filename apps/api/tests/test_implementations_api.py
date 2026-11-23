@@ -47,6 +47,50 @@ def queued(client):
     return result.json()
 
 
+@pytest.mark.parametrize('status', ['merged', 'cancelled', 'failed'])
+def test_remove_and_restore_terminal_job_preserves_history(env, status):
+    client, engine = env
+    job = queued(client)
+    with Session(engine) as db:
+        row = db.get(ImplementationJob, job['id'])
+        row.status = status
+        row.details = {'head_sha': HEAD, 'pr_number': 12, 'history': [{'revision': 1}]}
+        db.commit()
+    path = f"/api/v1/implementations/{job['id']}/visibility"
+    for hidden in [True, True, False]:
+        result = client.post(path, json={'hidden': hidden})
+        assert result.status_code == 200
+        value = result.json()
+        assert value['status'] == status and value['revision'] == 1
+        assert value['details'] == {'head_sha': HEAD, 'pr_number': 12, 'history': [{'revision': 1}], 'hidden_from_admin': hidden}
+        assert client.get('/api/v1/implementations').json()['jobs'][0]['details']['hidden_from_admin'] == hidden
+    with Session(engine) as db:
+        assert db.get(FeedbackSubmission, 1).content == 'Improve the planner'
+        assert db.get(ImplementationJob, job['id']).feedback_id == 1
+
+
+@pytest.mark.parametrize('status', ['queued', 'ready', 'approved', 'implementing', 'testing', 'deploying', 'merging'])
+def test_cannot_hide_active_implementation(env, status):
+    client, engine = env
+    job = queued(client)
+    with Session(engine) as db:
+        db.get(ImplementationJob, job['id']).status = status
+        db.commit()
+    assert client.post(f"/api/v1/implementations/{job['id']}/visibility", json={'hidden': True}).status_code == 409
+
+
+def test_implementation_visibility_requires_system_admin(env):
+    from madplanner.models import User
+    client, engine = env
+    job = queued(client)
+    path = f"/api/v1/implementations/{job['id']}/visibility"
+    assert TestClient(app).post(path, json={'hidden': True}).status_code == 401
+    with Session(engine) as db:
+        db.get(User, 1).is_system_admin = False
+        db.commit()
+    assert client.post(path, json={'hidden': True}).status_code == 403
+
+
 def claim(client):
     return client.post('/api/v1/implementations/worker/claim', headers=AUTH).json()
 

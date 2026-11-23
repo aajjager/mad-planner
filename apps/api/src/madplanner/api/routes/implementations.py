@@ -132,6 +132,20 @@ def cancel(job_id: int, db: Db, _: Admin):
     return public(job)
 
 
+class AdminVisibility(BaseModel):
+    hidden: bool
+
+
+@router.post("/{job_id}/visibility")
+def visibility(job_id: int, data: AdminVisibility, db: Db, _: Admin):
+    job = locked_job(db, job_id)
+    if job.status not in ("merged", "cancelled", "failed"):
+        raise HTTPException(409, "Only finished, cancelled, or failed implementations can be removed from the list")
+    job.details = {**job.details, "hidden_from_admin": data.hidden}
+    db.commit()
+    return public(job)
+
+
 def require_worker(authorization: Annotated[str | None, Header()] = None):
     configured_token = get_settings().implementation_worker_token
     expected = configured_token.get_secret_value() if configured_token else ""

@@ -9,6 +9,36 @@ const feedback = { id: 4, status: 'approved', category: 'improvement', content: 
 afterEach(() => { cleanup(); vi.restoreAllMocks() })
 
 describe('Implementation controls', () => {
+  it('removes implemented jobs persistently and restores them with their review details', async () => {
+    let hidden = false
+    const fetch = vi.spyOn(globalThis, 'fetch').mockImplementation((_, options) => {
+      if (options?.method) hidden = JSON.parse(String(options.body)).hidden
+      return Promise.resolve(response({ enabled: true, jobs: [{ id: 8, revision: 2, status: 'merged', request_text: 'Implemented request', details: { hidden_from_admin: hidden, head_sha: 'a'.repeat(40), pr_number: 12 } }] }))
+    })
+    render(<ImplementationPanel feedback={[]} />)
+    fireEvent.click(await screen.findByRole('button', { name: 'History (1)' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Remove from list' }))
+    await screen.findByRole('button', { name: 'Removed (1)' })
+    expect(screen.queryByText('Implemented request')).not.toBeInTheDocument()
+    expect(fetch).toHaveBeenCalledWith('/api/v1/implementations/8/visibility', expect.objectContaining({ body: JSON.stringify({ hidden: true }) }))
+    fireEvent.click(screen.getByRole('button', { name: 'Removed (1)' }))
+    expect(screen.getByText('Implemented request')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Review changes' })).toHaveAttribute('href', 'https://github.com/aajjager/mad-planner/pull/12')
+    fireEvent.click(screen.getByRole('button', { name: 'Restore to list' }))
+    await screen.findByRole('button', { name: 'History (1)' })
+    fireEvent.click(screen.getByRole('button', { name: 'History (1)' }))
+    expect(screen.getByText('Implemented request')).toBeInTheDocument()
+  })
+
+  it('keeps a completed job visible if removal fails', async () => {
+    vi.spyOn(globalThis, 'fetch').mockImplementation((_, options) => Promise.resolve(options?.method ? response({ detail: 'Cannot save visibility' }, 500) : response({ enabled: true, jobs: [{ id: 8, revision: 1, status: 'merged', request_text: 'Keep this request', details: {} }] })))
+    render(<ImplementationPanel feedback={[]} />)
+    fireEvent.click(await screen.findByRole('button', { name: 'History (1)' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Remove from list' }))
+    expect(await screen.findByRole('alert')).toHaveTextContent('Cannot save visibility')
+    expect(screen.getByText('Keep this request')).toBeInTheDocument()
+  })
+
   it('keeps actionable jobs active and completed jobs in history without deleting them', async () => {
     const jobs = ['queued', 'ready', 'failed', 'merged', 'cancelled'].map((status, id) => ({
       id, revision: 1, status, request_text: `${status} request`, details: { pr_number: id + 10 },

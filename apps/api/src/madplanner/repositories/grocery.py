@@ -38,3 +38,16 @@ class GroceryListRepository:
         if entry is None: return None
         entry.purchased_at = datetime.now(timezone.utc) if purchased else None
         self.session.commit(); self.session.refresh(entry); return entry
+
+    def add_manual_many(self, entries: list[GroceryListEntry]) -> list[GroceryListEntry]:
+        try:
+            for entry in entries:
+                entry.family_id = self.family_id
+                self.session.add(entry)
+            self.session.commit()
+            for entry in entries:
+                self.session.refresh(entry)
+        except Exception:
+            self.session.rollback()
+            raise
+        return entries
