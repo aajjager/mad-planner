@@ -74,6 +74,23 @@ class GroceryListService:
         entry = self.grocery_repository.set_purchased(entry_id, purchased)
         return self._response(entry) if entry else None
 
+    def add_recipe_ingredients(self, requested_date, recipe, selected):
+        week_start = requested_date - timedelta(days=requested_date.weekday())
+        entries = []
+        for item in recipe.ingredients:
+            if item.id not in selected:
+                continue
+            parsed = parse_ingredient(item.raw_text)
+            source_unit = item.unit or (parsed.unit if item.ingredient is None else None)
+            unit = UnitInput(name=source_unit.name, symbol=source_unit.symbol, dimension=source_unit.dimension) if source_unit else None
+            name = item.ingredient.name if item.ingredient else parsed.ingredient_name
+            entries.append(GroceryListEntry(week_start=week_start, origin='manual', name=name,
+                category=item.ingredient.grocery_category if item.ingredient and item.ingredient.grocery_category else categorize_grocery_item(name),
+                quantity=item.quantity if item.ingredient else parsed.quantity,
+                quantity_max=item.quantity_max if item.ingredient else parsed.quantity_max,
+                unit=unit.model_dump(mode='json') if unit else None, raw_text=item.raw_text, recipe_names=[recipe.name]))
+        return [self._response(entry) for entry in self.grocery_repository.add_manual_many(entries)]
+
     @staticmethod
     def _response(entry: GroceryListEntry) -> GroceryListItem:
         def clean_decimal(value: Decimal | None) -> Decimal | None:

@@ -318,5 +318,9 @@
   "Added Beverages as a selectable recipe type when importing, scanning, creating, or editing recipes. Existing families receive the option without overwriting custom types, and beverage recipes are not automatically assigned to a planner meal.": {
     "da": "Tilføjede Beverages som valgfri opskriftstype ved import, scanning, oprettelse og redigering af opskrifter. Eksisterende familier får valget uden at få overskrevet egne typer, og drikkevarer knyttes ikke automatisk til et måltid i madplanen.",
     "nl": "Beverages toegevoegd als selecteerbaar recepttype bij importeren, scannen, maken en bewerken van recepten. Bestaande gezinnen krijgen de optie zonder aangepaste typen te overschrijven; dranken worden niet automatisch aan een maaltijd in de planner gekoppeld."
+  },
+  "Recipe pages now let owners, editors, and planners add one ingredient or a selection to a chosen week’s shopping list. Quantities, units, and recipe references are preserved as manual shopping items, without changing the recipe or meal plan.": {
+    "da": "Ejere, redaktører og planlæggere kan nu tilføje én eller flere valgte ingredienser fra en opskrift til en valgfri uges indkøbsliste. Mængder, enheder og opskriftsreferencer bevares som manuelt tilføjede varer uden at ændre opskriften eller madplanen.",
+    "nl": "Eigenaren, bewerkers en planners kunnen nu één ingrediënt of een selectie vanaf een recept toevoegen aan de boodschappenlijst van een gekozen week. Hoeveelheden, eenheden en receptverwijzingen blijven bewaard als handmatige boodschappen, zonder het recept of de maaltijdplanning te wijzigen."
   }
 }

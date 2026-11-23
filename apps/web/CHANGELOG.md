@@ -6,6 +6,8 @@ All notable user-visible changes are recorded here. Versions use year since 2026
 
 ### Features
 
+- Recipe pages now let owners, editors, and planners add one ingredient or a selection to a chosen week’s shopping list. Quantities, units, and recipe references are preserved as manual shopping items, without changing the recipe or meal plan.
+
 - Added Beverages as a selectable recipe type when importing, scanning, creating, or editing recipes. Existing families receive the option without overwriting custom types, and beverage recipes are not automatically assigned to a planner meal.
 
 ### Improvements

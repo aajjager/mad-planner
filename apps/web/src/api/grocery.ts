@@ -3,6 +3,12 @@ import type { UnitInput } from './recipes'
 export interface GroceryListItem { id: number; key: string; name: string; category: string; quantity: string | null; quantity_max: string | null; unit: UnitInput | null; recipe_names: string[]; raw_texts: string[]; origin: 'generated' | 'manual'; purchased_at: string | null }
 export interface WeeklyGroceryList { week_start: string; week_end: string; planned_meals: number; items: GroceryListItem[]; history: GroceryListItem[] }
 
+export async function addRecipeIngredients(weekStart: string, recipeId: number, ingredientIds: number[]): Promise<GroceryListItem[]> {
+  const response = await fetch(`/api/v1/grocery-lists/week/recipe-ingredients?week_start=${weekStart}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ recipe_id: recipeId, ingredient_ids: ingredientIds }) })
+  if (!response.ok) throw new Error('The ingredients could not be added.')
+  return response.json()
+}
+
 export async function getGroceryListWeek(weekStart: string): Promise<WeeklyGroceryList> {
   const response = await fetch(`/api/v1/grocery-lists/week?week_start=${weekStart}`)
   if (!response.ok) throw new Error('The grocery list could not be loaded.')
