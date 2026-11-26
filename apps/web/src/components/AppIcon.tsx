@@ -20,6 +20,7 @@ const paths = {
   dessert: <><path d="M7 12h10l-5 9-5-9Zm0 0a5 5 0 1 1 10 0M9 16h6" /></>,
   snack: <><circle cx="12" cy="12" r="8" /><path d="M9 8h.1m6 1h.1m-3.1 3h.1m-4.1 2h.1m7.9 1h.1m-3.1 2h.1" strokeWidth="2.4" /></>,
   soup: <><path d="M3 13h18a8 8 0 0 1-8 7h-2a8 8 0 0 1-8-7Zm6-3c-2-1 1-2 0-4m4 4c-2-1 1-2 0-4m4 4c-2-1 1-2 0-4" /></>,
+  plate: <><circle cx="12" cy="12" r="5.5" /><circle cx="12" cy="12" r="3.3" /><path d="M2 5v4a1.5 1.5 0 0 0 3 0V5m-1.5 0v14M21 19V5c-1.5 1-2 3-2 6v2h2" /></>,
   recipeTag: <><path d="M3 5v6l9 9 9-9-8-8H5a2 2 0 0 0-2 2Z" /><circle cx="8" cy="8" r="1.3" /></>,
 } satisfies Record<string, ReactNode>
 

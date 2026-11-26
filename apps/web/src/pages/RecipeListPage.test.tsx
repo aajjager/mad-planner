@@ -66,6 +66,12 @@ describe('recipe type shortcuts', () => {
 })
 
 describe('recipe collection sizing', () => {
+  it('renders a decorative food icon for a recipe with no photo', async () => {
+    show()
+    const card = await screen.findByRole('link', { name: /Apple soup/ })
+    expect(card.querySelector('.recipe-card__image > .app-icon')).toHaveAttribute('aria-hidden', 'true')
+  })
+
   it('keeps the saved cookbook photo in the recipe link at every card size', async () => {
     show()
     const card = await screen.findByRole('link', { name: /Burger/ })
@@ -150,5 +156,6 @@ describe('recipe collection sizing', () => {
   it.each(['en', 'da', 'nl'] as const)('explains collection sizing in the %s welcome guide', (locale) => {
     const tip = guideCopy[locale].steps.find((step) => step[2] === '/recipes')!
     expect(tip[1]).toContain({ en: 'Recipe card size', da: 'Opskriftskortets størrelse', nl: 'Grootte receptkaarten' }[locale])
+    expect(tip[1]).toContain({ en: 'food icon', da: 'madikon', nl: 'voedselicoon' }[locale])
   })
 })

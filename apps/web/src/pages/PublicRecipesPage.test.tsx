@@ -6,13 +6,18 @@ import { guideCopy } from '../components/welcomeGuideContent'
 const state = vi.hoisted(() => ({ role: 'owner', hidden: false, always: false, fail: false }))
 vi.mock('../auth/AuthContext', () => ({ useAuth: () => ({ account: { role: state.role, locale: 'en' } }) }))
 vi.mock('../api/recipes', () => ({
-  listPublicRecipes: async () => state.hidden ? [] : [{ id: 5, name: 'Soup', owner_family_name: 'Neighbour', tags: [] }],
+  listPublicRecipes: async () => state.hidden ? [] : [{ id: 5, name: 'Soup', owner_family_name: 'Neighbour', tags: [], recipe_types: ['Soup'], image_url: null }],
   getSharingPreferences: async () => ({ always_share: state.always, families: [{ id: 2, name: 'Neighbour', hidden: state.hidden }] }),
   setAlwaysShare: async (enabled: boolean) => { state.always = enabled },
   setHiddenFamily: async (_id: number, enabled: boolean) => { if (state.fail) throw Error('failed'); state.hidden = enabled },
   importPublicRecipe: vi.fn(),
 }))
 afterEach(() => { cleanup(); state.role = 'owner'; state.hidden = false; state.always = false; state.fail = false })
+it('renders the food icon on public recipes without a photo', async () => {
+  render(<MemoryRouter><PublicRecipesPage /></MemoryRouter>)
+  const card = await screen.findByRole('link', { name: /Soup/ })
+  expect(card.querySelector('.recipe-card__image > .app-icon')).toHaveAttribute('aria-hidden', 'true')
+})
 it('saves sharing and reversibly hides a family', async () => {
   render(<MemoryRouter><PublicRecipesPage /></MemoryRouter>)
   await screen.findByText('Soup')

@@ -16,6 +16,8 @@ All notable user-visible changes are recorded here. Versions use year since 2026
 
 ### Improvements
 
+- Recipe cards without a photo now show a matching food icon. A plate with a fork and knife marks recipes with several labels or with no recognizable type, in both your collection and Public recipes.
+
 - Recipe cards are smaller, with a photo, title, and up to two recipe type tags. Open a recipe for its description, rating, nutrition, and times, including the saved total time. On phones, the Comfortable layout also uses shorter photos.
 
 - Added a scrollable row of recipe type icons to the top of Recipes. Tap a type such as Dinner, Lunch, or Beverages to filter the collection, or tap All to clear the type while keeping your other filters.

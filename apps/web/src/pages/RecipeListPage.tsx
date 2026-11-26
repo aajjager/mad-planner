@@ -7,6 +7,7 @@ import { translator } from '../i18n'
 import { useRecipeBrowseMemory } from '../utils/recipeBrowseMemory'
 import { AppIcon } from '../components/AppIcon'
 import { RangeFilter } from '../components/RangeFilter'
+import { RecipeCardImage } from '../components/RecipeCardImage'
 import { RecipeTypeShortcuts } from '../components/RecipeTypeShortcuts'
 
 function recipeCalories(recipe: Recipe): number | null {
@@ -131,9 +132,7 @@ export function RecipeListPage() {
               toggleSelected(recipe.id)
             }
           }}>
-            <div className="recipe-card__image">
-              {recipe.image_url ? <img src={recipe.image_url} alt="" /> : <span aria-hidden="true">M</span>}
-            </div>
+            <RecipeCardImage recipe={recipe} />
             <div className="recipe-card__body">
               <h2>{recipe.name}</h2>
               {visibleTypes.length > 0 && <div className="tag-list">

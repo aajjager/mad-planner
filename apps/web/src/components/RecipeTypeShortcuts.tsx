@@ -1,11 +1,6 @@
 import { AppIcon } from './AppIcon'
+import { recipeTypeIcon } from './recipeTypeIcons'
 
-type IconName = Parameters<typeof AppIcon>[0]['name']
-const typeIcons = new Map<string, IconName>([
-  ['beverages', 'beverages'], ['dinner', 'dinner'], ['lunch', 'lunch'], ['breakfast', 'breakfast'],
-  ['bread', 'bread'], ['bake-off', 'bakeOff'], ['cake', 'cake'], ['dessert', 'dessert'],
-  ['snack', 'snack'], ['soup', 'soup'],
-])
 const featuredTypes = ['beverages', 'dinner', 'lunch', 'breakfast']
 
 function typePriority(type: string) {
@@ -32,7 +27,7 @@ export function RecipeTypeShortcuts({ types, selected, onSelect, label, allLabel
       aria-pressed={selected === type}
       onClick={() => onSelect(type)}
     >
-      <AppIcon name={type ? typeIcons.get(type.toLowerCase()) ?? 'recipeTag' : 'recipes'} />
+      <AppIcon name={type ? recipeTypeIcon(type) ?? 'recipeTag' : 'recipes'} />
       <span>{type || allLabel}</span>
     </button>)}
   </div>
