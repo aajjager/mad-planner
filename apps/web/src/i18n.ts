@@ -1,6 +1,7 @@
 import type { Account } from './api/auth'
 
 const en = {
+  recipeTypesAllShortcut: 'All',
   moreRecipeActions: 'More recipe actions', collectionFilters: 'Filters', filtersActive: 'Filters active', recipeOptions: 'Recipe options',
   communityPreferences: 'Community recipe preferences', alwaysShareRecipes: 'Always share my family recipes with everyone', alwaysShareHelp: 'The owner can share all existing and future family recipes. Turning this off preserves recipes shared individually.', hideFamiliesHelp: 'Hide families from your community browsing only. Uncheck a family to show its recipes again. Saved copies and other accounts are unchanged.', hideFamilyRecipes: 'Hide recipes from',
 
@@ -141,6 +142,8 @@ Object.assign(da, { householdPeopleHelp: 'Bruges til at tilpasse opskrifter, ind
 Object.assign(nl, { householdPeopleHelp: 'Wordt gebruikt om recepten, boodschappen en restjes aan te passen.' })
 Object.assign(da, { familyNav: 'Familie' })
 Object.assign(nl, { familyNav: 'Gezin' })
+Object.assign(da, { recipeTypesAllShortcut: 'Alle' })
+Object.assign(nl, { recipeTypesAllShortcut: 'Alles' })
 Object.assign(da, { planReminders: 'Påmindelser om madplan', planRemindersHelp: 'Vis en påmindelse i appen, når kommende madplaner ikke er komplette.', reminderHorizon: 'Kontrollér kommende uger', reminderHorizonHelp: 'Vælg hvor langt frem Mad Planner skal kontrollere.', week: 'uge', weeks: 'uger', planReminderTitle: 'Din kommende madplan mangler noget', weekNeedsPlanning: 'uge skal planlægges', weeksNeedPlanning: 'uger skal planlægges', mealSlotsMissing: 'måltider mangler i den første uge', planNow: 'Planlæg nu' })
 Object.assign(nl, { planReminders: 'Maaltijdplanherinneringen', planRemindersHelp: 'Toon een melding in de app wanneer komende maaltijdplannen niet compleet zijn.', reminderHorizon: 'Komende weken controleren', reminderHorizonHelp: 'Kies hoe ver vooruit Mad Planner moet controleren.', week: 'week', weeks: 'weken', planReminderTitle: 'Je komende maaltijdplan heeft aandacht nodig', weekNeedsPlanning: 'week moet worden gepland', weeksNeedPlanning: 'weken moeten worden gepland', mealSlotsMissing: 'maaltijdvakken ontbreken in de eerste week', planNow: 'Nu plannen' })
 Object.assign(da, { weekStarting: 'Ugen der starter', mealSlotsMissing: 'måltider mangler' })

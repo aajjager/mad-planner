@@ -5,7 +5,7 @@ import { RecipeBrowseMemory } from '../components/RecipeBrowseMemory'
 import { RecipeListPage } from './RecipeListPage'
 
 const data = vi.hoisted(() => ({ pending: false, resolve: (_items: unknown[]) => {} }))
-const recipes = [{ id: 1, owned_by_current_family: true, family_rating: 4, rating_count: 1, name: 'Apple soup', tags: [], recipe_types: [], nutrition: null, description: '', total_time_minutes: 20 }]
+const recipes = [{ id: 1, owned_by_current_family: true, family_rating: 4, rating_count: 1, name: 'Apple soup', tags: [], recipe_types: ['Lunch'], nutrition: null, description: '', total_time_minutes: 20 }]
 vi.mock('../auth/AuthContext', () => ({ useAuth: () => ({ account: { id: 1, family_id: 1, role: 'viewer', locale: 'en' } }) }))
 vi.mock('../api/recipes', () => ({ listRecipes: () => data.pending ? new Promise((resolve) => { data.resolve = resolve }) : Promise.resolve(recipes) }))
 
@@ -29,6 +29,7 @@ it.each(['All recipes', 'Browser back'])('restores browsing after async loading 
   await waitFor(() => expect(window.scrollTo).toHaveBeenCalled())
   fireEvent.change(screen.getByRole('searchbox'), { target: { value: 'Apple' } })
   fireEvent.click(screen.getByRole('button', { name: 'Filters' }))
+  fireEvent.click(screen.getByRole('button', { name: 'Lunch' }))
   fireEvent.change(screen.getByLabelText('Sort recipes'), { target: { value: 'rating' } })
   vi.spyOn(window, 'scrollY', 'get').mockReturnValue(1800)
   fireEvent.scroll(window)
@@ -46,4 +47,5 @@ it.each(['All recipes', 'Browser back'])('restores browsing after async loading 
   expect(screen.getByRole('searchbox')).toHaveValue('Apple')
   expect(screen.getByRole('button', { name: /^Filters/ })).toHaveAttribute('aria-expanded', 'true')
   expect(screen.getByRole('combobox', { name: 'Sort recipes' })).toHaveValue('rating')
+  expect(screen.getByRole('button', { name: 'Lunch' })).toHaveAttribute('aria-pressed', 'true')
 })

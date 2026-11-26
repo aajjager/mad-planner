@@ -1,19 +1,69 @@
-import { cleanup, fireEvent, render, screen } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen, within } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { RecipeListPage } from './RecipeListPage'
 import { guideCopy } from '../components/welcomeGuideContent'
 
 const auth = vi.hoisted(() => ({ role: 'viewer' }))
+const types = vi.hoisted(() => ({ list: vi.fn() }))
 vi.mock('../auth/AuthContext', () => ({ useAuth: () => ({ account: { role: auth.role, locale: 'en' } }) }))
+vi.mock('../api/auth', () => ({ listRecipeTypes: types.list }))
 vi.mock('../api/recipes', () => ({ listRecipes: () => Promise.resolve([
-  { id: 1, owned_by_current_family: true, family_rating: 4, name: 'Apple soup', description: 'A warm soup.', tags: [], recipe_types: [], nutrition: null, total_time_minutes: 20 },
-  { id: 2, owned_by_current_family: true, family_rating: 3, name: 'Burger', description: 'A family favourite.', tags: [], recipe_types: [], nutrition: null, total_time_minutes: 30 },
+  { id: 1, owned_by_current_family: true, family_rating: 4, name: 'Apple soup', description: 'A warm soup.', tags: [], recipe_types: ['Lunch'], nutrition: null, total_time_minutes: 20 },
+  { id: 2, owned_by_current_family: true, family_rating: 3, name: 'Burger', description: 'A family favourite.', tags: [], recipe_types: ['Dinner', 'Grill night'], nutrition: null, total_time_minutes: 30 },
 ]) }))
 
-beforeEach(() => { localStorage.clear(); auth.role = 'viewer' })
+beforeEach(() => {
+  localStorage.clear()
+  auth.role = 'viewer'
+  types.list.mockReset().mockResolvedValue([{ id: 1, name: 'Dinner' }, { id: 2, name: 'Beverages' }])
+})
 afterEach(() => { cleanup(); vi.restoreAllMocks() })
 const show = () => render(<MemoryRouter><RecipeListPage /></MemoryRouter>)
+
+describe('recipe type shortcuts', () => {
+  it('combines configured and in-use types and applies just one type filter', async () => {
+    show()
+    const row = within(await screen.findByRole('group', { name: 'Recipe type' }))
+    expect(row.getByRole('button', { name: 'All' })).toHaveAttribute('aria-pressed', 'true')
+    expect(row.getAllByRole('button', { name: 'Dinner' })).toHaveLength(1)
+    fireEvent.click(row.getByRole('button', { name: 'Dinner' }))
+    expect(screen.getByRole('heading', { name: 'Burger' })).toBeVisible()
+    expect(screen.queryByRole('heading', { name: 'Apple soup' })).not.toBeInTheDocument()
+    expect(row.getByRole('button', { name: 'Dinner' })).toHaveAttribute('aria-pressed', 'true')
+    fireEvent.click(row.getByRole('button', { name: 'Grill night' }))
+    expect(screen.getByRole('heading', { name: 'Burger' })).toBeVisible()
+    fireEvent.click(row.getByRole('button', { name: 'Beverages' }))
+    expect(screen.getByRole('heading', { name: 'No matching recipes' })).toBeVisible()
+    fireEvent.click(row.getByRole('button', { name: 'Lunch' }))
+    expect(screen.getByRole('heading', { name: 'Apple soup' })).toBeVisible()
+    expect(screen.queryByRole('heading', { name: 'Burger' })).not.toBeInTheDocument()
+  })
+
+  it('shares state with the filter panel and keeps search when choosing All', async () => {
+    show()
+    const row = within(await screen.findByRole('group', { name: 'Recipe type' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Filters' }))
+    const dropdown = screen.getByRole('combobox', { name: 'Recipe type' })
+    fireEvent.change(dropdown, { target: { value: 'Dinner' } })
+    expect(row.getByRole('button', { name: 'Dinner' })).toHaveAttribute('aria-pressed', 'true')
+    fireEvent.change(screen.getByRole('searchbox'), { target: { value: 'Apple' } })
+    fireEvent.click(row.getByRole('button', { name: 'All' }))
+    expect(dropdown).toHaveValue('')
+    expect(screen.getByRole('searchbox')).toHaveValue('Apple')
+    expect(screen.getByRole('heading', { name: 'Apple soup' })).toBeVisible()
+    expect(screen.queryByRole('heading', { name: 'Burger' })).not.toBeInTheDocument()
+  })
+
+  it('keeps types already used by recipes available if family settings cannot load', async () => {
+    types.list.mockRejectedValue(new Error('Could not load settings'))
+    show()
+    const row = within(await screen.findByRole('group', { name: 'Recipe type' }))
+    fireEvent.click(row.getByRole('button', { name: 'Lunch' }))
+    expect(screen.getByRole('heading', { name: 'Apple soup' })).toBeVisible()
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+  })
+})
 
 describe('recipe collection sizing', () => {
   it('keeps adding prominent and groups secondary collection actions', async () => {

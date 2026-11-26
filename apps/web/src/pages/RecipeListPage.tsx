@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { listRecipeTypes } from '../api/auth'
 import { bulkUpdateRecipes, listRecipes, suggestRecipeMetadata, updateRecipeTags, type Recipe } from '../api/recipes'
 import { useAuth } from '../auth/AuthContext'
 import { translator } from '../i18n'
@@ -8,6 +9,7 @@ import { FamilyShareIcon } from '../components/FamilyShareIcon'
 import { useRecipeBrowseMemory } from '../utils/recipeBrowseMemory'
 import { AppIcon } from '../components/AppIcon'
 import { RangeFilter } from '../components/RangeFilter'
+import { RecipeTypeShortcuts } from '../components/RecipeTypeShortcuts'
 
 function recipeCalories(recipe: Recipe): number | null {
   if (!recipe.nutrition) return null
@@ -31,6 +33,7 @@ export function RecipeListPage() {
     try { localStorage.setItem('madplanner.recipeCardSize', String(value)) } catch { /* The layout still works when browser storage is unavailable. */ }
   }
   const [recipes, setRecipes] = useState<Recipe[]>([])
+  const [familyTypeNames, setFamilyTypeNames] = useState<string[]>([])
   const [state, setState] = useState<'loading' | 'ready' | 'error'>('loading')
   const [search, setSearch] = useState(saved?.search ?? ''); const [tag, setTag] = useState(saved?.tag ?? ''); const [cuisine, setCuisine] = useState(saved?.cuisine ?? ''); const [recipeType, setRecipeType] = useState(saved?.recipeType ?? '')
   const [sort, setSort] = useState<'name' | 'rating'>(saved?.sort ?? 'name')
@@ -41,6 +44,15 @@ export function RecipeListPage() {
   const [tagSuggestions, setTagSuggestions] = useState<{ id: number; name: string; tags: string }[]>([])
 
   useEffect(() => { listRecipes().then((items) => { setRecipes(items); setState('ready') }).catch(() => setState('error')) }, [])
+  useEffect(() => {
+    let current = true
+    listRecipeTypes().then((types) => {
+      if (current) setFamilyTypeNames(types.map((type) => type.name))
+    }).catch(() => {
+      // Browsing still works from the types present in the collection.
+    })
+    return () => { current = false }
+  }, [])
   useEffect(() => {
     memory.rememberFilters({ filtersOpen, search, tag, cuisine, recipeType, sort, ratingLow, ratingHigh, includeUnrated, calorieLow, calorieHigh, includeUnknownCalories })
   }, [memory, filtersOpen, search, tag, cuisine, recipeType, sort, ratingLow, ratingHigh, includeUnrated, calorieLow, calorieHigh, includeUnknownCalories])
@@ -57,7 +69,11 @@ export function RecipeListPage() {
   }, [memory, state])
   const tags = useMemo(() => [...new Set(recipes.flatMap((recipe) => recipe.tags))].sort((a, b) => a.localeCompare(b)), [recipes])
   const cuisines = useMemo(() => [...new Set(recipes.map((recipe) => recipe.cuisine).filter((value): value is string => Boolean(value)))].sort((a, b) => a.localeCompare(b)), [recipes])
-  const recipeTypes = useMemo(() => [...new Set(recipes.flatMap((recipe) => recipe.recipe_types || []))].sort((a, b) => a.localeCompare(b)), [recipes])
+  const recipeTypes = useMemo(() => {
+    const types = new Set([...familyTypeNames, ...recipes.flatMap((recipe) => recipe.recipe_types || [])])
+    if (recipeType) types.add(recipeType)
+    return [...types].sort((a, b) => a.localeCompare(b))
+  }, [familyTypeNames, recipes, recipeType])
   const calorieCeiling = useMemo(() => Math.max(1000, Math.ceil(Math.max(0, ...recipes.map((recipe) => recipeCalories(recipe) || 0)) / 100) * 100), [recipes])
   const effectiveCalorieHigh = calorieHigh === null ? calorieCeiling : Math.min(calorieHigh, calorieCeiling)
   const filteredRecipes = useMemo(() => {
@@ -86,6 +102,13 @@ export function RecipeListPage() {
     {state === 'error' && <p className="notice notice--error" role="alert">{t('recipesError')}</p>}
     {state === 'ready' && recipes.length === 0 && <div className="empty-state"><span>✦</span><h2>{t('collectionReady')}</h2>{canEdit && <><p>{t('addRecipeChoiceHelp')}</p><Link className="button button--primary" to="/recipes/add">{t('createFirst')}</Link></>}</div>}
     {recipes.length > 0 && <>
+      {recipeTypes.length > 0 && <RecipeTypeShortcuts
+        types={recipeTypes}
+        selected={recipeType}
+        onSelect={setRecipeType}
+        label={t('recipeTypeFilter')}
+        allLabel={t('recipeTypesAllShortcut')}
+      />}
       <div className="collection-search"><label className="field"><span>{t('searchRecipes')}</span><input type="search" value={search} onChange={(event) => setSearch(event.target.value)} placeholder={t('searchPlaceholder')} /></label><button className={`button filter-toggle${filtersOpen ? ' is-open' : ''}`} aria-expanded={filtersOpen} aria-controls="recipe-filters" onClick={() => setFiltersOpen((open) => !open)}><AppIcon name="filters" />{t('collectionFilters')}{Boolean(tag || cuisine || recipeType || sort !== 'name' || ratingLow > 0 || ratingHigh < 5 || !includeUnrated || calorieLow > 0 || calorieHigh !== null || !includeUnknownCalories) && <span className="filter-indicator" aria-label={t('filtersActive')} />}</button></div><div id="recipe-filters" hidden={!filtersOpen}><div className="library-tools"><label className="field"><span>{t('filterTag')}</span><select value={tag} onChange={(event) => setTag(event.target.value)}><option value="">{t('allTags')}</option>{tags.map((item) => <option key={item}>{item}</option>)}</select></label><label className="field"><span>{t('cuisineFilter')}</span><select value={cuisine} onChange={(event) => setCuisine(event.target.value)}><option value="">{t('allCuisines')}</option>{cuisines.map((item) => <option key={item}>{item}</option>)}</select></label><label className="field"><span>{t('recipeTypeFilter')}</span><select value={recipeType} onChange={(event) => setRecipeType(event.target.value)}><option value="">{t('allRecipeTypes')}</option>{recipeTypes.map((item) => <option key={item}>{item}</option>)}</select></label><label className="field"><span>{t('sortRecipes')}</span><select value={sort} onChange={(event) => setSort(event.target.value as 'name' | 'rating')}><option value="name">{t('nameSort')}</option><option value="rating">{t('ratingHigh')}</option></select></label></div>
       <section className="range-filters"><RangeFilter label={t('ratingRange')} minimum={0} maximum={5} low={ratingLow} high={ratingHigh} step={0.5} suffix="★" onChange={(low, high) => { setRatingLow(low); setRatingHigh(high) }} /><label className="range-missing"><input type="checkbox" checked={includeUnrated} onChange={(event) => setIncludeUnrated(event.target.checked)} />{t('includeUnrated')}</label><RangeFilter label={t('calorieRange')} minimum={0} maximum={calorieCeiling} low={calorieLow} high={effectiveCalorieHigh} step={50} suffix="kcal" onChange={(low, high) => { setCalorieLow(low); setCalorieHigh(high) }} /><label className="range-missing"><input type="checkbox" checked={includeUnknownCalories} onChange={(event) => setIncludeUnknownCalories(event.target.checked)} />{t('includeUnknownCalories')}</label><span className="result-count">{filteredRecipes.length} {filteredRecipes.length === 1 ? t('recipe') : t('recipePlural')}</span><button className="text-button" onClick={clearFilters}>{t('clearFilters')}</button></section></div>
     </>}

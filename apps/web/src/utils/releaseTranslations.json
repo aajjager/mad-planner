@@ -1,4 +1,8 @@
 {
+  "Added a scrollable row of recipe type icons to the top of Recipes. Tap a type such as Dinner, Lunch, or Beverages to filter the collection, or tap All to clear the type while keeping your other filters.": {
+    "da": "Tilføjede en vandret række med ikoner for opskriftstyper øverst i Opskrifter. Tryk på en type som aftensmad, frokost eller drikkevarer for at filtrere samlingen, eller tryk på Alle for at fjerne typefilteret og beholde dine andre filtre.",
+    "nl": "Bovenaan Recepten staat nu een horizontaal scrollbare rij met iconen voor recepttypen. Tik op een type zoals avondeten, lunch of dranken om te filteren, of tik op Alles om alleen het typefilter te wissen."
+  },
   "Combined browser and background notifications into one switch in personal settings. Enabling registers background delivery and requests permission when needed; existing granted opt-ins register automatically. Turning it off pauses account notifications and removes this device's subscription.": {
     "da": "Samlede browser- og baggrundsnotifikationer i én kontakt under personlige indstillinger. Aktivering registrerer baggrundslevering og beder om tilladelse efter behov; eksisterende tilladelser registreres automatisk. Deaktivering pauser kontonotifikationer og fjerner enhedens abonnement.",
     "nl": "Browser- en achtergrondmeldingen samengevoegd in één schakelaar bij persoonlijke instellingen. Inschakelen registreert achtergrondbezorging en vraagt zo nodig toestemming; bestaande toestemmingen worden automatisch geregistreerd. Uitschakelen pauzeert accountmeldingen en verwijdert het abonnement van dit apparaat."

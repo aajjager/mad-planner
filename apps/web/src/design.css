@@ -59,6 +59,42 @@ h2,.form-page legend,.grocery-group h2 { font-family: inherit; font-size: 1.25re
 .plan-reminder small { color: var(--muted); }
 .collection-search { display: flex; align-items: flex-end; gap: 8px; margin-bottom: 16px; }
 .collection-search > .field { flex: 1; }
+.recipe-type-shortcuts {
+  display: flex;
+  gap: 8px;
+  min-width: 0;
+  overflow-x: auto;
+  padding: 4px 4px 8px;
+  margin: -4px -4px 16px;
+  scroll-padding-inline: 4px;
+  scrollbar-width: thin;
+}
+.recipe-type-shortcut {
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+  gap: 4px;
+  min-width: 72px;
+  max-width: 144px;
+  min-height: 64px;
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+  color: var(--ink);
+  font-size: .75rem;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+  cursor: pointer;
+}
+.recipe-type-shortcut .app-icon { width: 22px; height: 22px; }
+.recipe-type-shortcut:hover { border-color: var(--green); }
+.recipe-type-shortcut[aria-pressed="true"] {
+  border-color: var(--green);
+  background: var(--cream);
+  color: var(--green);
+}
+.recipe-type-shortcut:focus-visible { outline-offset: 2px; }
 .filter-toggle { min-height: 48px; }
 .filter-toggle.is-open { border-color: var(--green); }
 .filter-indicator { width: 6px; height: 6px; border-radius: 50%; background: var(--green); }

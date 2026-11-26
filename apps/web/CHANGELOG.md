@@ -12,6 +12,8 @@ All notable user-visible changes are recorded here. Versions use year since 2026
 
 ### Improvements
 
+- Added a scrollable row of recipe type icons to the top of Recipes. Tap a type such as Dinner, Lunch, or Beverages to filter the collection, or tap All to clear the type while keeping your other filters.
+
 - Refreshed the app with a calm mobile-first design, cleaner typography, neutral surfaces, consistent controls, and a flat icon-based bottom navigation. Recipe search stays visible while advanced filters open on demand; ingredients and cooking steps appear before expandable recipe options, with existing data, permissions, colour choices, and dark mode preserved.
 
 - Administrators can remove finished, cancelled, or failed implementations from their lists and restore them from Removed. Request text, feedback, commit references, and review history are preserved, while active work cannot be hidden.
