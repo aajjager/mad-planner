@@ -4,6 +4,10 @@ All notable user-visible changes are recorded here. Versions use year since 2026
 
 ## 0.11.4 — November 2026, week 4
 
+### Bug fixes
+
+- Recipe cards now show the entire photo, including tall cookbook photos, without cropping or stretching it.
+
 ### Features
 
 - Recipe pages now let owners, editors, and planners add one ingredient or a selection to a chosen week’s shopping list. Quantities, units, and recipe references are preserved as manual shopping items, without changing the recipe or meal plan.

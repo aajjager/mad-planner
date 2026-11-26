@@ -10,7 +10,7 @@ vi.mock('../auth/AuthContext', () => ({ useAuth: () => ({ account: { role: auth.
 vi.mock('../api/auth', () => ({ listRecipeTypes: types.list }))
 vi.mock('../api/recipes', () => ({ listRecipes: () => Promise.resolve([
   { id: 1, owned_by_current_family: true, family_rating: 4, name: 'Apple soup', description: 'A warm soup.', tags: [], recipe_types: ['Lunch'], nutrition: null, total_time_minutes: 20 },
-  { id: 2, owned_by_current_family: true, family_rating: 3, name: 'Burger', description: 'A family favourite.', tags: [], recipe_types: ['Dinner', 'Grill night'], nutrition: null, total_time_minutes: 30 },
+  { id: 2, owned_by_current_family: true, family_rating: 3, name: 'Burger', description: 'A family favourite.', tags: [], recipe_types: ['Dinner', 'Grill night'], nutrition: null, total_time_minutes: 30, image_url: '/media/portrait-cookbook.jpg' },
 ]) }))
 
 beforeEach(() => {
@@ -66,6 +66,19 @@ describe('recipe type shortcuts', () => {
 })
 
 describe('recipe collection sizing', () => {
+  it('keeps the saved cookbook photo in the recipe link at every card size', async () => {
+    show()
+    const card = await screen.findByRole('link', { name: /Burger/ })
+    const photo = within(card).getByAltText('')
+    const slider = screen.getByRole('slider', { name: 'Recipe card size' })
+
+    for (const size of ['0', '1', '2']) {
+      fireEvent.change(slider, { target: { value: size } })
+      expect(photo).toBeInTheDocument()
+      expect(photo).toHaveAttribute('src', '/media/portrait-cookbook.jpg')
+    }
+  })
+
   it('keeps adding prominent and groups secondary collection actions', async () => {
     auth.role = 'owner'
     show()
