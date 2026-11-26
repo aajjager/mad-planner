@@ -16,6 +16,14 @@ All notable user-visible changes are recorded here. Versions use year since 2026
 
 ### Improvements
 
+- Add recipe is now an outlined plus in the top bar that follows your theme’s accent color. Editors can open Updates from the mobile navigation.
+
+- Switch between Your recipes and Public recipes using tabs at the top of Recipes.
+
+- Open the Welcome guide and Family settings guide from Help in Family when you need them.
+
+- Removed Select recipes and its bulk controls from the recipe collection. Manage privacy and planning tags for individual recipes in Recipe options.
+
 - Existing and new recipes appear in Public recipes for signed-in families by default. Search by recipe type or family, and use Keep this recipe private in Recipe options to opt out. The public library replaces sharing with individual families. Saved recipe copies, personal family filters, and existing meal-plan entries are preserved.
 
 - Owners and editors can add or remove recipe types directly in Recipe options. Each tap saves the change, so there is no need to open the full editor.

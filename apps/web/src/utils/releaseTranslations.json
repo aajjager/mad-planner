@@ -1,4 +1,20 @@
 {
+  "Add recipe is now an outlined plus in the top bar that follows your theme’s accent color. Editors can open Updates from the mobile navigation.": {
+    "da": "Tilføj opskrift er nu et plus med omrids i topbjælken, som følger temaets accentfarve. Redaktører kan åbne Opdateringer fra mobilnavigationen.",
+    "nl": "Recept toevoegen is nu een plus met een rand in de bovenbalk die de accentkleur van het thema volgt. Bewerkers kunnen Updates openen vanuit de mobiele navigatie."
+  },
+  "Switch between Your recipes and Public recipes using tabs at the top of Recipes.": {
+    "da": "Skift mellem Dine opskrifter og Offentlige opskrifter med fanerne øverst i Opskrifter.",
+    "nl": "Wissel tussen Je recepten en Openbare recepten met de tabbladen bovenaan Recepten."
+  },
+  "Open the Welcome guide and Family settings guide from Help in Family when you need them.": {
+    "da": "Åbn Velkomstguide og Guide til familieindstillinger under Hjælp i Familie, når du har brug for dem.",
+    "nl": "Open de Welkomstgids en de Gids voor gezinsinstellingen wanneer je ze nodig hebt via Hulp in Gezin."
+  },
+  "Removed Select recipes and its bulk controls from the recipe collection. Manage privacy and planning tags for individual recipes in Recipe options.": {
+    "da": "Fjernede Vælg opskrifter og handlinger for flere opskrifter fra samlingen. Administrer synlighed og planlægningstags for den enkelte opskrift under Opskriftsindstillinger.",
+    "nl": "Recepten selecteren en de groepsacties zijn uit de verzameling verwijderd. Beheer de zichtbaarheid en planningstags per recept via Receptopties."
+  },
   "Existing and new recipes appear in Public recipes for signed-in families by default. Search by recipe type or family, and use Keep this recipe private in Recipe options to opt out. The public library replaces sharing with individual families. Saved recipe copies, personal family filters, and existing meal-plan entries are preserved.": {
     "da": "Eksisterende og nye opskrifter vises som udgangspunkt under Offentlige opskrifter for familier, der er logget ind. Søg efter opskriftstype eller familie, og vælg Hold denne opskrift privat under Opskriftsindstillinger for at skjule den. Det offentlige bibliotek erstatter deling med enkelte familier. Gemte opskriftskopier, personlige familiefiltre og eksisterende madplansposter bevares.",
     "nl": "Bestaande en nieuwe recepten verschijnen standaard bij Openbare recepten voor aangemelde gezinnen. Zoek op recepttype of gezin en kies Houd dit recept privé bij Receptopties om het af te schermen. De openbare bibliotheek vervangt delen met afzonderlijke gezinnen. Opgeslagen receptkopieën, persoonlijke gezinsfilters en bestaande geplande maaltijden blijven behouden."

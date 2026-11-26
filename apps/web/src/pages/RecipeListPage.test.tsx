@@ -85,22 +85,15 @@ describe('recipe collection sizing', () => {
     }
   })
 
-  it('keeps adding prominent and groups secondary collection actions', async () => {
+  it('keeps public recipes available without a selection menu or an add button in the collection', async () => {
     auth.role = 'owner'
     show()
     await screen.findByText('Apple soup')
-    expect(screen.getByRole('link', { name: 'Add recipe' })).toHaveAttribute('href', '/recipes/add')
+    expect(screen.queryByRole('link', { name: 'Add recipe' })).not.toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Public recipes' })).toHaveAttribute('href', '/recipes/public')
-    const more = screen.getByLabelText('More recipe actions')
-    const menu = more.closest('details')!
-    expect(menu).not.toHaveAttribute('open')
-    fireEvent.click(more)
-    expect(menu).toHaveAttribute('open')
-    fireEvent.click(screen.getByRole('button', { name: 'Select recipes' }))
-    expect(menu).not.toHaveAttribute('open')
-    expect(screen.getByRole('button', { name: 'Select Apple soup' })).toHaveAttribute('aria-pressed', 'false')
-    fireEvent.click(screen.getByRole('button', { name: 'Select Apple soup' }))
-    expect(screen.getByRole('button', { name: 'Select Apple soup' })).toHaveAttribute('aria-pressed', 'true')
+    expect(screen.queryByLabelText('More recipe actions')).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Select recipes' })).not.toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /Apple soup/ })).toHaveAttribute('href', '/recipes/1')
   })
 
   it('keeps search available and preserves filters when the panel closes', async () => {

@@ -20,5 +20,4 @@
 .welcome-guide-actions { display: flex; flex-wrap: wrap; gap: .5rem; margin-top: 1rem; }
 .family-page [id] { scroll-margin-top: 1.5rem; }
 .welcome-guide-target { outline: 3px solid #8a9f7d; outline-offset: 5px; }
-.welcome-guide-launcher { display: flex; flex-wrap: wrap; gap: 1rem; justify-content: flex-end; padding: .5rem 1rem; }
-@media print { .welcome-guide, .welcome-guide-launcher { display: none; } }
+@media print { .welcome-guide { display: none; } }

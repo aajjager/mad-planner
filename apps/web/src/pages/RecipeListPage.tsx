@@ -1,13 +1,14 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { listRecipeTypes } from '../api/auth'
-import { bulkUpdateRecipes, listRecipes, suggestRecipeMetadata, updateRecipeTags, type Recipe } from '../api/recipes'
+import { listRecipes, type Recipe } from '../api/recipes'
 import { useAuth } from '../auth/AuthContext'
 import { translator } from '../i18n'
 import { useRecipeBrowseMemory } from '../utils/recipeBrowseMemory'
 import { AppIcon } from '../components/AppIcon'
 import { RangeFilter } from '../components/RangeFilter'
 import { RecipeCardImage } from '../components/RecipeCardImage'
+import { RecipeLibraryHeader } from '../components/RecipeLibraryHeader'
 import { RecipeTypeShortcuts } from '../components/RecipeTypeShortcuts'
 
 function recipeCalories(recipe: Recipe): number | null {
@@ -39,8 +40,6 @@ export function RecipeListPage() {
   const [ratingLow, setRatingLow] = useState(saved?.ratingLow ?? 0); const [ratingHigh, setRatingHigh] = useState(saved?.ratingHigh ?? 5); const [includeUnrated, setIncludeUnrated] = useState(saved?.includeUnrated ?? true)
   const [calorieLow, setCalorieLow] = useState(saved?.calorieLow ?? 0); const [calorieHigh, setCalorieHigh] = useState<number | null>(saved?.calorieHigh ?? null); const [includeUnknownCalories, setIncludeUnknownCalories] = useState(saved?.includeUnknownCalories ?? true)
   const [filtersOpen, setFiltersOpen] = useState(saved?.filtersOpen ?? false)
-  const [selecting, setSelecting] = useState(false); const [selected, setSelected] = useState<number[]>([]); const [bulkTags, setBulkTags] = useState(''); const [bulkBusy, setBulkBusy] = useState(false); const [bulkError, setBulkError] = useState('')
-  const [tagSuggestions, setTagSuggestions] = useState<{ id: number; name: string; tags: string }[]>([])
 
   useEffect(() => { listRecipes().then((items) => { setRecipes(items); setState('ready') }).catch(() => setState('error')) }, [])
   useEffect(() => {
@@ -89,28 +88,9 @@ export function RecipeListPage() {
 
   const clearFilters = () => { setSearch(''); setTag(''); setCuisine(''); setRecipeType(''); setRatingLow(0); setRatingHigh(5); setIncludeUnrated(true); setCalorieLow(0); setCalorieHigh(null); setIncludeUnknownCalories(true) }
   const canEdit = account?.role === 'owner' || account?.role === 'editor'
-  const chosenTags = () => bulkTags.split(',').map((value) => value.trim()).filter(Boolean)
-  async function applyBulk(change: { is_public?: boolean; add_tags?: string[]; remove_tags?: string[] }) { setBulkBusy(true); setBulkError(''); try { const updated = await bulkUpdateRecipes({ recipe_ids: selected, ...change }); const byId = new Map(updated.map((recipe) => [recipe.id, recipe])); setRecipes((current) => current.map((recipe) => byId.get(recipe.id) || recipe)); setBulkTags('') } catch (reason) { setBulkError(reason instanceof Error ? reason.message : t('bulkUpdateFailed')) } finally { setBulkBusy(false) } }
-  function toggleSelected(id: number) { setSelected((current) => current.includes(id) ? current.filter((value) => value !== id) : [...current, id]) }
-  async function suggestSelectedTags() { setBulkBusy(true); setBulkError(''); try { const owned = recipes.filter((recipe) => selected.includes(recipe.id) && recipe.owned_by_current_family); const suggestions = await Promise.all(owned.map(async (recipe) => ({ id: recipe.id, name: recipe.name, tags: (await suggestRecipeMetadata(recipe.id)).tags.join(', ') }))); setTagSuggestions(suggestions) } catch (reason) { setBulkError(reason instanceof Error ? reason.message : t('suggestionsFailed')) } finally { setBulkBusy(false) } }
-  async function acceptSuggestedTags(item: { id: number; tags: string }) { const recipe = recipes.find((value) => value.id === item.id); if (!recipe) return; const entered = item.tags.split(',').map((tag) => tag.trim()).filter(Boolean); const tags = [...new Map([...recipe.tags, ...entered].map((tag) => [tag.toLocaleLowerCase(), tag])).values()]; try { const updated = await updateRecipeTags(item.id, tags); setRecipes((current) => current.map((value) => value.id === updated.id ? updated : value)); setTagSuggestions((current) => current.filter((value) => value.id !== item.id)) } catch (reason) { setBulkError(reason instanceof Error ? reason.message : t('tagSaveFailed')) } }
 
   return <section className="page recipe-library">
-    <div className="page-heading">
-      <div><h1>{t('yourRecipes')}</h1></div>
-      <div className="heading-actions collection-actions">
-        {canEdit && <Link className="button button--primary" to="/recipes/add"><AppIcon name="plus" />{t('addRecipe')}</Link>}
-        <Link className="button" to="/recipes/public">{t('publicRecipes')}</Link>
-        {canEdit && <details className="collection-menu">
-          <summary className="button" aria-label={t('moreRecipeActions')}><AppIcon name="more" /></summary>
-          <div><button className="button" onClick={(event) => {
-            setSelecting((value) => !value)
-            setSelected([])
-            event.currentTarget.closest('details')?.removeAttribute('open')
-          }}>{selecting ? t('finishSelecting') : t('selectRecipes')}</button></div>
-        </details>}
-      </div>
-    </div>
+    <RecipeLibraryHeader />
     {state === 'loading' && <p className="notice" role="status">{t('loadingRecipes')}</p>}
     {state === 'error' && <p className="notice notice--error" role="alert">{t('recipesError')}</p>}
     {state === 'ready' && recipes.length === 0 && <div className="empty-state"><span>✦</span><h2>{t('collectionReady')}</h2>{canEdit && <><p>{t('addRecipeChoiceHelp')}</p><Link className="button button--primary" to="/recipes/add">{t('createFirst')}</Link></>}</div>}
@@ -126,35 +106,22 @@ export function RecipeListPage() {
       <section className="range-filters"><RangeFilter label={t('ratingRange')} minimum={0} maximum={5} low={ratingLow} high={ratingHigh} step={0.5} suffix="★" onChange={(low, high) => { setRatingLow(low); setRatingHigh(high) }} /><label className="range-missing"><input type="checkbox" checked={includeUnrated} onChange={(event) => setIncludeUnrated(event.target.checked)} />{t('includeUnrated')}</label><RangeFilter label={t('calorieRange')} minimum={0} maximum={calorieCeiling} low={calorieLow} high={effectiveCalorieHigh} step={50} suffix="kcal" onChange={(low, high) => { setCalorieLow(low); setCalorieHigh(high) }} /><label className="range-missing"><input type="checkbox" checked={includeUnknownCalories} onChange={(event) => setIncludeUnknownCalories(event.target.checked)} />{t('includeUnknownCalories')}</label><span className="result-count">{filteredRecipes.length} {filteredRecipes.length === 1 ? t('recipe') : t('recipePlural')}</span><button className="text-button" onClick={clearFilters}>{t('clearFilters')}</button></section></div>
     </>}
     {recipes.length > 0 && <div className="recipe-view-controls"><label htmlFor="recipe-card-size">{t('recipeCardSize')}</label><input id="recipe-card-size" type="range" min="0" max="2" step="1" value={cardSize} aria-valuetext={sizeLabels[cardSize]} onChange={(event) => changeCardSize(Number(event.target.value))} /><output htmlFor="recipe-card-size">{sizeLabels[cardSize]}</output></div>}
-    {selecting && <section className="bulk-recipe-actions"><strong>{selected.length} {t('selected')}</strong><button className="button" disabled={bulkBusy} onClick={() => setSelected(filteredRecipes.filter((recipe) => recipe.owned_by_current_family).map((recipe) => recipe.id))}>{t('selectVisible')}</button><button className="button button--primary" disabled={bulkBusy || selected.length === 0} onClick={() => void applyBulk({ is_public: true })}>{t('makePublic')}</button><button className="button" disabled={bulkBusy || selected.length === 0} onClick={() => void applyBulk({ is_public: false })}>{t('makePrivate')}</button><button className="button" disabled={bulkBusy || selected.length === 0} onClick={() => void suggestSelectedTags()}>{t('suggestTagsSelected')}</button><input value={bulkTags} placeholder={t('tagsPlaceholder')} onChange={(event) => setBulkTags(event.target.value)} /><button className="button" disabled={bulkBusy || selected.length === 0 || chosenTags().length === 0} onClick={() => void applyBulk({ add_tags: chosenTags() })}>{t('addTags')}</button><button className="button button--danger" disabled={bulkBusy || selected.length === 0 || chosenTags().length === 0} onClick={() => void applyBulk({ remove_tags: chosenTags() })}>{t('removeTags')}</button>{bulkError && <span className="notice notice--error">{bulkError}</span>}</section>}
-    {tagSuggestions.length > 0 && <section className="family-panel tag-suggestion-review"><h2>{t('reviewTagSuggestions')}</h2><p>{t('reviewTagSuggestionsHelp')}</p>{tagSuggestions.map((item) => <article key={item.id}><strong>{item.name}</strong><input aria-label={`${t('suggestedTags')} ${item.name}`} value={item.tags} onChange={(event) => setTagSuggestions((current) => current.map((value) => value.id === item.id ? { ...value, tags: event.target.value } : value))} /><div className="form-actions"><button className="button button--primary" disabled={!item.tags.trim()} onClick={() => void acceptSuggestedTags(item)}>{t('accept')}</button><button className="button" onClick={() => setTagSuggestions((current) => current.filter((value) => value.id !== item.id))}>{t('deny')}</button></div></article>)}</section>}
     {recipes.length > 0 && filteredRecipes.length === 0 && <div className="empty-state empty-state--compact"><h2>{t('noMatches')}</h2><p>{t('noMatchesHelp')}</p><button className="button" onClick={clearFilters}>{t('clearFilters')}</button></div>}
     {filteredRecipes.length > 0 && <div className={`recipe-grid recipe-collection recipe-collection--${['compact', 'comfortable', 'large'][cardSize]}`}>
       {filteredRecipes.map((recipe) => {
         const types = recipe.recipe_types ?? []
         const visibleTypes = (recipeType ? [recipeType, ...types.filter((type) => type !== recipeType)] : types).slice(0, 2)
-        const selectedCard = selected.includes(recipe.id)
-        const canSelect = selecting && recipe.owned_by_current_family
 
-        return <div className={`selectable-recipe${selectedCard ? ' selectable-recipe--selected' : ''}`} key={recipe.id}>
-          {canSelect && <button className="recipe-selector" aria-pressed={selectedCard} aria-label={`${t('select')} ${recipe.name}`}
-            onClick={() => toggleSelected(recipe.id)}>{selectedCard ? '✓' : ''}</button>}
-          <Link className="recipe-card" to={`/recipes/${recipe.id}`} onClick={(event) => {
-            memory.rememberPosition(window.scrollY)
-            if (canSelect) {
-              event.preventDefault()
-              toggleSelected(recipe.id)
-            }
-          }}>
-            <RecipeCardImage recipe={recipe} />
-            <div className="recipe-card__body">
-              <h2>{recipe.name}</h2>
-              {visibleTypes.length > 0 && <div className="tag-list">
-                {visibleTypes.map((type) => <span className="tag" key={type}>{type}</span>)}
-              </div>}
-            </div>
-          </Link>
-        </div>
+        return <Link key={recipe.id} className="recipe-card" to={`/recipes/${recipe.id}`}
+          onClick={() => memory.rememberPosition(window.scrollY)}>
+          <RecipeCardImage recipe={recipe} />
+          <div className="recipe-card__body">
+            <h2>{recipe.name}</h2>
+            {visibleTypes.length > 0 && <div className="tag-list">
+              {visibleTypes.map((type) => <span className="tag" key={type}>{type}</span>)}
+            </div>}
+          </div>
+        </Link>
       })}
     </div>}
   </section>

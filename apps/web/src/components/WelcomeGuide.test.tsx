@@ -1,13 +1,18 @@
+import { useState } from 'react'
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { MemoryRouter, useLocation } from 'react-router-dom'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import type { Account } from '../api/auth'
 import { WelcomeGuide } from './WelcomeGuide'
-import { guideCopy, guideStorageKey } from './welcomeGuideContent'
+import { familyGuidePath, guideCopy, guideStorageKey, type WelcomeGuideStart } from './welcomeGuideContent'
 
 const account = { id: 15, family_id: 4, locale: 'en', role: 'owner' } as Account
 function Location() { const location = useLocation(); return <output aria-label="Current page">{location.pathname}{location.hash}</output> }
-function show(value = account) { return render(<MemoryRouter><WelcomeGuide account={value} /><Location /></MemoryRouter>) }
+function ActiveGuide({ account, startAt = 'intro' }: { account: Account; startAt?: WelcomeGuideStart }) {
+  const [open, setOpen] = useState(true)
+  return open && <WelcomeGuide account={account} startAt={startAt} onClose={() => setOpen(false)} />
+}
+function show(value = account) { return render(<MemoryRouter><ActiveGuide account={value} /><Location /></MemoryRouter>) }
 afterEach(() => { cleanup(); localStorage.clear() })
 
 describe('Welcome guide', () => {
@@ -36,8 +41,7 @@ describe('Welcome guide', () => {
   })
   it('scrolls and focuses the selected section, waits for delayed settings, and clears highlighting', async () => {
     const scroll = vi.fn()
-    render(<MemoryRouter initialEntries={['/family']}><WelcomeGuide account={account} /><Location /><section id="personal-settings" tabIndex={-1} ref={(node) => { if (node) node.scrollIntoView = scroll }}>Personal settings target</section></MemoryRouter>)
-    fireEvent.click(screen.getByRole('button', { name: 'Family settings guide' }))
+    render(<MemoryRouter initialEntries={[familyGuidePath]}><ActiveGuide account={account} startAt="family" /><Location /><section id="personal-settings" tabIndex={-1} ref={(node) => { if (node) node.scrollIntoView = scroll }}>Personal settings target</section></MemoryRouter>)
     expect(screen.getByLabelText('Current page')).toHaveTextContent('/family#personal-settings')
     expect(scroll).toHaveBeenCalledWith({ block: 'start', behavior: 'instant' })
     const personal = screen.getByText('Personal settings target')
@@ -60,9 +64,7 @@ describe('Welcome guide', () => {
     } finally { delayed.remove() }
   })
   it('opens family settings guidance directly from Family and explains personal and shared settings', () => {
-    render(<MemoryRouter initialEntries={['/family']}><WelcomeGuide account={account} /></MemoryRouter>)
-    fireEvent.click(screen.getByRole('button', { name: 'Close guide' }))
-    fireEvent.click(screen.getByRole('button', { name: 'Family settings guide' }))
+    render(<MemoryRouter initialEntries={[familyGuidePath]}><ActiveGuide account={account} startAt="family" /></MemoryRouter>)
     expect(screen.getByRole('heading', { name: 'Make the app your own' })).toBeInTheDocument()
     expect(screen.getByText(/preferences belong to your own account/)).toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: 'Next tip' }))
@@ -72,7 +74,7 @@ describe('Welcome guide', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Next tip' }))
     expect(screen.getByText(/editors, planners, or viewers/)).toBeInTheDocument()
   })
-  it('welcomes first visits, supports previous tips, and opens real pages without dismissing the guide', () => {
+  it('shows the introduction, supports previous tips, and opens real pages without dismissing the guide', () => {
     show()
     expect(screen.getByRole('heading', { name: 'Welcome to Mad Planner' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Previous tip' })).toBeDisabled()
@@ -84,18 +86,14 @@ describe('Welcome guide', () => {
     expect(screen.getByRole('heading', { name: 'Welcome to Mad Planner' })).toBeInTheDocument()
   })
 
-  it('remembers dismissal for this account, can reopen, and welcomes a different account', () => {
+  it('records dismissal and can open again when requested', () => {
     const view = show()
     fireEvent.click(screen.getByRole('button', { name: 'Close guide' }))
     expect(localStorage.getItem(guideStorageKey(account))).toBe('seen')
-    view.unmount()
-    const returning = show()
     expect(screen.queryByRole('complementary')).not.toBeInTheDocument()
-    fireEvent.click(screen.getByRole('button', { name: 'Welcome guide' }))
+    view.unmount()
+    show()
     expect(screen.getByRole('heading', { name: 'Welcome to Mad Planner' })).toBeInTheDocument()
-    returning.unmount()
-    show({ ...account, id: 16 })
-    expect(screen.getByRole('complementary')).toBeInTheDocument()
   })
 
   it.each(['owner', 'editor', 'planner', 'viewer'] as const)('finishes the guide and respects %s permissions', (role) => {

@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { getSharingPreferences, setHiddenFamily, type SharingPreferences, importPublicRecipe, listPublicRecipes, type Recipe } from '../api/recipes'
 import { useAuth } from '../auth/AuthContext'
 import { RecipeCardImage } from '../components/RecipeCardImage'
+import { RecipeLibraryHeader } from '../components/RecipeLibraryHeader'
 import { translator } from '../i18n'
 
 export function PublicRecipesPage() {
@@ -63,11 +64,9 @@ export function PublicRecipesPage() {
     recipe.name, recipe.owner_family_name, recipe.cuisine, recipe.category, ...recipe.tags, ...recipe.recipe_types,
   ].some((value) => value?.toLocaleLowerCase().includes(query))) ?? []
 
-  return <section className="page">
-    <div className="page-heading">
-      <div><p className="eyebrow">{t('communityLibrary')}</p><h1>{t('publicRecipes')}</h1><p>{t('publicRecipesHelp')}</p></div>
-      <Link className="button" to="/recipes">{t('yourRecipes')}</Link>
-    </div>
+  return <section className="page recipe-library">
+    <RecipeLibraryHeader />
+    <p className="public-recipes-help">{t('publicRecipesHelp')}</p>
     <label className="field">
       <span>{t('searchRecipes')}</span>
       <input type="search" value={search} onChange={(event) => setSearch(event.target.value)} />
