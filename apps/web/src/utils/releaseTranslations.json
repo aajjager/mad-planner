@@ -1,4 +1,8 @@
 {
+  "Existing and new recipes appear in Public recipes for signed-in families by default. Search by recipe type or family, and use Keep this recipe private in Recipe options to opt out. The public library replaces sharing with individual families. Saved recipe copies, personal family filters, and existing meal-plan entries are preserved.": {
+    "da": "Eksisterende og nye opskrifter vises som udgangspunkt under Offentlige opskrifter for familier, der er logget ind. Søg efter opskriftstype eller familie, og vælg Hold denne opskrift privat under Opskriftsindstillinger for at skjule den. Det offentlige bibliotek erstatter deling med enkelte familier. Gemte opskriftskopier, personlige familiefiltre og eksisterende madplansposter bevares.",
+    "nl": "Bestaande en nieuwe recepten verschijnen standaard bij Openbare recepten voor aangemelde gezinnen. Zoek op recepttype of gezin en kies Houd dit recept privé bij Receptopties om het af te schermen. De openbare bibliotheek vervangt delen met afzonderlijke gezinnen. Opgeslagen receptkopieën, persoonlijke gezinsfilters en bestaande geplande maaltijden blijven behouden."
+  },
   "Owners and editors can add or remove recipe types directly in Recipe options. Each tap saves the change, so there is no need to open the full editor.": {
     "da": "Ejere og redaktører kan tilføje eller fjerne opskriftstyper direkte under Opskriftsindstillinger. Hvert tryk gemmer ændringen, så du ikke behøver at åbne den fulde redigering.",
     "nl": "Eigenaren en bewerkers kunnen recepttypen direct toevoegen of verwijderen via Receptopties. Elke tik slaat de wijziging op, zodat je het volledige bewerkscherm niet hoeft te openen."

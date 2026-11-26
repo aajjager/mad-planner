@@ -51,7 +51,7 @@ class MealPlanService:
 
     def plan_leftovers(self, source_date: date, source_type: MealType, target_date: date | None = None, target_type: MealType = MealType.LUNCH) -> MealPlanEntryResponse | None:
         source = self.repository.get(source_date, source_type)
-        if source is None:
+        if source is None or not source.recipe.is_visible_to(self.repository.family_id):
             return None
         prepared_servings = source.servings or source.recipe.servings or self.household_size
         target_date = target_date or source_date + timedelta(days=1)
@@ -81,8 +81,9 @@ class MealPlanService:
     def include(self, meal_date: date, meal_type: MealType) -> bool:
         return self.repository.remove_exclusion(meal_date, meal_type)
 
-    @staticmethod
-    def _to_response(entry: MealPlanEntry) -> MealPlanEntryResponse:
+    def _to_response(self, entry: MealPlanEntry) -> MealPlanEntryResponse:
+        recipe = entry.recipe
+        available = recipe.is_visible_to(self.repository.family_id)
         return MealPlanEntryResponse(
             id=entry.id,
             meal_date=entry.meal_date,
@@ -91,5 +92,5 @@ class MealPlanService:
             notes=entry.notes,
             is_leftover=entry.is_leftover,
             source_entry_id=entry.source_entry_id,
-            recipe=PlannedRecipe(id=entry.recipe.id, name=entry.recipe.name, image_url=entry.recipe.image_url),
+            recipe=PlannedRecipe(id=recipe.id, name=recipe.name if available else "", image_url=recipe.image_url if available else None, available=available),
         )

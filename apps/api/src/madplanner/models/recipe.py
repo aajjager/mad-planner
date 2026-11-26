@@ -66,7 +66,7 @@ class Recipe(Base):
     category: Mapped[str | None] = mapped_column(String(100), index=True)
     nutrition: Mapped[dict | None] = mapped_column(JSON)
     meal_types: Mapped[list[str]] = mapped_column(JSON, default=list, server_default="[]")
-    is_public: Mapped[bool] = mapped_column(Boolean, default=False, server_default="false", index=True)
+    is_public: Mapped[bool] = mapped_column(Boolean, default=True, server_default="true", index=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now()
     )
@@ -93,8 +93,13 @@ class Recipe(Base):
     ratings: Mapped[list["RecipeRating"]] = relationship(back_populates="recipe", cascade="all, delete-orphan")
     shares: Mapped[list["RecipeShare"]] = relationship(back_populates="recipe", cascade="all, delete-orphan")
 
+    def is_visible_to(self, family_id: int) -> bool:
+        return self.family_id == family_id or self.is_public
+
 
 class RecipeShare(Base):
+    """Legacy share history retained without granting access."""
+
     __tablename__ = "recipe_shares"
     __table_args__ = (UniqueConstraint("recipe_id", "recipient_family_id", name="uq_recipe_shares_recipe_family"),)
 

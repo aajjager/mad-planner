@@ -90,12 +90,12 @@ describe('recipe collection sizing', () => {
     show()
     await screen.findByText('Apple soup')
     expect(screen.getByRole('link', { name: 'Add recipe' })).toHaveAttribute('href', '/recipes/add')
+    expect(screen.getByRole('link', { name: 'Public recipes' })).toHaveAttribute('href', '/recipes/public')
     const more = screen.getByLabelText('More recipe actions')
     const menu = more.closest('details')!
     expect(menu).not.toHaveAttribute('open')
     fireEvent.click(more)
     expect(menu).toHaveAttribute('open')
-    expect(screen.getByRole('link', { name: 'Browse public recipes' })).toHaveAttribute('href', '/recipes/public')
     fireEvent.click(screen.getByRole('button', { name: 'Select recipes' }))
     expect(menu).not.toHaveAttribute('open')
     expect(screen.getByRole('button', { name: 'Select Apple soup' })).toHaveAttribute('aria-pressed', 'false')

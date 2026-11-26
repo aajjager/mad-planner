@@ -10,10 +10,10 @@ from sqlalchemy.orm import Session
 
 from madplanner.db.session import get_session
 from madplanner.core.config import get_settings
-from madplanner.api.routes.auth import require_auth, require_recipe_editor, require_owner
+from madplanner.api.routes.auth import require_auth, require_recipe_editor
 from madplanner.services.auth import AuthContext
 from madplanner.repositories.recipes import RecipeRepository
-from madplanner.schemas.recipe import RecipeBulkUpdate, RecipeMealTypesUpdate, RecipeMetadataSuggestions, RecipeRatingUpdate, RecipeResponse, RecipeShareTarget, RecipeSharesUpdate, RecipeTagsUpdate, RecipeTypesUpdate, RecipeVisibilityUpdate, RecipeWrite
+from madplanner.schemas.recipe import RecipeBulkUpdate, RecipeMealTypesUpdate, RecipeMetadataSuggestions, RecipeRatingUpdate, RecipeResponse, RecipeTagsUpdate, RecipeTypesUpdate, RecipeVisibilityUpdate, RecipeWrite
 from madplanner.services.recipes import RecipeService
 
 router = APIRouter(prefix="/recipes", tags=["recipes"])
@@ -37,11 +37,6 @@ def create_recipe(data: RecipeWrite, service: Annotated[RecipeService, Depends(g
         raise HTTPException(status_code=422, detail=str(error)) from error
 
 
-@router.get("/sharing/families", response_model=list[RecipeShareTarget])
-def list_recipe_share_targets(service: Annotated[RecipeService, Depends(get_recipe_service)], _permission: Annotated[AuthContext, Depends(require_recipe_editor)]):
-    return service.list_share_targets()
-
-
 class SharingPreference(BaseModel):
     enabled: bool
 
@@ -49,14 +44,7 @@ class SharingPreference(BaseModel):
 @router.get("/sharing/preferences")
 def sharing_preferences(context: Annotated[AuthContext, Depends(require_auth)], session: Annotated[Session, Depends(get_session)]):
     families = session.scalars(select(Family).where(Family.id != context.family.id).order_by(Family.name, Family.id))
-    return {"always_share": context.family.always_share_recipes, "families": [{"id": family.id, "name": family.name, "hidden": family.id in context.user.hidden_recipe_family_ids} for family in families]}
-
-
-@router.put("/sharing/always")
-def always_share(data: SharingPreference, context: Annotated[AuthContext, Depends(require_owner)], session: Annotated[Session, Depends(get_session)]):
-    context.family.always_share_recipes = data.enabled
-    session.commit()
-    return {"enabled": context.family.always_share_recipes}
+    return {"families": [{"id": family.id, "name": family.name, "hidden": family.id in context.user.hidden_recipe_family_ids} for family in families]}
 
 
 @router.put("/sharing/hidden/{family_id}")
@@ -146,23 +134,6 @@ def update_recipe_rating(recipe_id: int, data: RecipeRatingUpdate, service: Anno
     if recipe is None:
         raise HTTPException(status_code=404, detail="Recipe not found")
     return recipe
-
-
-@router.put("/{recipe_id}/shares", response_model=RecipeResponse)
-def update_recipe_shares(recipe_id: int, data: RecipeSharesUpdate, service: Annotated[RecipeService, Depends(get_recipe_service)], _permission: Annotated[AuthContext, Depends(require_recipe_editor)]):
-    try:
-        recipe = service.update_shares(recipe_id, data)
-    except ValueError as error:
-        raise HTTPException(status_code=422, detail=str(error)) from error
-    if recipe is None:
-        raise HTTPException(status_code=404, detail="Recipe not found")
-    return recipe
-
-
-@router.delete("/{recipe_id}/shared-access", status_code=status.HTTP_204_NO_CONTENT)
-def remove_shared_recipe(recipe_id: int, service: Annotated[RecipeService, Depends(get_recipe_service)], _permission: Annotated[AuthContext, Depends(require_recipe_editor)]):
-    if not service.remove_shared_recipe(recipe_id):
-        raise HTTPException(status_code=404, detail="Shared recipe not found")
 
 
 @router.put("/{recipe_id}/visibility", response_model=RecipeResponse)

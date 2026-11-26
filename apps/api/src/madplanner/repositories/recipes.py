@@ -1,9 +1,9 @@
 from __future__ import annotations
 
-from sqlalchemy import delete, or_, select
+from sqlalchemy import or_, select
 from sqlalchemy.orm import Session, selectinload
 
-from madplanner.models import Family, Ingredient, Recipe, RecipeIngredient, RecipeRating, RecipeShare, RecipeType, Tag, Unit
+from madplanner.models import Ingredient, Recipe, RecipeIngredient, RecipeRating, RecipeType, Tag, Unit
 from madplanner.models.ingredient import UnitDimension
 
 
@@ -13,11 +13,11 @@ class RecipeRepository:
         self.family_id = family_id
 
     def list(self) -> list[Recipe]:
-        statement = select(Recipe).where(or_(Recipe.family_id == self.family_id, Recipe.shares.any(RecipeShare.recipient_family_id == self.family_id))).options(*self._load_options()).order_by(Recipe.name)
+        statement = select(Recipe).where(Recipe.family_id == self.family_id).options(*self._load_options()).order_by(Recipe.name)
         return list(self.session.scalars(statement).all())
 
     def get(self, recipe_id: int) -> Recipe | None:
-        statement = select(Recipe).where(Recipe.id == recipe_id, or_(Recipe.family_id == self.family_id, or_(Recipe.is_public.is_(True), Recipe.family_id.in_(select(Family.id).where(Family.always_share_recipes.is_(True)))), Recipe.shares.any(RecipeShare.recipient_family_id == self.family_id))).options(*self._load_options())
+        statement = select(Recipe).where(Recipe.id == recipe_id, or_(Recipe.family_id == self.family_id, Recipe.is_public.is_(True))).options(*self._load_options())
         return self.session.scalar(statement)
 
     def get_owned(self, recipe_id: int) -> Recipe | None:
@@ -25,11 +25,11 @@ class RecipeRepository:
         return self.session.scalar(statement)
 
     def list_public(self) -> list[Recipe]:
-        statement = select(Recipe).where(or_(Recipe.is_public.is_(True), Recipe.family_id.in_(select(Family.id).where(Family.always_share_recipes.is_(True)))), Recipe.family_id != self.family_id).options(*self._load_options()).order_by(Recipe.name)
+        statement = select(Recipe).where(Recipe.is_public.is_(True)).options(*self._load_options()).order_by(Recipe.name)
         return list(self.session.scalars(statement).all())
 
     def get_public(self, recipe_id: int) -> Recipe | None:
-        return self.session.scalar(select(Recipe).where(Recipe.id == recipe_id, or_(Recipe.is_public.is_(True), Recipe.family_id.in_(select(Family.id).where(Family.always_share_recipes.is_(True)))), Recipe.family_id != self.family_id).options(*self._load_options()))
+        return self.session.scalar(select(Recipe).where(Recipe.id == recipe_id, Recipe.is_public.is_(True), Recipe.family_id != self.family_id).options(*self._load_options()))
 
     def add(self, recipe: Recipe) -> Recipe:
         recipe.family_id = self.family_id
@@ -61,32 +61,6 @@ class RecipeRepository:
             existing.rating = rating
         self.session.commit()
         self.session.expire(recipe, ["ratings"])
-
-    def list_share_targets(self) -> list[Family]:
-        return list(self.session.scalars(select(Family).where(Family.id != self.family_id).order_by(Family.name, Family.id)))
-
-    def replace_shares(self, recipe: Recipe, family_ids: list[int], user_id: int) -> Recipe:
-        valid_ids = set(self.session.scalars(select(Family.id).where(Family.id.in_(family_ids), Family.id != self.family_id))) if family_ids else set()
-        if valid_ids != set(family_ids):
-            raise ValueError("One or more families could not be found")
-        self.session.execute(delete(RecipeShare).where(RecipeShare.recipe_id == recipe.id, RecipeShare.recipient_family_id.not_in(valid_ids)))
-        existing_ids = set(self.session.scalars(select(RecipeShare.recipient_family_id).where(RecipeShare.recipe_id == recipe.id)))
-        self.session.add_all(RecipeShare(recipe_id=recipe.id, recipient_family_id=family_id, created_by_user_id=user_id) for family_id in valid_ids - existing_ids)
-        self.session.commit()
-        self.session.expire(recipe, ["shares"])
-        stored = self.get_owned(recipe.id)
-        assert stored is not None
-        return stored
-
-    def remove_received_share(self, recipe_id: int) -> bool:
-        result = self.session.execute(
-            delete(RecipeShare).where(
-                RecipeShare.recipe_id == recipe_id,
-                RecipeShare.recipient_family_id == self.family_id,
-            )
-        )
-        self.session.commit()
-        return bool(result.rowcount)
 
     def clear_contents(self, recipe: Recipe) -> None:
         recipe.ingredients.clear()
@@ -168,5 +142,4 @@ class RecipeRepository:
             selectinload(Recipe.tags),
             selectinload(Recipe.recipe_types),
             selectinload(Recipe.ratings),
-            selectinload(Recipe.shares),
         )

@@ -108,8 +108,6 @@ class RecipeResponse(BaseModel):
     my_rating: int | None
     owned_by_current_family: bool
     owner_family_name: str | None
-    shared_with_family_ids: list[int]
-    shared_with_families: list[str]
     is_public: bool
     ingredients: list[RecipeIngredientResponse]
     instructions: list[RecipeInstructionResponse]
@@ -149,20 +147,6 @@ class RecipeTagsUpdate(BaseModel):
 
 class RecipeRatingUpdate(BaseModel):
     rating: int | None = Field(default=None, ge=1, le=5)
-
-
-class RecipeShareTarget(BaseModel):
-    id: int
-    name: str
-
-
-class RecipeSharesUpdate(BaseModel):
-    family_ids: list[int] = Field(default_factory=list, max_length=100)
-
-    @model_validator(mode="after")
-    def remove_duplicates(self) -> "RecipeSharesUpdate":
-        self.family_ids = list(dict.fromkeys(self.family_ids))
-        return self
 
 
 class RecipeVisibilityUpdate(BaseModel):

@@ -22,8 +22,6 @@ export interface Recipe {
   my_rating: number | null;
   owned_by_current_family: boolean;
   owner_family_name: string | null;
-  shared_with_family_ids: number[];
-  shared_with_families: string[];
   is_public: boolean;
   ingredients: RecipeIngredient[]; instructions: RecipeInstruction[]; created_at: string; updated_at: string
 }
@@ -54,10 +52,6 @@ export const updateRecipeMealTypes = (id: number, mealTypes: RecipeMealType[]) =
 export const updateRecipeTags = (id: number, tags: string[]) => request<Recipe>(`/api/v1/recipes/${id}/tags`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ tags }) })
 export const updateRecipeTypes = (id: number, recipeTypes: string[]) => request<Recipe>(`/api/v1/recipes/${id}/recipe-types`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ recipe_types: recipeTypes }) })
 export const updateRecipeRating = (id: number, rating: number | null) => request<Recipe>(`/api/v1/recipes/${id}/rating`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ rating }) })
-export interface RecipeShareTarget { id: number; name: string }
-export const listRecipeShareTargets = () => request<RecipeShareTarget[]>('/api/v1/recipes/sharing/families')
-export const updateRecipeShares = (id: number, familyIds: number[]) => request<Recipe>(`/api/v1/recipes/${id}/shares`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ family_ids: familyIds }) })
-export const removeSharedRecipe = (id: number) => request<void>(`/api/v1/recipes/${id}/shared-access`, { method: 'DELETE' })
 export const listPublicRecipes = () => request<Recipe[]>('/api/v1/recipes/public')
 export const importPublicRecipe = (id: number) => request<Recipe>(`/api/v1/recipes/public/${id}/import`, { method: 'POST' })
 export const updateRecipeVisibility = (id: number, isPublic: boolean) => request<Recipe>(`/api/v1/recipes/${id}/visibility`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ is_public: isPublic }) })
@@ -87,7 +81,6 @@ export function inferMealTypes(category: string | null): RecipeMealType[] {
 
 export const replaceRecipe = (id: number, recipe: RecipeWrite) => request<Recipe>(`/api/v1/recipes/${id}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(recipe) })
 
-export interface SharingPreferences { always_share: boolean; families: Array<{ id: number; name: string; hidden: boolean }> }
+export interface SharingPreferences { families: Array<{ id: number; name: string; hidden: boolean }> }
 export const getSharingPreferences = () => request<SharingPreferences>('/api/v1/recipes/sharing/preferences')
-export const setAlwaysShare = (enabled: boolean) => request('/api/v1/recipes/sharing/always', { method: 'PUT', body: JSON.stringify({ enabled }) })
 export const setHiddenFamily = (id: number, enabled: boolean) => request(`/api/v1/recipes/sharing/hidden/${id}`, { method: 'PUT', body: JSON.stringify({ enabled }) })

@@ -16,6 +16,7 @@ class PlannedRecipe(BaseModel):
     id: int
     name: str
     image_url: str | None
+    available: bool = True
 
 
 class MealPlanEntryResponse(BaseModel):

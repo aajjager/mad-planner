@@ -9,12 +9,17 @@ vi.mock('../auth/AuthContext', () => ({ useAuth: () => ({ account: { role: auth.
 
 afterEach(() => { cleanup(); vi.restoreAllMocks(); auth.role = 'owner' })
 
-function openRecipe({ own = true, failSaving = false, cooking = false } = {}) {
+function openRecipe({ own = true, failSaving = false, cooking = false, privateRecipe = false } = {}) {
   const recipe = { id: 1, name: 'Lemon cordial', owned_by_current_family: own, tags: ['Lemon'], meal_types: ['lunch'],
     recipe_types: ['Dinner'], ingredients: [], instructions: [{ id: 2, position: 1, text: 'Simmer until tender.' }],
-    preparation_time_minutes: null, cooking_time_minutes: null }
+    preparation_time_minutes: null, cooking_time_minutes: null, is_public: !privateRecipe }
   const requests = vi.spyOn(globalThis, 'fetch').mockImplementation(async (input, init) => {
     const url = String(input)
+    if (url.endsWith('/recipes/1/visibility') && init?.method === 'PUT') {
+      if (failSaving) return Response.json({ detail: 'Could not save' }, { status: 422 })
+      recipe.is_public = JSON.parse(String(init.body)).is_public
+      return Response.json(recipe)
+    }
     if (url.endsWith('/recipes/1/recipe-types') && init?.method === 'PATCH') {
       if (failSaving) return Response.json({ detail: 'Could not save' }, { status: 422 })
       recipe.recipe_types = JSON.parse(String(init.body)).recipe_types
@@ -75,11 +80,36 @@ it('shows a save error and keeps the last saved selection', async () => {
   expect(bread).toBeEnabled()
 })
 
+it('saves the private opt-out and can share the recipe again', async () => {
+  const requests = openRecipe()
+  fireEvent.click(await screen.findByText('Recipe options'))
+  const privacy = screen.getByRole('checkbox', { name: /Keep this recipe private/ })
+  expect(privacy).not.toBeChecked()
+  fireEvent.click(privacy)
+  await waitFor(() => expect(privacy).toBeChecked())
+  fireEvent.click(privacy)
+  await waitFor(() => expect(privacy).not.toBeChecked())
+  const writes = requests.mock.calls.filter(([path]) => String(path).endsWith('/visibility'))
+  expect(writes.map(([, init]) => JSON.parse(String(init?.body)))).toEqual([{ is_public: false }, { is_public: true }])
+  expect(screen.queryByText('Share recipe')).not.toBeInTheDocument()
+})
+
+it('keeps the recipe private if sharing fails', async () => {
+  openRecipe({ privateRecipe: true, failSaving: true })
+  fireEvent.click(await screen.findByText('Recipe options'))
+  const privacy = screen.getByRole('checkbox', { name: /Keep this recipe private/ })
+  expect(privacy).toBeChecked()
+  fireEvent.click(privacy)
+  expect(await screen.findByRole('alert')).toHaveTextContent('Recipe privacy could not be saved')
+  expect(privacy).toBeChecked()
+})
+
 it.each([['viewer', true], ['editor', false]])('keeps type editing unavailable for a %s with ownership %s', async (role, own) => {
   auth.role = role
   const requests = openRecipe({ own })
   fireEvent.click(await screen.findByText('Recipe options'))
   expect(screen.queryByRole('group', { name: 'Recipe types' })).not.toBeInTheDocument()
+  expect(screen.queryByRole('checkbox', { name: /Keep this recipe private/ })).not.toBeInTheDocument()
   expect(requests.mock.calls.some(([url]) => String(url).endsWith('/family/recipe-types'))).toBe(false)
 })
 

@@ -1,7 +1,7 @@
 import type { Recipe } from './recipes'
 
 export type MealType = 'breakfast' | 'lunch' | 'dinner'
-export interface MealPlanEntry { id: number; meal_date: string; meal_type: MealType; servings: string | null; notes: string | null; is_leftover: boolean; source_entry_id: number | null; recipe: Pick<Recipe, 'id' | 'name' | 'image_url'> }
+export interface MealPlanEntry { id: number; meal_date: string; meal_type: MealType; servings: string | null; notes: string | null; is_leftover: boolean; source_entry_id: number | null; recipe: Pick<Recipe, 'id' | 'name' | 'image_url'> & { available?: boolean } }
 export interface MealPlanExclusion { meal_date: string; meal_type: MealType }
 export interface WeeklyMealPlan { week_start: string; week_end: string; entries: MealPlanEntry[]; exclusions: MealPlanExclusion[] }
 export interface MealSuggestion { meal_date: string; meal_type: MealType; recipe: Pick<Recipe, 'id' | 'name' | 'image_url'>; score: number; reasons: string[]; is_leftover: boolean; source_date: string | null; source_meal_type: MealType | null }

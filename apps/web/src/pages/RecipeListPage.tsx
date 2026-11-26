@@ -96,7 +96,21 @@ export function RecipeListPage() {
   async function acceptSuggestedTags(item: { id: number; tags: string }) { const recipe = recipes.find((value) => value.id === item.id); if (!recipe) return; const entered = item.tags.split(',').map((tag) => tag.trim()).filter(Boolean); const tags = [...new Map([...recipe.tags, ...entered].map((tag) => [tag.toLocaleLowerCase(), tag])).values()]; try { const updated = await updateRecipeTags(item.id, tags); setRecipes((current) => current.map((value) => value.id === updated.id ? updated : value)); setTagSuggestions((current) => current.filter((value) => value.id !== item.id)) } catch (reason) { setBulkError(reason instanceof Error ? reason.message : t('tagSaveFailed')) } }
 
   return <section className="page recipe-library">
-    <div className="page-heading"><div><h1>{t('yourRecipes')}</h1></div><div className="heading-actions collection-actions">{canEdit ? <><Link className="button button--primary" to="/recipes/add"><AppIcon name="plus" />{t('addRecipe')}</Link><details className="collection-menu"><summary className="button" aria-label={t('moreRecipeActions')}><AppIcon name="more" /></summary><div><button className="button" onClick={(event) => { setSelecting((value) => !value); setSelected([]); event.currentTarget.closest('details')?.removeAttribute('open') }}>{selecting ? t('finishSelecting') : t('selectRecipes')}</button><Link className="button" to="/recipes/public">{t('browsePublicRecipes')}</Link></div></details></> : <Link className="button" to="/recipes/public">{t('browsePublicRecipes')}</Link>}</div></div>
+    <div className="page-heading">
+      <div><h1>{t('yourRecipes')}</h1></div>
+      <div className="heading-actions collection-actions">
+        {canEdit && <Link className="button button--primary" to="/recipes/add"><AppIcon name="plus" />{t('addRecipe')}</Link>}
+        <Link className="button" to="/recipes/public">{t('publicRecipes')}</Link>
+        {canEdit && <details className="collection-menu">
+          <summary className="button" aria-label={t('moreRecipeActions')}><AppIcon name="more" /></summary>
+          <div><button className="button" onClick={(event) => {
+            setSelecting((value) => !value)
+            setSelected([])
+            event.currentTarget.closest('details')?.removeAttribute('open')
+          }}>{selecting ? t('finishSelecting') : t('selectRecipes')}</button></div>
+        </details>}
+      </div>
+    </div>
     {state === 'loading' && <p className="notice" role="status">{t('loadingRecipes')}</p>}
     {state === 'error' && <p className="notice notice--error" role="alert">{t('recipesError')}</p>}
     {state === 'ready' && recipes.length === 0 && <div className="empty-state"><span>✦</span><h2>{t('collectionReady')}</h2>{canEdit && <><p>{t('addRecipeChoiceHelp')}</p><Link className="button button--primary" to="/recipes/add">{t('createFirst')}</Link></>}</div>}

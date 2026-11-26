@@ -16,6 +16,8 @@ All notable user-visible changes are recorded here. Versions use year since 2026
 
 ### Improvements
 
+- Existing and new recipes appear in Public recipes for signed-in families by default. Search by recipe type or family, and use Keep this recipe private in Recipe options to opt out. The public library replaces sharing with individual families. Saved recipe copies, personal family filters, and existing meal-plan entries are preserved.
+
 - Owners and editors can add or remove recipe types directly in Recipe options. Each tap saves the change, so there is no need to open the full editor.
 
 - Recipe cards without a photo now show a matching food icon. A plate with a fork and knife marks recipes with several labels or with no recognizable type, in both your collection and Public recipes.
