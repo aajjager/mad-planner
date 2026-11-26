@@ -3,6 +3,7 @@ import type { Account } from './api/auth'
 const en = {
   recipeTypesAllShortcut: 'All',
   recipeCollections: 'Recipe collections',
+  hideOwnRecipes: 'Hide my family’s recipes', publicRecipeSearchPlaceholder: 'Name, type, cuisine, tag, or family',
   keepRecipePrivate: 'Keep this recipe private', keepRecipePrivateHelp: 'Only your family can see the recipe when this is on.', recipePrivacySaveFailed: 'Recipe privacy could not be saved. Try again.', privatePlannedRecipe: 'Private recipe', publicRecipeImportFailed: 'The recipe could not be imported. Try again.',
   loadingRecipeTypes: 'Loading recipe types…', noRecipeTypesAvailable: 'No recipe types are set up for this family.', recipeTypesLoadFailed: 'Recipe types could not be loaded.', retryRecipeTypes: 'Try again', recipeTypesSaveFailed: 'Recipe types could not be saved. Try again.', recipeTypesLimit: 'You can choose up to 10 recipe types.',
   collectionFilters: 'Filters', filtersActive: 'Filters active', recipeOptions: 'Recipe options',
@@ -257,8 +258,8 @@ Object.assign(nl, { loadingRecipeTypes: 'Recepttypen laden…', noRecipeTypesAva
 Object.assign(da, { keepRecipePrivate: 'Hold denne opskrift privat', keepRecipePrivateHelp: 'Kun din familie kan se opskriften, når dette er slået til.', recipePrivacySaveFailed: 'Opskriftens synlighed kunne ikke gemmes. Prøv igen.', privatePlannedRecipe: 'Privat opskrift', publicRecipeImportFailed: 'Opskriften kunne ikke importeres. Prøv igen.' })
 Object.assign(nl, { keepRecipePrivate: 'Houd dit recept privé', keepRecipePrivateHelp: 'Alleen je gezin kan het recept zien als dit aanstaat.', recipePrivacySaveFailed: 'De zichtbaarheid kon niet worden opgeslagen. Probeer het opnieuw.', privatePlannedRecipe: 'Privérecept', publicRecipeImportFailed: 'Het recept kon niet worden geïmporteerd. Probeer het opnieuw.' })
 
-Object.assign(da, { recipeCollections: 'Opskriftssamlinger' })
-Object.assign(nl, { recipeCollections: 'Receptenverzamelingen' })
+Object.assign(da, { recipeCollections: 'Opskriftssamlinger', hideOwnRecipes: 'Skjul min families opskrifter', publicRecipeSearchPlaceholder: 'Navn, type, køkken, tag eller familie' })
+Object.assign(nl, { recipeCollections: 'Receptenverzamelingen', hideOwnRecipes: 'Verberg recepten van mijn gezin', publicRecipeSearchPlaceholder: 'Naam, type, keuken, tag of gezin' })
 
 Object.assign(da, { weeklyReleaseTitle: 'Ugens Mad Planner-opdateringer', weeklyReleaseBody: 'Åbn Opdateringer for at se de nye udgivelsesnoter.' })
 Object.assign(nl, { weeklyReleaseTitle: 'De Mad Planner-updates van deze week', weeklyReleaseBody: 'Open Updates voor de nieuwe versienotities.' })

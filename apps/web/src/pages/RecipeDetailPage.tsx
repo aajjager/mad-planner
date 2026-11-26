@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Link, useNavigate, useParams } from 'react-router-dom'
+import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
 import { deleteRecipe, getRecipe, suggestRecipeMetadata, updateRecipeMealTypes, updateRecipeRating, updateRecipeTags, updateRecipeVisibility, uploadRecipeImage, type Recipe, type RecipeMealType } from '../api/recipes'
 import './RecipeDetailPage.css'
 import { useAuth } from '../auth/AuthContext'
@@ -17,6 +17,7 @@ export function RecipeDetailPage() {
   const { account } = useAuth()
   const t = translator(account?.locale)
   const { recipeId } = useParams(); const navigate = useNavigate()
+  const fromPublicRecipes = useLocation().state?.fromPublicRecipes === true
   const [recipe, setRecipe] = useState<Recipe | null>(null); const [error, setError] = useState(false)
   const [photoBusy, setPhotoBusy] = useState(false); const [photoError, setPhotoError] = useState('')
   const [tagInput, setTagInput] = useState(''); const [tagBusy, setTagBusy] = useState(false); const [tagError, setTagError] = useState('')
@@ -49,7 +50,7 @@ export function RecipeDetailPage() {
   async function applySmartSuggestions() { if (!recipe) return; setSuggestBusy(true); setTagError(''); try { const suggestions = await suggestRecipeMetadata(recipe.id); const tags = [...new Map([...recipe.tags, ...suggestions.tags].map((tag) => [tag.toLocaleLowerCase(), tag])).values()]; let updated = await updateRecipeTags(recipe.id, tags); updated = await updateRecipeMealTypes(recipe.id, [...new Set([...updated.meal_types, ...suggestions.meal_types])]); setRecipe(updated) } catch (reason) { setTagError(reason instanceof Error ? reason.message : t('suggestionsFailed')) } finally { setSuggestBusy(false) } }
   if (cookingMode) { const remaining = recipe.instructions.filter((item) => !completedSteps.includes(item.id)); return <article className="cooking-sheet"><header><div><p className="eyebrow">{t('cookingMode')}</p><h1>{recipe.name}</h1></div><div className="cooking-actions">{completedSteps.length > 0 && <button className="button" onClick={() => setCompletedSteps((current) => current.slice(0, -1))}>{t('undoLastStep')}</button>}<button className="button" onClick={() => setCookingMode(false)}>{t('exitCooking')}</button></div></header><div className="cooking-layout"><aside><h2>{t('ingredients')}</h2><ul>{recipe.ingredients.map((item) => <li key={item.id}>{item.raw_text}</li>)}</ul></aside><section><div className="cooking-progress"><strong>{completedSteps.length} / {recipe.instructions.length} {t('completed')}</strong><span>{remaining.length === 0 ? t('recipeComplete') : t('tapDone')}</span></div>{remaining.map((item) => <article className="cooking-step" key={item.id}><span>{item.position}</span><p>{item.text}</p><button className="button button--primary" onClick={() => setCompletedSteps((current) => [...current, item.id])}>{t('done')}</button></article>)}{remaining.length === 0 && <div className="cooking-complete"><span>✓</span><h2>{t('enjoyMeal')}</h2><button className="button" onClick={() => setCompletedSteps([])}>{t('startAgain')}</button></div>}</section></div></article> }
   return <article className="page recipe-detail">
-    <Link className="back-link" to="/recipes">← {t('allRecipes')}</Link>
+    <Link className="back-link" to={fromPublicRecipes ? '/recipes/public' : '/recipes'}>← {t(fromPublicRecipes ? 'publicRecipes' : 'allRecipes')}</Link>
     {recipe.owned_by_current_family === false && <div className="shared-recipe-notice"><span><FamilyShareIcon /></span><div><strong>{t('publicRecipes')}</strong><small>{t('sharedBy')} {recipe.owner_family_name}</small></div></div>}
     {recipe.image_url && <div className="detail-image"><img src={recipe.image_url} alt={recipe.name} /></div>}
     <div className="detail-heading"><div><p className="eyebrow">{recipe.category || t('recipe')}</p><h1>{recipe.name}</h1>{recipe.description && <RecipeDescription key={recipe.id} text={recipe.description} />}</div><div className="heading-actions">{cookingEnabled && recipe.instructions.length > 0 && <button className="button button--primary" onClick={() => { setCompletedSteps([]); setCookingMode(true) }}>{t('startCooking')}</button>}{canEdit && <Link className="button" to={`/recipes/${recipe.id}/edit`}>{t('editRecipe')}</Link>}</div></div>

@@ -1,4 +1,8 @@
 {
+  "Public recipes now has the same recipe type shortcuts, filters, and rating, calorie, and card-size sliders as Your recipes. Hide your family’s recipes with a filter, and return from a recipe to the same collection, filters, and scroll position.": {
+    "da": "Offentlige opskrifter har nu de samme genveje til opskriftstyper, filtre og skydere til bedømmelse, kalorier og kortstørrelse som Dine opskrifter. Skjul din families opskrifter med et filter, og vend tilbage til samme samling, filtre og rulleposition, når du har åbnet en opskrift.",
+    "nl": "Openbare recepten heeft nu dezelfde snelkoppelingen naar recepttypen, filters en schuifregelaars voor beoordeling, calorieën en kaartgrootte als Je recepten. Verberg de recepten van je eigen gezin met een filter en keer vanuit een recept terug naar dezelfde verzameling, filters en scrolpositie."
+  },
   "Add recipe is now an outlined plus in the top bar that follows your theme’s accent color. Editors can open Updates from the mobile navigation.": {
     "da": "Tilføj opskrift er nu et plus med omrids i topbjælken, som følger temaets accentfarve. Redaktører kan åbne Opdateringer fra mobilnavigationen.",
     "nl": "Recept toevoegen is nu een plus met een rand in de bovenbalk die de accentkleur van het thema volgt. Bewerkers kunnen Updates openen vanuit de mobiele navigatie."

@@ -16,6 +16,8 @@ All notable user-visible changes are recorded here. Versions use year since 2026
 
 ### Improvements
 
+- Public recipes now has the same recipe type shortcuts, filters, and rating, calorie, and card-size sliders as Your recipes. Hide your family’s recipes with a filter, and return from a recipe to the same collection, filters, and scroll position.
+
 - Add recipe is now an outlined plus in the top bar that follows your theme’s accent color. Editors can open Updates from the mobile navigation.
 
 - Switch between Your recipes and Public recipes using tabs at the top of Recipes.
