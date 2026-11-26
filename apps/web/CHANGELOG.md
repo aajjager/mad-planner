@@ -6,7 +6,7 @@ All notable user-visible changes are recorded here. Versions use year since 2026
 
 ### Bug fixes
 
-- Recipe cards now show the entire photo, including tall cookbook photos, without cropping or stretching it.
+- Recipe photos now fill their thumbnails with a centered crop and keep their original proportions.
 
 ### Features
 
