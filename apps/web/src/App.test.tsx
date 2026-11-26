@@ -605,11 +605,36 @@ describe('App', () => {
     expect(await screen.findByText('Owner · Test family')).toBeInTheDocument()
   })
 
-  it('renders recipes returned by the API', async () => {
-    vi.spyOn(globalThis, 'fetch').mockImplementation((input) => Promise.resolve(authResponse(input) ?? jsonResponse([{ id: 4, name: 'Onion soup', description: 'A warming soup.', image_url: null, source_url: null, author: null, servings: '4', preparation_time_minutes: 10, cooking_time_minutes: 30, total_time_minutes: 40, cuisine: 'French', category: 'Dinner', tags: ['Comfort food'], ingredients: [], instructions: [], created_at: '', updated_at: '' }])))
+  it('keeps recipe cards short and preserves the full information in the recipe', async () => {
+    const recipe = {
+      id: 4, name: 'Onion soup', description: 'A warming soup.', image_url: '/media/onion-soup.jpg',
+      servings: '4', preparation_time_minutes: 10, cooking_time_minutes: 30, total_time_minutes: 40,
+      cuisine: 'French', category: 'Dinner', tags: ['Comfort food'], recipe_types: ['Starter', 'Lunch', 'Dinner'],
+      family_rating: 4, rating_count: 1, owned_by_current_family: true,
+      nutrition: { calories: 350 }, ingredients: [], instructions: [], meal_types: [],
+    }
+    vi.spyOn(globalThis, 'fetch').mockImplementation((input) => Promise.resolve(
+      authResponse(input) ?? jsonResponse(String(input).endsWith('/recipes/4') ? recipe : [recipe])
+    ))
     render(<App />)
-    expect(await screen.findByRole('heading', { name: 'Onion soup' })).toBeInTheDocument()
-    expect(screen.getByText('40 min')).toBeInTheDocument()
+    const card = await screen.findByRole('link', { name: /Onion soup/ })
+    expect(card.querySelector('img')).toHaveAttribute('src', '/media/onion-soup.jpg')
+    for (const text of ['Onion soup', 'Starter', 'Lunch']) expect(within(card).getByText(text)).toBeVisible()
+    for (const text of ['A warming soup.', '40 min', '350 kcal', 'Comfort food']) {
+      expect(within(card).queryByText(text)).not.toBeInTheDocument()
+    }
+    expect(within(card).queryByText(/rating/i)).not.toBeInTheDocument()
+    expect(within(card).queryByText('Dinner')).not.toBeInTheDocument()
+
+    const shortcuts = within(screen.getByRole('group', { name: 'Recipe type' }))
+    fireEvent.click(shortcuts.getByRole('button', { name: 'Dinner' }))
+    expect(within(card).getByText('Dinner')).toBeVisible()
+    expect(within(card).queryByText('Lunch')).not.toBeInTheDocument()
+
+    fireEvent.click(card)
+    expect(await screen.findByText('A warming soup.')).toBeVisible()
+    expect(screen.getByText('10 min')).toBeVisible()
+    expect(screen.getByText('40 min')).toBeVisible()
   })
 
   it('filters the recipe library by search text', async () => {

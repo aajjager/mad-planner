@@ -118,12 +118,16 @@ h2,.form-page legend,.grocery-group h2 { font-family: inherit; font-size: 1.25re
 .recipe-card:hover { transform: none; box-shadow: none; border-color: var(--green); }
 .recipe-card__image { background: var(--cream); color: var(--green); }
 .recipe-card__image > span:not(.recipe-share-badge) { font-size: 2rem; font-weight: 500; }
-.recipe-card__body,.recipe-collection .recipe-card__body { padding: 16px; }
+.recipe-card__body { padding: 16px; }
 .recipe-card h2 { margin: 8px 0; font-size: 1.125rem; font-weight: 600; line-height: 1.35; }
-.recipe-card p,.recipe-collection .recipe-card p { margin: 8px 0 0; font-size: .875rem; -webkit-line-clamp: 2; line-clamp: 2; }
+.recipe-card p { margin: 8px 0 0; font-size: .875rem; -webkit-line-clamp: 2; line-clamp: 2; }
 .recipe-meta { color: var(--muted); font-size: .75rem; font-weight: 500; text-transform: none; }
 .tag-list { gap: 8px; margin: 16px 0 0; }
 .tag,:root[data-mode="dark"] .tag { padding: 4px 8px; color: var(--green); background: var(--cream); border: 0; border-radius: 6px; font-size: .6875rem; font-weight: 500; }
+.recipe-collection .recipe-card__body { padding: 12px; }
+.recipe-collection--compact .recipe-card__body { padding: 8px 12px; }
+.recipe-collection .recipe-card h2 { margin: 0; }
+.recipe-collection .tag-list { margin: 8px 0 0; gap: 4px; }
 .recipe-share-badge,.recipe-selector,.bulk-recipe-actions { box-shadow: none; }
 .detail-image { margin-top: 24px; border-radius: 16px; aspect-ratio: 16/7; }
 .detail-heading { margin-top: 24px; align-items: flex-start; }

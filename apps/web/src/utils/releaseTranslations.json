@@ -1,4 +1,8 @@
 {
+  "Recipe cards are smaller, with a photo, title, and up to two recipe type tags. Open a recipe for its description, rating, nutrition, and times, including the saved total time. On phones, the Comfortable layout also uses shorter photos.": {
+    "da": "Opskriftskortene fylder mindre og viser et billede, en titel og op til to opskriftstyper. Åbn opskriften for at se beskrivelse, bedømmelse, næringsindhold og tider, herunder den gemte samlede tid. På telefoner er billederne også lavere i den behagelige visning.",
+    "nl": "Receptkaarten zijn kleiner en tonen een foto, titel en maximaal twee recepttypen. Open een recept voor de beschrijving, beoordeling, voedingswaarden en bereidingstijden, inclusief de opgeslagen totale tijd. Op telefoons zijn foto's in de comfortabele weergave ook minder hoog."
+  },
   "Added a scrollable row of recipe type icons to the top of Recipes. Tap a type such as Dinner, Lunch, or Beverages to filter the collection, or tap All to clear the type while keeping your other filters.": {
     "da": "Tilføjede en vandret række med ikoner for opskriftstyper øverst i Opskrifter. Tryk på en type som aftensmad, frokost eller drikkevarer for at filtrere samlingen, eller tryk på Alle for at fjerne typefilteret og beholde dine andre filtre.",
     "nl": "Bovenaan Recepten staat nu een horizontaal scrollbare rij met iconen voor recepttypen. Tik op een type zoals avondeten, lunch of dranken om te filteren, of tik op Alles om alleen het typefilter te wissen."
