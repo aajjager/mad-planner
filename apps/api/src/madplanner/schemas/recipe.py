@@ -117,6 +117,10 @@ class RecipeResponse(BaseModel):
     updated_at: datetime
 
 
+class RecipeTypesUpdate(BaseModel):
+    recipe_types: list[str] = Field(max_length=10)
+
+
 class RecipeMealTypesUpdate(BaseModel):
     meal_types: list[RecipeMealType] = Field(max_length=3)
 

@@ -2,6 +2,7 @@ import type { Account } from './api/auth'
 
 const en = {
   recipeTypesAllShortcut: 'All',
+  loadingRecipeTypes: 'Loading recipe types…', noRecipeTypesAvailable: 'No recipe types are set up for this family.', recipeTypesLoadFailed: 'Recipe types could not be loaded.', retryRecipeTypes: 'Try again', recipeTypesSaveFailed: 'Recipe types could not be saved. Try again.', recipeTypesLimit: 'You can choose up to 10 recipe types.',
   moreRecipeActions: 'More recipe actions', collectionFilters: 'Filters', filtersActive: 'Filters active', recipeOptions: 'Recipe options',
   communityPreferences: 'Community recipe preferences', alwaysShareRecipes: 'Always share my family recipes with everyone', alwaysShareHelp: 'The owner can share all existing and future family recipes. Turning this off preserves recipes shared individually.', hideFamiliesHelp: 'Hide families from your community browsing only. Uncheck a family to show its recipes again. Saved copies and other accounts are unchanged.', hideFamilyRecipes: 'Hide recipes from',
 
@@ -247,6 +248,9 @@ Object.assign(nl, { communityPreferences: 'Voorkeuren voor gedeelde recepten', a
 
 Object.assign(da, { releaseDetailsHint: 'Vælg et versionsnummer for at vise eller skjule alle detaljer.', showReleaseDetails: 'Vis alle udgivelsesnoter for', hideReleaseDetails: 'Vis korte udgivelsesnoter for' })
 Object.assign(nl, { releaseDetailsHint: 'Kies een versienummer om alle details te tonen of te verbergen.', showReleaseDetails: 'Toon volledige versienotities voor', hideReleaseDetails: 'Toon korte versienotities voor' })
+
+Object.assign(da, { loadingRecipeTypes: 'Indlæser opskriftstyper…', noRecipeTypesAvailable: 'Familien har ingen opskriftstyper endnu.', recipeTypesLoadFailed: 'Opskriftstyperne kunne ikke indlæses.', retryRecipeTypes: 'Prøv igen', recipeTypesSaveFailed: 'Opskriftstyperne kunne ikke gemmes. Prøv igen.', recipeTypesLimit: 'Du kan vælge op til 10 opskriftstyper.' })
+Object.assign(nl, { loadingRecipeTypes: 'Recepttypen laden…', noRecipeTypesAvailable: 'Er zijn nog geen recepttypen ingesteld voor dit gezin.', recipeTypesLoadFailed: 'De recepttypen konden niet worden geladen.', retryRecipeTypes: 'Opnieuw proberen', recipeTypesSaveFailed: 'De recepttypen konden niet worden opgeslagen. Probeer het opnieuw.', recipeTypesLimit: 'Je kunt maximaal 10 recepttypen kiezen.' })
 
 Object.assign(da, { weeklyReleaseTitle: 'Ugens Mad Planner-opdateringer', weeklyReleaseBody: 'Åbn Opdateringer for at se de nye udgivelsesnoter.' })
 Object.assign(nl, { weeklyReleaseTitle: 'De Mad Planner-updates van deze week', weeklyReleaseBody: 'Open Updates voor de nieuwe versienotities.' })

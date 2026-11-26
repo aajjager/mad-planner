@@ -52,6 +52,7 @@ export const createRecipe = (recipe: RecipeWrite) => request<Recipe>('/api/v1/re
 export const deleteRecipe = (id: number) => request<void>(`/api/v1/recipes/${id}`, { method: 'DELETE' })
 export const updateRecipeMealTypes = (id: number, mealTypes: RecipeMealType[]) => request<Recipe>(`/api/v1/recipes/${id}/meal-types`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ meal_types: mealTypes }) })
 export const updateRecipeTags = (id: number, tags: string[]) => request<Recipe>(`/api/v1/recipes/${id}/tags`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ tags }) })
+export const updateRecipeTypes = (id: number, recipeTypes: string[]) => request<Recipe>(`/api/v1/recipes/${id}/recipe-types`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ recipe_types: recipeTypes }) })
 export const updateRecipeRating = (id: number, rating: number | null) => request<Recipe>(`/api/v1/recipes/${id}/rating`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ rating }) })
 export interface RecipeShareTarget { id: number; name: string }
 export const listRecipeShareTargets = () => request<RecipeShareTarget[]>('/api/v1/recipes/sharing/families')

@@ -1,7 +1,7 @@
 from sqlalchemy import select
 from madplanner.recipe_text import instruction_text
 
-from madplanner.models import Family, Recipe, RecipeIngredient, RecipeInstruction
+from madplanner.models import Family, Recipe, RecipeIngredient, RecipeInstruction, RecipeType
 from madplanner.ingredients import parse_ingredient
 from madplanner.repositories.recipes import RecipeRepository
 from madplanner.services.nutrition import nutrition_for_recipe
@@ -16,6 +16,7 @@ from madplanner.schemas.recipe import (
     RecipeMetadataSuggestions,
     RecipeBulkUpdate,
     RecipeTagsUpdate,
+    RecipeTypesUpdate,
     RecipeResponse,
     RecipeWrite,
     UnitInput,
@@ -63,6 +64,13 @@ class RecipeService:
         if recipe is None:
             return None
         recipe.meal_types = data.meal_types
+        return self._to_response(self.repository.save(recipe))
+
+    def update_recipe_types(self, recipe_id: int, data: RecipeTypesUpdate) -> RecipeResponse | None:
+        recipe = self.repository.get_owned(recipe_id)
+        if recipe is None:
+            return None
+        recipe.recipe_types = self._resolve_recipe_types(data.recipe_types)
         return self._to_response(self.repository.save(recipe))
 
     def update_tags(self, recipe_id: int, data: RecipeTagsUpdate) -> RecipeResponse | None:
@@ -209,10 +217,13 @@ class RecipeService:
         )
         recipe.tags.extend(self.repository.get_or_create_tag(tag) for tag in data.tags)
         requested_types = data.recipe_types or [meal_type.title() for meal_type in data.meal_types]
+        recipe.recipe_types.extend(self._resolve_recipe_types(requested_types))
+
+    def _resolve_recipe_types(self, requested_types: list[str]) -> list[RecipeType]:
         recipe_types = self.repository.get_recipe_types(requested_types)
         if len(recipe_types) != len({name.casefold() for name in requested_types}):
             raise ValueError("Unknown recipe type")
-        recipe.recipe_types.extend(recipe_types)
+        return recipe_types
 
     def _to_response(self, recipe: Recipe) -> RecipeResponse:
         ratings = [item.rating for item in recipe.ratings if item.family_id == self.repository.family_id]

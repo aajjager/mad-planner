@@ -98,6 +98,31 @@ def test_recipe_crud(client: TestClient) -> None:
     assert client.get(f"/api/v1/recipes/{recipe_id}").status_code == 404
 
 
+def test_recipe_types_can_be_changed_without_rewriting_the_recipe(client: TestClient) -> None:
+    created = client.post("/api/v1/recipes", json={
+        "name": "Lemon cordial", "recipe_types": ["Dinner"], "meal_types": ["lunch"],
+        "tags": ["Lemon"], "image_url": "https://example.com/photo.jpg",
+        "ingredients": [{"raw_text": "2 lemons"}], "instructions": [{"text": "Juice the lemons."}],
+    })
+    assert created.status_code == 201
+    recipe_url = f"/api/v1/recipes/{created.json()['id']}"
+    original = client.get(recipe_url).json()
+
+    changed = client.patch(f"{recipe_url}/recipe-types", json={"recipe_types": ["beverages", "Bake-off"]})
+    assert changed.status_code == 200
+    assert changed.json()["recipe_types"] == ["Bake-off", "Beverages"]
+    for field in ("ingredients", "instructions", "tags", "image_url", "meal_types"):
+        assert changed.json()[field] == original[field]
+
+    invalid = client.patch(f"{recipe_url}/recipe-types", json={"recipe_types": ["Dinner", "Unknown type"]})
+    assert invalid.status_code == 422
+    assert client.get(recipe_url).json()["recipe_types"] == ["Bake-off", "Beverages"]
+
+    cleared = client.patch(f"{recipe_url}/recipe-types", json={"recipe_types": []})
+    assert cleared.status_code == 200
+    assert client.get(recipe_url).json()["recipe_types"] == []
+
+
 def test_recipe_validation_and_not_found(client: TestClient) -> None:
     invalid = client.post("/api/v1/recipes", json={"name": "Invalid", "ingredients": [{"raw_text": "2-1 onions", "quantity": "2", "quantity_max": "1"}]})
     assert invalid.status_code == 422
@@ -221,6 +246,7 @@ def test_recipe_can_be_shared_without_copying_it(client: TestClient) -> None:
     assert received.json()["owned_by_current_family"] is False
     assert received.json()["owner_family_name"] == "Test family"
     assert recipient_client.put(f"/api/v1/recipes/{recipe_id}", json={"name": "Changed"}).status_code == 404
+    assert recipient_client.patch(f"/api/v1/recipes/{recipe_id}/recipe-types", json={"recipe_types": ["Beverages"]}).status_code == 404
     assert recipient_client.put(f"/api/v1/recipes/{recipe_id}/rating", json={"rating": 4}).json()["family_rating"] == 4
     assert client.get(f"/api/v1/recipes/{recipe_id}").json()["family_rating"] is None
 
@@ -339,6 +365,8 @@ def test_viewer_filter_is_personal_and_cannot_enable_family_sharing(client: Test
     viewer = TestClient(app)
     assert viewer.post(f"/api/v1/auth/invitations/{invitation['token']}/accept", json={'display_name': 'Viewer', 'password': 'test-password-456'}).status_code == 201
     assert viewer.put('/api/v1/recipes/sharing/always', json={'enabled': True}).status_code == 403
+    recipe = client.post('/api/v1/recipes', json={'name': 'Shared with viewer'}).json()
+    assert viewer.patch(f"/api/v1/recipes/{recipe['id']}/recipe-types", json={'recipe_types': ['Bread']}).status_code == 403
     invitation = client.post('/api/v1/auth/families/invitations', json={'family_name': 'Other', 'email': 'other@example.com'}).json()
     other = TestClient(app)
     other.post(f"/api/v1/auth/invitations/{invitation['token']}/accept", json={'display_name': 'Other', 'password': 'test-password-456'})

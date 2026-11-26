@@ -16,6 +16,8 @@ All notable user-visible changes are recorded here. Versions use year since 2026
 
 ### Improvements
 
+- Owners and editors can add or remove recipe types directly in Recipe options. Each tap saves the change, so there is no need to open the full editor.
+
 - Recipe cards without a photo now show a matching food icon. A plate with a fork and knife marks recipes with several labels or with no recognizable type, in both your collection and Public recipes.
 
 - Recipe cards are smaller, with a photo, title, and up to two recipe type tags. Open a recipe for its description, rating, nutrition, and times, including the saved total time. On phones, the Comfortable layout also uses shorter photos.

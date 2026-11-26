@@ -13,7 +13,7 @@ from madplanner.core.config import get_settings
 from madplanner.api.routes.auth import require_auth, require_recipe_editor, require_owner
 from madplanner.services.auth import AuthContext
 from madplanner.repositories.recipes import RecipeRepository
-from madplanner.schemas.recipe import RecipeBulkUpdate, RecipeMealTypesUpdate, RecipeMetadataSuggestions, RecipeRatingUpdate, RecipeResponse, RecipeShareTarget, RecipeSharesUpdate, RecipeTagsUpdate, RecipeVisibilityUpdate, RecipeWrite
+from madplanner.schemas.recipe import RecipeBulkUpdate, RecipeMealTypesUpdate, RecipeMetadataSuggestions, RecipeRatingUpdate, RecipeResponse, RecipeShareTarget, RecipeSharesUpdate, RecipeTagsUpdate, RecipeTypesUpdate, RecipeVisibilityUpdate, RecipeWrite
 from madplanner.services.recipes import RecipeService
 
 router = APIRouter(prefix="/recipes", tags=["recipes"])
@@ -116,6 +116,17 @@ def replace_recipe(recipe_id: int, data: RecipeWrite, service: Annotated[RecipeS
 @router.patch("/{recipe_id}/meal-types", response_model=RecipeResponse)
 def update_recipe_meal_types(recipe_id: int, data: RecipeMealTypesUpdate, service: Annotated[RecipeService, Depends(get_recipe_service)], _permission: Annotated[AuthContext, Depends(require_recipe_editor)]):
     recipe = service.update_meal_types(recipe_id, data)
+    if recipe is None:
+        raise HTTPException(status_code=404, detail="Recipe not found")
+    return recipe
+
+
+@router.patch("/{recipe_id}/recipe-types", response_model=RecipeResponse)
+def update_recipe_types(recipe_id: int, data: RecipeTypesUpdate, service: Annotated[RecipeService, Depends(get_recipe_service)], _permission: Annotated[AuthContext, Depends(require_recipe_editor)]):
+    try:
+        recipe = service.update_recipe_types(recipe_id, data)
+    except ValueError as error:
+        raise HTTPException(status_code=422, detail=str(error)) from error
     if recipe is None:
         raise HTTPException(status_code=404, detail="Recipe not found")
     return recipe

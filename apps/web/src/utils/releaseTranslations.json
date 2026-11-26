@@ -1,4 +1,8 @@
 {
+  "Owners and editors can add or remove recipe types directly in Recipe options. Each tap saves the change, so there is no need to open the full editor.": {
+    "da": "Ejere og redaktører kan tilføje eller fjerne opskriftstyper direkte under Opskriftsindstillinger. Hvert tryk gemmer ændringen, så du ikke behøver at åbne den fulde redigering.",
+    "nl": "Eigenaren en bewerkers kunnen recepttypen direct toevoegen of verwijderen via Receptopties. Elke tik slaat de wijziging op, zodat je het volledige bewerkscherm niet hoeft te openen."
+  },
   "Recipe cards without a photo now show a matching food icon. A plate with a fork and knife marks recipes with several labels or with no recognizable type, in both your collection and Public recipes.": {
     "da": "Opskriftskort uden foto viser nu et passende madikon. En tallerken med kniv og gaffel vises ved flere mærkater eller en ukendt opskriftstype, både i din samling og under Offentlige opskrifter.",
     "nl": "Receptkaarten zonder foto tonen nu een passend voedselicoon. Een bord met mes en vork verschijnt bij meerdere labels of een onbekend recepttype, zowel in je verzameling als bij Openbare recepten."
