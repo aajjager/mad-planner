@@ -4,6 +4,10 @@ All notable user-visible changes are recorded here. Versions use year since 2026
 
 ## 0.11.4 — November 2026, week 4
 
+### Bug fixes
+
+- Recipe photos now fill their thumbnails with a centered crop and keep their original proportions.
+
 ### Features
 
 - Recipe pages now let owners, editors, and planners add one ingredient or a selection to a chosen week’s shopping list. Quantities, units, and recipe references are preserved as manual shopping items, without changing the recipe or meal plan.
@@ -11,6 +15,26 @@ All notable user-visible changes are recorded here. Versions use year since 2026
 - Added Beverages as a selectable recipe type when importing, scanning, creating, or editing recipes. Existing families receive the option without overwriting custom types, and beverage recipes are not automatically assigned to a planner meal.
 
 ### Improvements
+
+- Public recipes now has the same recipe type shortcuts, filters, and rating, calorie, and card-size sliders as Your recipes. Hide your family’s recipes with a filter, and return from a recipe to the same collection, filters, and scroll position.
+
+- Add recipe is now an outlined plus in the top bar that follows your theme’s accent color. Editors can open Updates from the mobile navigation.
+
+- Switch between Your recipes and Public recipes using tabs at the top of Recipes.
+
+- Open the Welcome guide and Family settings guide from Help in Family when you need them.
+
+- Removed Select recipes and its bulk controls from the recipe collection. Manage privacy and planning tags for individual recipes in Recipe options.
+
+- Existing and new recipes appear in Public recipes for signed-in families by default. Search by recipe type or family, and use Keep this recipe private in Recipe options to opt out. The public library replaces sharing with individual families. Saved recipe copies, personal family filters, and existing meal-plan entries are preserved.
+
+- Owners and editors can add or remove recipe types directly in Recipe options. Each tap saves the change, so there is no need to open the full editor.
+
+- Recipe cards without a photo now show a matching food icon. A plate with a fork and knife marks recipes with several labels or with no recognizable type, in both your collection and Public recipes.
+
+- Recipe cards are smaller, with a photo, title, and up to two recipe type tags. Open a recipe for its description, rating, nutrition, and times, including the saved total time. On phones, the Comfortable layout also uses shorter photos.
+
+- Added a scrollable row of recipe type icons to the top of Recipes. Tap a type such as Dinner, Lunch, or Beverages to filter the collection, or tap All to clear the type while keeping your other filters.
 
 - Refreshed the app with a calm mobile-first design, cleaner typography, neutral surfaces, consistent controls, and a flat icon-based bottom navigation. Recipe search stays visible while advanced filters open on demand; ingredients and cooking steps appear before expandable recipe options, with existing data, permissions, colour choices, and dark mode preserved.
 

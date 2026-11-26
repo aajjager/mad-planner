@@ -3,11 +3,20 @@ import { MemoryRouter, Route, Routes, Link, useNavigate } from 'react-router-dom
 import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 import { RecipeBrowseMemory } from '../components/RecipeBrowseMemory'
 import { RecipeListPage } from './RecipeListPage'
+import { PublicRecipesPage } from './PublicRecipesPage'
+import { RecipeDetailPage } from './RecipeDetailPage'
 
 const data = vi.hoisted(() => ({ pending: false, resolve: (_items: unknown[]) => {} }))
-const recipes = [{ id: 1, owned_by_current_family: true, family_rating: 4, rating_count: 1, name: 'Apple soup', tags: [], recipe_types: [], nutrition: null, description: '', total_time_minutes: 20 }]
+const recipes = [{ id: 1, owned_by_current_family: true, family_rating: 4, rating_count: 1, name: 'Apple soup', tags: [], recipe_types: ['Lunch'], nutrition: null, description: '', total_time_minutes: 20 }]
+const neighbour = { ...recipes[0], id: 2, name: 'Carrot soup', owned_by_current_family: false, owner_family_name: 'Neighbour', ingredients: [], instructions: [] }
 vi.mock('../auth/AuthContext', () => ({ useAuth: () => ({ account: { id: 1, family_id: 1, role: 'viewer', locale: 'en' } }) }))
-vi.mock('../api/recipes', () => ({ listRecipes: () => data.pending ? new Promise((resolve) => { data.resolve = resolve }) : Promise.resolve(recipes) }))
+vi.mock('../api/auth', () => ({ listRecipeTypes: async () => [], getFamilySettings: async () => ({ cooking_mode_enabled: false }) }))
+vi.mock('../api/recipes', () => ({
+  listRecipes: () => data.pending ? new Promise((resolve) => { data.resolve = resolve }) : Promise.resolve(recipes),
+  listPublicRecipes: async () => [...recipes, neighbour],
+  getSharingPreferences: async () => ({ families: [] }),
+  getRecipe: async () => neighbour,
+}))
 
 function Detail() {
   const navigate = useNavigate()
@@ -29,6 +38,7 @@ it.each(['All recipes', 'Browser back'])('restores browsing after async loading 
   await waitFor(() => expect(window.scrollTo).toHaveBeenCalled())
   fireEvent.change(screen.getByRole('searchbox'), { target: { value: 'Apple' } })
   fireEvent.click(screen.getByRole('button', { name: 'Filters' }))
+  fireEvent.click(screen.getByRole('button', { name: 'Lunch' }))
   fireEvent.change(screen.getByLabelText('Sort recipes'), { target: { value: 'rating' } })
   vi.spyOn(window, 'scrollY', 'get').mockReturnValue(1800)
   fireEvent.scroll(window)
@@ -46,4 +56,33 @@ it.each(['All recipes', 'Browser back'])('restores browsing after async loading 
   expect(screen.getByRole('searchbox')).toHaveValue('Apple')
   expect(screen.getByRole('button', { name: /^Filters/ })).toHaveAttribute('aria-expanded', 'true')
   expect(screen.getByRole('combobox', { name: 'Sort recipes' })).toHaveValue('rating')
+  expect(screen.getByRole('button', { name: 'Lunch' })).toHaveAttribute('aria-pressed', 'true')
+})
+
+it('returns a public recipe to its own saved filters and scroll position', async () => {
+  render(<MemoryRouter initialEntries={['/recipes']}><RecipeBrowseMemory><Routes>
+    <Route path="/recipes" element={<RecipeListPage />} />
+    <Route path="/recipes/public" element={<PublicRecipesPage />} />
+    <Route path="/recipes/:recipeId" element={<RecipeDetailPage />} />
+  </Routes></RecipeBrowseMemory></MemoryRouter>)
+  await screen.findByRole('link', { name: /Apple soup/ })
+  fireEvent.change(screen.getByRole('searchbox'), { target: { value: 'Apple' } })
+  fireEvent.click(screen.getByRole('link', { name: 'Public recipes' }))
+  await screen.findByRole('link', { name: /Carrot soup/ })
+  expect(screen.getByRole('searchbox')).toHaveValue('')
+  fireEvent.click(screen.getByRole('button', { name: 'Filters' }))
+  fireEvent.click(screen.getByRole('checkbox', { name: /Hide my family/ }))
+  fireEvent.change(screen.getByRole('searchbox'), { target: { value: 'Carrot' } })
+  vi.spyOn(window, 'scrollY', 'get').mockReturnValue(420)
+  fireEvent.click(screen.getByRole('link', { name: /Carrot soup/ }))
+  await screen.findByRole('heading', { name: 'Carrot soup' })
+  vi.mocked(window.scrollTo).mockClear()
+  fireEvent.click(screen.getByRole('link', { name: /Public recipes/ }))
+  await screen.findByRole('link', { name: /Carrot soup/ })
+  expect(screen.getByRole('searchbox')).toHaveValue('Carrot')
+  expect(screen.getByRole('checkbox', { name: /Hide my family/ })).toBeChecked()
+  await waitFor(() => expect(window.scrollTo).toHaveBeenCalledWith({ top: 420, left: 0, behavior: 'instant' }))
+  fireEvent.click(screen.getByRole('link', { name: 'Your recipes' }))
+  await screen.findByRole('link', { name: /Apple soup/ })
+  expect(screen.getByRole('searchbox')).toHaveValue('Apple')
 })

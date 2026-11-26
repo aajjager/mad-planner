@@ -14,6 +14,7 @@ const authResponse = (input: RequestInfo | URL) => {
   if (url.includes('/auth/me')) return jsonResponse(account)
   if (url.includes('/family/settings')) return jsonResponse(familySettings)
   if (url.includes('/family/recipe-types')) return jsonResponse(recipeTypes)
+  if (url.includes('/recipes/sharing/preferences')) return jsonResponse({ families: [] })
   return null
 }
 
@@ -22,7 +23,7 @@ describe('App', () => {
     window.history.pushState({}, '', '/')
     vi.spyOn(globalThis, 'fetch').mockImplementation((input) => Promise.resolve(String(input).includes('/auth/me') ? jsonResponse({ ...account, role }) : authResponse(input) ?? jsonResponse([])))
     render(<App />)
-    await screen.findByRole('heading', { name: 'Your recipes' })
+    await screen.findByRole('heading', { name: 'Recipes' })
     expect(window.location.pathname).toBe('/recipes')
     const nav = within(screen.getByRole('navigation', { name: 'Mobile navigation' }))
     const links = nav.getAllByRole('link')
@@ -33,18 +34,65 @@ describe('App', () => {
     expect(nav.getByRole('link', { name: 'Groceries' })).toHaveAttribute('href', '/grocery-list')
     expect(nav.getByRole('link', { name: /Family/ })).toHaveAttribute('href', '/family')
     expect(Boolean(nav.queryByRole('link', { name: 'Admin' }))).toBe(role === 'owner')
-    expect(Boolean(screen.queryAllByRole('link', { name: 'Add recipe' }).length)).toBe(['owner', 'editor'].includes(role))
+    expect(Boolean(nav.queryByRole('link', { name: 'Updates' }))).toBe(role !== 'owner')
+    const topBar = within(screen.getByRole('banner'))
+    const canAdd = role === 'owner' || role === 'editor'
+    expect(Boolean(topBar.queryByRole('link', { name: 'Add recipe' }))).toBe(canAdd)
+    expect(screen.queryAllByRole('link', { name: 'Add recipe' })).toHaveLength(canAdd ? 1 : 0)
+  })
+
+  it('switches recipe collections with a consistent navigation bar', async () => {
+    window.history.pushState({}, '', '/recipes')
+    vi.spyOn(globalThis, 'fetch').mockImplementation((input) => Promise.resolve(authResponse(input) ?? jsonResponse([])))
+    render(<App />)
+    const tabs = within(await screen.findByRole('navigation', { name: 'Recipe collections' }))
+    expect(tabs.getByRole('link', { name: 'Your recipes' })).toHaveAttribute('aria-current', 'page')
+    fireEvent.click(tabs.getByRole('link', { name: 'Public recipes' }))
+    const publicTabs = within(await screen.findByRole('navigation', { name: 'Recipe collections' }))
+    expect(publicTabs.getByRole('link', { name: 'Public recipes' })).toHaveAttribute('aria-current', 'page')
+    expect(publicTabs.getByRole('link', { name: 'Your recipes' })).not.toHaveAttribute('aria-current')
+    expect(window.location.pathname).toBe('/recipes/public')
+    fireEvent.click(publicTabs.getByRole('link', { name: 'Your recipes' }))
+    await waitFor(() => expect(window.location.pathname).toBe('/recipes'))
+    expect(within(screen.getByRole('navigation', { name: 'Recipe collections' })).getByRole('link', { name: 'Your recipes' })).toHaveAttribute('aria-current', 'page')
+  })
+
+  it('opens guidance on demand from Family Help and keeps it open while exploring', async () => {
+    localStorage.removeItem('madplanner:welcome:1:1')
+    window.history.pushState({}, '', '/recipes')
+    vi.spyOn(globalThis, 'fetch').mockImplementation((input) => Promise.resolve(authResponse(input) ?? jsonResponse([])))
+    render(<App />)
+    const nav = within(await screen.findByRole('navigation', { name: 'Mobile navigation' }))
+    expect(screen.queryByRole('button', { name: 'Welcome guide' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('complementary', { name: 'Welcome guide' })).not.toBeInTheDocument()
+    fireEvent.click(nav.getByRole('link', { name: 'Family' }))
+    const help = within(await screen.findByRole('region', { name: 'Help' }))
+    document.getElementById('personal-settings')!.scrollIntoView = vi.fn()
+    expect(screen.queryByRole('complementary', { name: 'Welcome guide' })).not.toBeInTheDocument()
+    fireEvent.click(help.getByRole('button', { name: 'Family settings guide' }))
+    const settingsGuide = within(screen.getByRole('complementary', { name: 'Welcome guide' }))
+    expect(settingsGuide.getByRole('heading', { name: 'Make the app your own' })).toBeInTheDocument()
+    expect(window.location.hash).toBe('#personal-settings')
+    fireEvent.click(settingsGuide.getByRole('button', { name: 'Close guide' }))
+    fireEvent.click(help.getByRole('button', { name: 'Welcome guide' }))
+    const guide = within(screen.getByRole('complementary', { name: 'Welcome guide' }))
+    expect(guide.getByRole('heading', { name: 'Welcome to Mad Planner' })).toBeInTheDocument()
+    fireEvent.click(guide.getByRole('button', { name: 'Next tip' }))
+    expect(await screen.findByRole('navigation', { name: 'Recipe collections' })).toBeInTheDocument()
+    expect(guide.getByRole('heading', { name: 'Your recipe collection' })).toBeInTheDocument()
   })
 
   it('groups creation methods behind Add recipe and keeps browsing uncluttered', async () => {
     window.history.pushState({}, '', '/recipes')
     const fetch = vi.spyOn(globalThis, 'fetch').mockImplementation((input) => Promise.resolve(authResponse(input) ?? jsonResponse([])))
     render(<App />)
-    await screen.findByRole('heading', { name: 'Your recipes' })
+    await screen.findByRole('heading', { name: 'Recipes' })
     const main = within(screen.getByRole('main'))
     expect(main.queryByRole('link', { name: 'Scan book' })).not.toBeInTheDocument()
     expect(main.queryByRole('link', { name: 'Import from URL' })).not.toBeInTheDocument()
-    fireEvent.click(main.getByRole('link', { name: 'Add recipe' }))
+    const add = within(screen.getByRole('banner')).getByRole('link', { name: 'Add recipe' })
+    expect(add).toHaveAttribute('href', '/recipes/add')
+    fireEvent.click(add)
     await screen.findByRole('heading', { name: 'How would you like to add a recipe?' })
     for (const [name, path] of [['Import from URL', '/recipes/import'], ['Manual recipe', '/recipes/new'], ['Scan book', '/recipes/scan'], ['Import CookBook', '/recipes/import/cookbook']]) {
       expect(main.getByRole('link', { name: new RegExp(name) })).toHaveAttribute('href', path)
@@ -58,7 +106,7 @@ describe('App', () => {
     window.history.pushState({}, '', '/recipes/add')
     vi.spyOn(globalThis, 'fetch').mockImplementation((input) => Promise.resolve(String(input).includes('/auth/me') ? jsonResponse({ ...account, role }) : authResponse(input) ?? jsonResponse([])))
     render(<App />)
-    await screen.findByRole('heading', { name: 'Your recipes' })
+    await screen.findByRole('heading', { name: 'Recipes' })
     expect(screen.queryByRole('link', { name: 'Add recipe' })).not.toBeInTheDocument()
     expect(window.location.pathname).toBe('/recipes')
   })
@@ -278,7 +326,6 @@ describe('App', () => {
     expect(saved).not.toHaveProperty('image_url')
     expect(window.location.pathname).toBe('/recipes/88')
   })
-  // Existing workflows exercise a returning user; first visits are covered in WelcomeGuide.test.tsx.
   beforeEach(() => localStorage.setItem('madplanner:welcome:1:1', 'seen'))
   afterEach(() => { cleanup(); vi.useRealTimers(); vi.restoreAllMocks(); window.history.pushState({}, '', '/') })
 
@@ -457,7 +504,7 @@ describe('App', () => {
     expect(screen.getByRole('radio', { name: /Start with example recipes/ })).toBeChecked()
     fireEvent.click(screen.getByRole('button', { name: 'Create family' }))
 
-    expect(await screen.findByRole('heading', { name: 'Your recipes' })).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: 'Recipes' })).toBeInTheDocument()
   })
 
   it('shows login when the browser has no active session', async () => {
@@ -475,7 +522,7 @@ describe('App', () => {
     fireEvent.change(screen.getByLabelText('Password'), { target: { value: 'test-password-123' } })
     fireEvent.click(screen.getByRole('button', { name: 'Sign in' }))
 
-    expect(await screen.findByRole('heading', { name: 'Your recipes' })).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: 'Recipes' })).toBeInTheDocument()
   })
 
   it('lets the owner create a family invitation link', async () => {
@@ -569,7 +616,7 @@ describe('App', () => {
     fireEvent.change(screen.getByLabelText('Password'), { target: { value: 'member-password-123' } })
     fireEvent.click(screen.getByRole('button', { name: 'Join family' }))
 
-    expect(await screen.findByRole('heading', { name: 'Your recipes' })).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: 'Recipes' })).toBeInTheDocument()
   })
 
   it('shows owner controls for family logins and invitations', async () => {
@@ -600,16 +647,41 @@ describe('App', () => {
   it('shows the empty recipe collection and API status', async () => {
     vi.spyOn(globalThis, 'fetch').mockImplementation((input) => Promise.resolve(authResponse(input) ?? jsonResponse([])))
     render(<App />)
-    expect(await screen.findByRole('heading', { name: 'Your recipes' })).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: 'Recipes' })).toBeInTheDocument()
     expect(await screen.findByText('Your collection is ready')).toBeInTheDocument()
     expect(await screen.findByText('Owner · Test family')).toBeInTheDocument()
   })
 
-  it('renders recipes returned by the API', async () => {
-    vi.spyOn(globalThis, 'fetch').mockImplementation((input) => Promise.resolve(authResponse(input) ?? jsonResponse([{ id: 4, name: 'Onion soup', description: 'A warming soup.', image_url: null, source_url: null, author: null, servings: '4', preparation_time_minutes: 10, cooking_time_minutes: 30, total_time_minutes: 40, cuisine: 'French', category: 'Dinner', tags: ['Comfort food'], ingredients: [], instructions: [], created_at: '', updated_at: '' }])))
+  it('keeps recipe cards short and preserves the full information in the recipe', async () => {
+    const recipe = {
+      id: 4, name: 'Onion soup', description: 'A warming soup.', image_url: '/media/onion-soup.jpg',
+      servings: '4', preparation_time_minutes: 10, cooking_time_minutes: 30, total_time_minutes: 40,
+      cuisine: 'French', category: 'Dinner', tags: ['Comfort food'], recipe_types: ['Starter', 'Lunch', 'Dinner'],
+      family_rating: 4, rating_count: 1, owned_by_current_family: true,
+      nutrition: { calories: 350 }, ingredients: [], instructions: [], meal_types: [],
+    }
+    vi.spyOn(globalThis, 'fetch').mockImplementation((input) => Promise.resolve(
+      authResponse(input) ?? jsonResponse(String(input).endsWith('/recipes/4') ? recipe : [recipe])
+    ))
     render(<App />)
-    expect(await screen.findByRole('heading', { name: 'Onion soup' })).toBeInTheDocument()
-    expect(screen.getByText('40 min')).toBeInTheDocument()
+    const card = await screen.findByRole('link', { name: /Onion soup/ })
+    expect(card.querySelector('img')).toHaveAttribute('src', '/media/onion-soup.jpg')
+    for (const text of ['Onion soup', 'Starter', 'Lunch']) expect(within(card).getByText(text)).toBeVisible()
+    for (const text of ['A warming soup.', '40 min', '350 kcal', 'Comfort food']) {
+      expect(within(card).queryByText(text)).not.toBeInTheDocument()
+    }
+    expect(within(card).queryByText(/rating/i)).not.toBeInTheDocument()
+    expect(within(card).queryByText('Dinner')).not.toBeInTheDocument()
+
+    const shortcuts = within(screen.getByRole('group', { name: 'Recipe type' }))
+    fireEvent.click(shortcuts.getByRole('button', { name: 'Dinner' }))
+    expect(within(card).getByText('Dinner')).toBeVisible()
+    expect(within(card).queryByText('Lunch')).not.toBeInTheDocument()
+
+    fireEvent.click(card)
+    expect(await screen.findByText('A warming soup.')).toBeVisible()
+    expect(screen.getByText('10 min')).toBeVisible()
+    expect(screen.getByText('40 min')).toBeVisible()
   })
 
   it('filters the recipe library by search text', async () => {

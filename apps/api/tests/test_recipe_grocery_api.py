@@ -71,6 +71,7 @@ def test_viewers_and_other_families_cannot_add_private_recipe_ingredients(env):
     invitation = client.post('/api/v1/auth/families/invitations', json={'email': 'other@example.com', 'family_name': 'Other'}).json()
     other = TestClient(app)
     other.post(f"/api/v1/auth/invitations/{invitation['token']}/accept", json={'display_name': 'Other', 'password': 'long-password-789'})
+    assert client.put(f"/api/v1/recipes/{recipe['id']}/visibility", json={'is_public': False}).status_code == 200
     assert add(other, recipe, ids).status_code == 404
     client.put(f"/api/v1/recipes/{recipe['id']}/visibility", json={'is_public': True})
     assert add(other, recipe, ids).status_code == 201

@@ -1,4 +1,48 @@
 {
+  "Public recipes now has the same recipe type shortcuts, filters, and rating, calorie, and card-size sliders as Your recipes. Hide your family’s recipes with a filter, and return from a recipe to the same collection, filters, and scroll position.": {
+    "da": "Offentlige opskrifter har nu de samme genveje til opskriftstyper, filtre og skydere til bedømmelse, kalorier og kortstørrelse som Dine opskrifter. Skjul din families opskrifter med et filter, og vend tilbage til samme samling, filtre og rulleposition, når du har åbnet en opskrift.",
+    "nl": "Openbare recepten heeft nu dezelfde snelkoppelingen naar recepttypen, filters en schuifregelaars voor beoordeling, calorieën en kaartgrootte als Je recepten. Verberg de recepten van je eigen gezin met een filter en keer vanuit een recept terug naar dezelfde verzameling, filters en scrolpositie."
+  },
+  "Add recipe is now an outlined plus in the top bar that follows your theme’s accent color. Editors can open Updates from the mobile navigation.": {
+    "da": "Tilføj opskrift er nu et plus med omrids i topbjælken, som følger temaets accentfarve. Redaktører kan åbne Opdateringer fra mobilnavigationen.",
+    "nl": "Recept toevoegen is nu een plus met een rand in de bovenbalk die de accentkleur van het thema volgt. Bewerkers kunnen Updates openen vanuit de mobiele navigatie."
+  },
+  "Switch between Your recipes and Public recipes using tabs at the top of Recipes.": {
+    "da": "Skift mellem Dine opskrifter og Offentlige opskrifter med fanerne øverst i Opskrifter.",
+    "nl": "Wissel tussen Je recepten en Openbare recepten met de tabbladen bovenaan Recepten."
+  },
+  "Open the Welcome guide and Family settings guide from Help in Family when you need them.": {
+    "da": "Åbn Velkomstguide og Guide til familieindstillinger under Hjælp i Familie, når du har brug for dem.",
+    "nl": "Open de Welkomstgids en de Gids voor gezinsinstellingen wanneer je ze nodig hebt via Hulp in Gezin."
+  },
+  "Removed Select recipes and its bulk controls from the recipe collection. Manage privacy and planning tags for individual recipes in Recipe options.": {
+    "da": "Fjernede Vælg opskrifter og handlinger for flere opskrifter fra samlingen. Administrer synlighed og planlægningstags for den enkelte opskrift under Opskriftsindstillinger.",
+    "nl": "Recepten selecteren en de groepsacties zijn uit de verzameling verwijderd. Beheer de zichtbaarheid en planningstags per recept via Receptopties."
+  },
+  "Existing and new recipes appear in Public recipes for signed-in families by default. Search by recipe type or family, and use Keep this recipe private in Recipe options to opt out. The public library replaces sharing with individual families. Saved recipe copies, personal family filters, and existing meal-plan entries are preserved.": {
+    "da": "Eksisterende og nye opskrifter vises som udgangspunkt under Offentlige opskrifter for familier, der er logget ind. Søg efter opskriftstype eller familie, og vælg Hold denne opskrift privat under Opskriftsindstillinger for at skjule den. Det offentlige bibliotek erstatter deling med enkelte familier. Gemte opskriftskopier, personlige familiefiltre og eksisterende madplansposter bevares.",
+    "nl": "Bestaande en nieuwe recepten verschijnen standaard bij Openbare recepten voor aangemelde gezinnen. Zoek op recepttype of gezin en kies Houd dit recept privé bij Receptopties om het af te schermen. De openbare bibliotheek vervangt delen met afzonderlijke gezinnen. Opgeslagen receptkopieën, persoonlijke gezinsfilters en bestaande geplande maaltijden blijven behouden."
+  },
+  "Owners and editors can add or remove recipe types directly in Recipe options. Each tap saves the change, so there is no need to open the full editor.": {
+    "da": "Ejere og redaktører kan tilføje eller fjerne opskriftstyper direkte under Opskriftsindstillinger. Hvert tryk gemmer ændringen, så du ikke behøver at åbne den fulde redigering.",
+    "nl": "Eigenaren en bewerkers kunnen recepttypen direct toevoegen of verwijderen via Receptopties. Elke tik slaat de wijziging op, zodat je het volledige bewerkscherm niet hoeft te openen."
+  },
+  "Recipe cards without a photo now show a matching food icon. A plate with a fork and knife marks recipes with several labels or with no recognizable type, in both your collection and Public recipes.": {
+    "da": "Opskriftskort uden foto viser nu et passende madikon. En tallerken med kniv og gaffel vises ved flere mærkater eller en ukendt opskriftstype, både i din samling og under Offentlige opskrifter.",
+    "nl": "Receptkaarten zonder foto tonen nu een passend voedselicoon. Een bord met mes en vork verschijnt bij meerdere labels of een onbekend recepttype, zowel in je verzameling als bij Openbare recepten."
+  },
+  "Recipe photos now fill their thumbnails with a centered crop and keep their original proportions.": {
+    "da": "Opskriftsbilleder udfylder nu miniaturevisningen med en centreret beskæring og bevarer deres oprindelige proportioner.",
+    "nl": "Receptfoto’s vullen nu de miniatuur met een gecentreerde uitsnede en behouden hun oorspronkelijke verhoudingen."
+  },
+  "Recipe cards are smaller, with a photo, title, and up to two recipe type tags. Open a recipe for its description, rating, nutrition, and times, including the saved total time. On phones, the Comfortable layout also uses shorter photos.": {
+    "da": "Opskriftskortene fylder mindre og viser et billede, en titel og op til to opskriftstyper. Åbn opskriften for at se beskrivelse, bedømmelse, næringsindhold og tider, herunder den gemte samlede tid. På telefoner er billederne også lavere i den behagelige visning.",
+    "nl": "Receptkaarten zijn kleiner en tonen een foto, titel en maximaal twee recepttypen. Open een recept voor de beschrijving, beoordeling, voedingswaarden en bereidingstijden, inclusief de opgeslagen totale tijd. Op telefoons zijn foto's in de comfortabele weergave ook minder hoog."
+  },
+  "Added a scrollable row of recipe type icons to the top of Recipes. Tap a type such as Dinner, Lunch, or Beverages to filter the collection, or tap All to clear the type while keeping your other filters.": {
+    "da": "Tilføjede en vandret række med ikoner for opskriftstyper øverst i Opskrifter. Tryk på en type som aftensmad, frokost eller drikkevarer for at filtrere samlingen, eller tryk på Alle for at fjerne typefilteret og beholde dine andre filtre.",
+    "nl": "Bovenaan Recepten staat nu een horizontaal scrollbare rij met iconen voor recepttypen. Tik op een type zoals avondeten, lunch of dranken om te filteren, of tik op Alles om alleen het typefilter te wissen."
+  },
   "Combined browser and background notifications into one switch in personal settings. Enabling registers background delivery and requests permission when needed; existing granted opt-ins register automatically. Turning it off pauses account notifications and removes this device's subscription.": {
     "da": "Samlede browser- og baggrundsnotifikationer i én kontakt under personlige indstillinger. Aktivering registrerer baggrundslevering og beder om tilladelse efter behov; eksisterende tilladelser registreres automatisk. Deaktivering pauser kontonotifikationer og fjerner enhedens abonnement.",
     "nl": "Browser- en achtergrondmeldingen samengevoegd in één schakelaar bij persoonlijke instellingen. Inschakelen registreert achtergrondbezorging en vraagt zo nodig toestemming; bestaande toestemmingen worden automatisch geregistreerd. Uitschakelen pauzeert accountmeldingen en verwijdert het abonnement van dit apparaat."

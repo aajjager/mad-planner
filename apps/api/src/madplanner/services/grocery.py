@@ -22,9 +22,9 @@ class GroceryListService:
         grouped: dict[str, GroceryListItem] = {}
 
         for entry in entries:
-            if entry.is_leftover:
-                continue
             recipe = entry.recipe
+            if entry.is_leftover or not recipe.is_visible_to(self.repository.family_id):
+                continue
             factor = entry.servings / recipe.servings if entry.servings and recipe.servings else Decimal(1)
             for item in recipe.ingredients:
                 legacy = parse_ingredient(item.raw_text) if item.ingredient is None else None

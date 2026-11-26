@@ -19,6 +19,7 @@ class Family(Base):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     name: Mapped[str] = mapped_column(String(120))
+    # Retain the saved legacy preference for older database restores.
     always_share_recipes: Mapped[bool] = mapped_column(Boolean, default=False, server_default="false")
     household_size: Mapped[int] = mapped_column(Integer, default=2, server_default="2")
     leftovers_enabled: Mapped[bool] = mapped_column(Boolean, default=True, server_default="true")

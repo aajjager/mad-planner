@@ -1,4 +1,5 @@
-import { BrowserRouter, Link, NavLink, Navigate, Route, Routes } from 'react-router-dom'
+import { useState } from 'react'
+import { BrowserRouter, Link, NavLink, Navigate, Route, Routes, useNavigate } from 'react-router-dom'
 import './App.css'
 import { AppIcon } from './components/AppIcon'
 import { EditRecipePage } from './pages/EditRecipePage'
@@ -27,23 +28,37 @@ import { BrandMark } from './components/BrandMark'
 import { FeedbackCompletionNotifier } from './components/FeedbackCompletionNotifier'
 import { RecipeBrowseMemory } from './components/RecipeBrowseMemory'
 import { WelcomeGuide } from './components/WelcomeGuide'
+import { familyGuidePath, type WelcomeGuideStart } from './components/welcomeGuideContent'
 
 function ApplicationShell() {
   const { account, logout } = useAuth()
+  const navigate = useNavigate()
+  const [guide, setGuide] = useState<{ startAt: WelcomeGuideStart; run: number } | null>(null)
   const canEditRecipes = account?.role === 'owner' || account?.role === 'editor'
   const t = translator(account?.locale)
+
+  function openGuide(startAt: WelcomeGuideStart) {
+    setGuide((current) => ({ startAt, run: (current?.run ?? 0) + 1 }))
+    if (startAt === 'family') navigate(familyGuidePath)
+  }
   return (
       <div className="app-shell">
         <header className="site-header">
           <Link className="brand" to="/recipes"><BrandMark /><span>Mad Planner</span></Link>
-          <nav aria-label={t('mainNavigation')}><Link to="/recipes">{t('recipes')}</Link><Link to="/planner">{t('planner')}</Link><Link to="/grocery-list">{t('groceries')}</Link>{canEditRecipes && <Link className="primary-link" to="/recipes/add">{t('addRecipe')}</Link>}</nav>
-
-          <div className="account-menu"><Link className="account-link" to="/family">{account?.display_name} · {account?.family_name}<FeedbackAnswerBadge /></Link>{account?.role === 'owner' && <Link className="account-link" to="/admin">{t('admin')}</Link>}<button className="text-button" onClick={() => void logout()}>{t('signOut')}</button></div>
+          <nav aria-label={t('mainNavigation')}><Link to="/recipes">{t('recipes')}</Link><Link to="/planner">{t('planner')}</Link><Link to="/grocery-list">{t('groceries')}</Link></nav>
+          <div className="account-menu">
+            <Link className="account-link" to="/family">{account?.display_name} · {account?.family_name}<FeedbackAnswerBadge /></Link>
+            {account?.role === 'owner' && <Link className="account-link" to="/admin">{t('admin')}</Link>}
+            {canEditRecipes && <Link className="header-add-recipe" to="/recipes/add" aria-label={t('addRecipe')} title={t('addRecipe')}>
+              <AppIcon name="plus" />
+            </Link>}
+            <button className="text-button" onClick={() => void logout()}>{t('signOut')}</button>
+          </div>
         </header>
         <PlanReminderBanner />
         <PreviewBanner />
         <FeedbackCompletionNotifier />
-        {account && <WelcomeGuide key={`${account.family_id}:${account.id}`} account={account} />}
+        {account && guide && <WelcomeGuide key={guide.run} account={account} startAt={guide.startAt} onClose={() => setGuide(null)} />}
         <main>
           <Routes>
             <Route path="/" element={<Navigate to="/recipes" replace />} />
@@ -58,7 +73,7 @@ function ApplicationShell() {
             <Route path="/recipes/public" element={<PublicRecipesPage />} />
             <Route path="/planner" element={<PlannerPage />} />
             <Route path="/grocery-list" element={<GroceryListPage />} />
-            <Route path="/family" element={<FamilyPage />} />
+            <Route path="/family" element={<FamilyPage onOpenGuide={openGuide} />} />
             <Route path="/updates" element={<UpdatesPage />} />
             <Route path="/admin" element={<AdminPage />} />
             <Route path="*" element={<Navigate to="/recipes" replace />} />
@@ -72,7 +87,7 @@ function ApplicationShell() {
             <NavLink to="/family"><AppIcon name="family" />{t('familyNav')}<FeedbackAnswerBadge /></NavLink>
             <NavLink to="/admin"><AppIcon name="settings" />{t('admin')}</NavLink>
           </> : <>
-            {canEditRecipes ? <NavLink className="mobile-navigation__add" to="/recipes/add"><AppIcon name="plus" />{t('addRecipe')}</NavLink> : <NavLink to="/updates"><AppIcon name="updates" />{t('updates')}</NavLink>}
+            <NavLink to="/updates"><AppIcon name="updates" />{t('updates')}</NavLink>
             <NavLink to="/family"><AppIcon name="family" />{t('familyNav')}<FeedbackAnswerBadge /></NavLink>
           </>}
         </nav>

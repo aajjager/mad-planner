@@ -22,8 +22,6 @@ export interface Recipe {
   my_rating: number | null;
   owned_by_current_family: boolean;
   owner_family_name: string | null;
-  shared_with_family_ids: number[];
-  shared_with_families: string[];
   is_public: boolean;
   ingredients: RecipeIngredient[]; instructions: RecipeInstruction[]; created_at: string; updated_at: string
 }
@@ -52,18 +50,13 @@ export const createRecipe = (recipe: RecipeWrite) => request<Recipe>('/api/v1/re
 export const deleteRecipe = (id: number) => request<void>(`/api/v1/recipes/${id}`, { method: 'DELETE' })
 export const updateRecipeMealTypes = (id: number, mealTypes: RecipeMealType[]) => request<Recipe>(`/api/v1/recipes/${id}/meal-types`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ meal_types: mealTypes }) })
 export const updateRecipeTags = (id: number, tags: string[]) => request<Recipe>(`/api/v1/recipes/${id}/tags`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ tags }) })
+export const updateRecipeTypes = (id: number, recipeTypes: string[]) => request<Recipe>(`/api/v1/recipes/${id}/recipe-types`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ recipe_types: recipeTypes }) })
 export const updateRecipeRating = (id: number, rating: number | null) => request<Recipe>(`/api/v1/recipes/${id}/rating`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ rating }) })
-export interface RecipeShareTarget { id: number; name: string }
-export const listRecipeShareTargets = () => request<RecipeShareTarget[]>('/api/v1/recipes/sharing/families')
-export const updateRecipeShares = (id: number, familyIds: number[]) => request<Recipe>(`/api/v1/recipes/${id}/shares`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ family_ids: familyIds }) })
-export const removeSharedRecipe = (id: number) => request<void>(`/api/v1/recipes/${id}/shared-access`, { method: 'DELETE' })
 export const listPublicRecipes = () => request<Recipe[]>('/api/v1/recipes/public')
 export const importPublicRecipe = (id: number) => request<Recipe>(`/api/v1/recipes/public/${id}/import`, { method: 'POST' })
 export const updateRecipeVisibility = (id: number, isPublic: boolean) => request<Recipe>(`/api/v1/recipes/${id}/visibility`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ is_public: isPublic }) })
 export interface RecipeMetadataSuggestions { tags: string[]; meal_types: RecipeMealType[]; cuisine: string | null }
 export const suggestRecipeMetadata = (id: number) => request<RecipeMetadataSuggestions>(`/api/v1/recipes/${id}/metadata-suggestions`, { method: 'POST' })
-export interface RecipeBulkUpdate { recipe_ids: number[]; is_public?: boolean; add_tags?: string[]; remove_tags?: string[] }
-export const bulkUpdateRecipes = (data: RecipeBulkUpdate) => request<Recipe[]>('/api/v1/recipes/bulk', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) })
 export const uploadRecipeImage = (id: number, file: File) => request<Recipe>(`/api/v1/recipes/${id}/image`, { method: 'POST', headers: { 'Content-Type': file.type }, body: file })
 export const previewRecipeImport = (url: string) => request<ImportedRecipePreview>('/api/v1/recipe-imports/preview', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ url }) })
 export const previewCookBookArchive = (file: File) => request<CookBookArchivePreview>('/api/v1/recipe-imports/cookbook/preview', { method: 'POST', headers: { 'Content-Type': 'application/zip' }, body: file })
@@ -86,7 +79,6 @@ export function inferMealTypes(category: string | null): RecipeMealType[] {
 
 export const replaceRecipe = (id: number, recipe: RecipeWrite) => request<Recipe>(`/api/v1/recipes/${id}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(recipe) })
 
-export interface SharingPreferences { always_share: boolean; families: Array<{ id: number; name: string; hidden: boolean }> }
+export interface SharingPreferences { families: Array<{ id: number; name: string; hidden: boolean }> }
 export const getSharingPreferences = () => request<SharingPreferences>('/api/v1/recipes/sharing/preferences')
-export const setAlwaysShare = (enabled: boolean) => request('/api/v1/recipes/sharing/always', { method: 'PUT', body: JSON.stringify({ enabled }) })
 export const setHiddenFamily = (id: number, enabled: boolean) => request(`/api/v1/recipes/sharing/hidden/${id}`, { method: 'PUT', body: JSON.stringify({ enabled }) })

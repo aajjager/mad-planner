@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
-import { Link, useNavigate, useParams } from 'react-router-dom'
-import { deleteRecipe, getRecipe, listRecipeShareTargets, removeSharedRecipe, suggestRecipeMetadata, updateRecipeMealTypes, updateRecipeRating, updateRecipeShares, updateRecipeTags, updateRecipeVisibility, uploadRecipeImage, type Recipe, type RecipeMealType, type RecipeShareTarget } from '../api/recipes'
+import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
+import { deleteRecipe, getRecipe, suggestRecipeMetadata, updateRecipeMealTypes, updateRecipeRating, updateRecipeTags, updateRecipeVisibility, uploadRecipeImage, type Recipe, type RecipeMealType } from '../api/recipes'
 import './RecipeDetailPage.css'
 import { useAuth } from '../auth/AuthContext'
 import { getFamilySettings } from '../api/auth'
@@ -10,46 +10,65 @@ import { RatingStars } from '../components/RatingStars'
 import { AppIcon } from '../components/AppIcon'
 import { RecipeDescription } from '../components/RecipeDescription'
 import { RecipeIngredientShopping } from '../components/RecipeIngredientShopping'
+import { RecipeTypeOptions } from '../components/RecipeTypeOptions'
 import { FamilyShareIcon } from '../components/FamilyShareIcon'
 
 export function RecipeDetailPage() {
   const { account } = useAuth()
   const t = translator(account?.locale)
   const { recipeId } = useParams(); const navigate = useNavigate()
+  const fromPublicRecipes = useLocation().state?.fromPublicRecipes === true
   const [recipe, setRecipe] = useState<Recipe | null>(null); const [error, setError] = useState(false)
   const [photoBusy, setPhotoBusy] = useState(false); const [photoError, setPhotoError] = useState('')
   const [tagInput, setTagInput] = useState(''); const [tagBusy, setTagBusy] = useState(false); const [tagError, setTagError] = useState('')
-  const [shareTargets, setShareTargets] = useState<RecipeShareTarget[]>([]); const [shareBusy, setShareBusy] = useState(false); const [shareError, setShareError] = useState('')
+  const [visibilityBusy, setVisibilityBusy] = useState(false)
+  const [visibilityError, setVisibilityError] = useState(false)
   const [suggestBusy, setSuggestBusy] = useState(false)
+  const [optionsOpened, setOptionsOpened] = useState(false)
   const [cookingEnabled, setCookingEnabled] = useState(false); const [cookingMode, setCookingMode] = useState(false); const [completedSteps, setCompletedSteps] = useState<number[]>([])
   useEffect(() => { getRecipe(Number(recipeId)).then(setRecipe).catch(() => setError(true)); getFamilySettings().then((settings) => setCookingEnabled(settings.cooking_mode_enabled)).catch(() => undefined) }, [recipeId])
   async function handleDelete() { if (recipe && window.confirm(`Delete “${recipe.name}”?`)) { await deleteRecipe(recipe.id); navigate('/recipes') } }
-  async function handleRemoveShared() { if (recipe && window.confirm(t('removeSharedRecipeConfirm'))) { await removeSharedRecipe(recipe.id); navigate('/recipes') } }
   async function toggleMealType(mealType: RecipeMealType) { if (!recipe) return; const current = recipe.meal_types || []; const next = current.includes(mealType) ? current.filter((item) => item !== mealType) : [...current, mealType]; setRecipe(await updateRecipeMealTypes(recipe.id, next)) }
   async function changePhoto(file: File | undefined) { if (!recipe || !file) return; setPhotoBusy(true); setPhotoError(''); try { setRecipe(await uploadRecipeImage(recipe.id, file)) } catch (reason) { setPhotoError(reason instanceof Error ? reason.message : t('photoUploadFailed')) } finally { setPhotoBusy(false) } }
+  async function changeVisibility(id: number, isPublic: boolean) {
+    setVisibilityBusy(true)
+    setVisibilityError(false)
+    try {
+      const updated = await updateRecipeVisibility(id, isPublic)
+      setRecipe((current) => current?.id === id ? { ...current, is_public: updated.is_public } : current)
+    } catch {
+      setVisibilityError(true)
+    } finally {
+      setVisibilityBusy(false)
+    }
+  }
   async function saveTags(tags: string[]) { if (!recipe) return; setTagBusy(true); setTagError(''); try { setRecipe(await updateRecipeTags(recipe.id, tags)) } catch (reason) { setTagError(reason instanceof Error ? reason.message : t('tagSaveFailed')) } finally { setTagBusy(false) } }
   async function addTags() { if (!recipe) return; const entered = tagInput.split(',').map((tag) => tag.trim()).filter(Boolean); if (!entered.length) return; const unique = new Map(recipe.tags.map((tag) => [tag.toLocaleLowerCase(), tag])); entered.forEach((tag) => unique.set(tag.toLocaleLowerCase(), tag)); setTagInput(''); await saveTags([...unique.values()]) }
   if (error) return <section className="page"><p className="notice notice--error">{t('recipeNotFound')}</p><Link to="/recipes">{t('backToRecipes')}</Link></section>
   if (!recipe) return <section className="page"><p className="notice">{t('loadingRecipe')}</p></section>
   const canEdit = recipe.owned_by_current_family !== false && (account?.role === 'owner' || account?.role === 'editor')
-  const selectedShareIds = recipe.shared_with_family_ids || []
-  async function loadShareTargets() { if (shareTargets.length) return; try { setShareTargets(await listRecipeShareTargets()) } catch (reason) { setShareError(reason instanceof Error ? reason.message : t('shareFailed')) } }
-  async function toggleShare(familyId: number) { if (!recipe) return; const next = selectedShareIds.includes(familyId) ? selectedShareIds.filter((id) => id !== familyId) : [...selectedShareIds, familyId]; setShareBusy(true); setShareError(''); try { setRecipe(await updateRecipeShares(recipe.id, next)) } catch (reason) { setShareError(reason instanceof Error ? reason.message : t('shareFailed')) } finally { setShareBusy(false) } }
   async function applySmartSuggestions() { if (!recipe) return; setSuggestBusy(true); setTagError(''); try { const suggestions = await suggestRecipeMetadata(recipe.id); const tags = [...new Map([...recipe.tags, ...suggestions.tags].map((tag) => [tag.toLocaleLowerCase(), tag])).values()]; let updated = await updateRecipeTags(recipe.id, tags); updated = await updateRecipeMealTypes(recipe.id, [...new Set([...updated.meal_types, ...suggestions.meal_types])]); setRecipe(updated) } catch (reason) { setTagError(reason instanceof Error ? reason.message : t('suggestionsFailed')) } finally { setSuggestBusy(false) } }
   if (cookingMode) { const remaining = recipe.instructions.filter((item) => !completedSteps.includes(item.id)); return <article className="cooking-sheet"><header><div><p className="eyebrow">{t('cookingMode')}</p><h1>{recipe.name}</h1></div><div className="cooking-actions">{completedSteps.length > 0 && <button className="button" onClick={() => setCompletedSteps((current) => current.slice(0, -1))}>{t('undoLastStep')}</button>}<button className="button" onClick={() => setCookingMode(false)}>{t('exitCooking')}</button></div></header><div className="cooking-layout"><aside><h2>{t('ingredients')}</h2><ul>{recipe.ingredients.map((item) => <li key={item.id}>{item.raw_text}</li>)}</ul></aside><section><div className="cooking-progress"><strong>{completedSteps.length} / {recipe.instructions.length} {t('completed')}</strong><span>{remaining.length === 0 ? t('recipeComplete') : t('tapDone')}</span></div>{remaining.map((item) => <article className="cooking-step" key={item.id}><span>{item.position}</span><p>{item.text}</p><button className="button button--primary" onClick={() => setCompletedSteps((current) => [...current, item.id])}>{t('done')}</button></article>)}{remaining.length === 0 && <div className="cooking-complete"><span>✓</span><h2>{t('enjoyMeal')}</h2><button className="button" onClick={() => setCompletedSteps([])}>{t('startAgain')}</button></div>}</section></div></article> }
   return <article className="page recipe-detail">
-    <Link className="back-link" to="/recipes">← {t('allRecipes')}</Link>
-    {recipe.owned_by_current_family === false && <div className="shared-recipe-notice"><span><FamilyShareIcon /></span><div><strong>{t('sharedWithYourFamily')}</strong><small>{t('sharedBy')} {recipe.owner_family_name}</small></div></div>}
+    <Link className="back-link" to={fromPublicRecipes ? '/recipes/public' : '/recipes'}>← {t(fromPublicRecipes ? 'publicRecipes' : 'allRecipes')}</Link>
+    {recipe.owned_by_current_family === false && <div className="shared-recipe-notice"><span><FamilyShareIcon /></span><div><strong>{t('publicRecipes')}</strong><small>{t('sharedBy')} {recipe.owner_family_name}</small></div></div>}
     {recipe.image_url && <div className="detail-image"><img src={recipe.image_url} alt={recipe.name} /></div>}
-    <div className="detail-heading"><div><p className="eyebrow">{recipe.category || t('recipe')}</p><h1>{recipe.name}</h1>{recipe.description && <RecipeDescription key={recipe.id} text={recipe.description} />}</div><div className="heading-actions">{cookingEnabled && recipe.instructions.length > 0 && <button className="button button--primary" onClick={() => { setCompletedSteps([]); setCookingMode(true) }}>{t('startCooking')}</button>}{recipe.owned_by_current_family === false && (account?.role === 'owner' || account?.role === 'editor') && <button className="button button--danger" onClick={handleRemoveShared}>{t('removeSharedRecipe')}</button>}{canEdit && <Link className="button" to={`/recipes/${recipe.id}/edit`}>{t('editRecipe')}</Link>}</div></div>
+    <div className="detail-heading"><div><p className="eyebrow">{recipe.category || t('recipe')}</p><h1>{recipe.name}</h1>{recipe.description && <RecipeDescription key={recipe.id} text={recipe.description} />}</div><div className="heading-actions">{cookingEnabled && recipe.instructions.length > 0 && <button className="button button--primary" onClick={() => { setCompletedSteps([]); setCookingMode(true) }}>{t('startCooking')}</button>}{canEdit && <Link className="button" to={`/recipes/${recipe.id}/edit`}>{t('editRecipe')}</Link>}</div></div>
     {account?.show_nutrition !== false && <NutritionSummary recipe={recipe} labels={{ title: t('nutrition'), available: t('nutritionAvailable'), estimated: t('nutritionEstimated'), estimatedBatch: t('nutritionEstimatedBatch'), estimatedWhole: t('nutritionEstimatedWhole'), coverage: t('nutritionCoverage'), calories: t('calories'), fat: t('fat'), carbohydrates: t('carbohydrates'), protein: t('protein') }} />}
     {(recipe.recipe_types || []).length > 0 && <div className="tag-list" aria-label={t('recipeTypesLabel')}>{recipe.recipe_types.map((type) => <span className="tag" key={type}>{type}</span>)}</div>}
-    <dl className="recipe-facts">{recipe.servings && <div><dt>{t('servings')}</dt><dd>{recipe.servings}</dd></div>}{recipe.preparation_time_minutes !== null && <div><dt>{t('preparation')}</dt><dd>{recipe.preparation_time_minutes} min</dd></div>}{recipe.cooking_time_minutes !== null && <div><dt>{t('cooking')}</dt><dd>{recipe.cooking_time_minutes} min</dd></div>}{recipe.cuisine && <div><dt>{t('cuisine')}</dt><dd>{recipe.cuisine}</dd></div>}</dl>
+    <dl className="recipe-facts">{recipe.servings && <div><dt>{t('servings')}</dt><dd>{recipe.servings}</dd></div>}{recipe.preparation_time_minutes !== null && <div><dt>{t('preparation')}</dt><dd>{recipe.preparation_time_minutes} min</dd></div>}{recipe.cooking_time_minutes !== null && <div><dt>{t('cooking')}</dt><dd>{recipe.cooking_time_minutes} min</dd></div>}{recipe.total_time_minutes != null && <div><dt>{t('totalMinutes')}</dt><dd>{recipe.total_time_minutes} min</dd></div>}{recipe.cuisine && <div><dt>{t('cuisine')}</dt><dd>{recipe.cuisine}</dd></div>}</dl>
     <div className="recipe-columns"><section><h2>{t('ingredients')}</h2><RecipeIngredientShopping key={recipe.id} recipe={recipe} /></section><section><h2>{t('instructions')}</h2>{recipe.instructions.length ? <ol className="instruction-list">{recipe.instructions.map((step) => <li key={step.id}><span>{step.position}</span><p>{step.text}</p></li>)}</ol> : <p className="muted">{t('noInstructions')}</p>}</section></div>
-    <details className="recipe-options"><summary><AppIcon name="settings" />{t('recipeOptions')}</summary>
+    <details className="recipe-options" onToggle={(event) => { if (event.currentTarget.open) setOptionsOpened(true) }}><summary><AppIcon name="settings" />{t('recipeOptions')}</summary>
+    {canEdit && optionsOpened && <RecipeTypeOptions key={recipe.id} recipeId={recipe.id} selected={recipe.recipe_types ?? []} t={t}
+      onSaved={(types) => setRecipe((current) => current?.id === recipe.id ? { ...current, recipe_types: types } : current)} />}
     <section className="recipe-rating"><div><h2>{t('familyRating')}</h2><p>{t('familyRatingHelp')}</p></div><RatingStars value={recipe.my_rating} average={recipe.family_rating} count={recipe.rating_count} label={t('yourRating')} onChange={async (rating) => setRecipe(await updateRecipeRating(recipe.id, rating))} /></section>
-    {canEdit && <details className="recipe-sharing" onToggle={(event) => { if (event.currentTarget.open) void loadShareTargets() }}><summary><span><FamilyShareIcon /></span><strong>{t('shareRecipe')}</strong><small>{recipe.shared_with_families?.length ? `${t('sharedWith')} ${recipe.shared_with_families.join(', ')}` : t('notShared')}</small></summary><div className="share-family-list">{shareTargets.length === 0 && !shareError ? <p className="muted">{t('noOtherFamilies')}</p> : shareTargets.map((family) => <label key={family.id}><input type="checkbox" checked={selectedShareIds.includes(family.id)} disabled={shareBusy} onChange={() => void toggleShare(family.id)} /><span>{family.name}</span></label>)}</div>{shareError && <p className="notice notice--error">{shareError}</p>}</details>}
-    {canEdit && <section className="recipe-sharing"><label className="setting-toggle"><input type="checkbox" checked={recipe.is_public} disabled={shareBusy} onChange={async (event) => { setShareBusy(true); try { setRecipe(await updateRecipeVisibility(recipe.id, event.target.checked)) } finally { setShareBusy(false) } }} /><span><strong>{t('publicRecipe')}</strong><small>{t('publicRecipeHelp')}</small></span></label></section>}
+    {canEdit && <section className="recipe-sharing">
+      <label className="setting-toggle">
+        <input type="checkbox" checked={recipe.is_public === false} disabled={visibilityBusy} onChange={(event) => void changeVisibility(recipe.id, !event.target.checked)} />
+        <span><strong>{t('keepRecipePrivate')}</strong><small>{t('keepRecipePrivateHelp')}</small></span>
+      </label>
+      {visibilityError && <p className="notice notice--error" role="alert">{t('recipePrivacySaveFailed')}</p>}
+    </section>}
     {canEdit && <button type="button" className="button" disabled={suggestBusy} onClick={() => void applySmartSuggestions()}>{suggestBusy ? t('working') : t('smartRecipeScan')}</button>}
     <section className="recipe-tags"><div><h2>{t('recipeTags')}</h2><p>{t('recipeTagsHelp')}</p></div>{recipe.tags.length > 0 && <div className="tag-list" aria-label={t('recipeTags')}>{recipe.tags.map((tag) => canEdit ? <button type="button" className="tag tag--removable" disabled={tagBusy} onClick={() => saveTags(recipe.tags.filter((item) => item !== tag))} aria-label={`${t('remove')} ${tag}`} key={tag}>{tag}<span aria-hidden="true">×</span></button> : <span className="tag" key={tag}>{tag}</span>)}</div>}{canEdit && <div className="tag-entry"><input value={tagInput} maxLength={200} placeholder={t('recipeTagPlaceholder')} disabled={tagBusy || recipe.tags.length >= 20} onChange={(event) => setTagInput(event.target.value)} onKeyDown={(event) => { if (event.key === 'Enter') { event.preventDefault(); void addTags() } }} /><button type="button" className="button" disabled={tagBusy || !tagInput.trim()} onClick={() => void addTags()}>{tagBusy ? t('saving') : t('addTag')}</button></div>}{tagError && <p className="notice notice--error">{tagError}</p>}</section>
     <section className="meal-classification"><div><h2>{t('suitableFor')}</h2><p>{canEdit ? t('chooseMeals') : t('mealClassifications')}</p></div><div className="choice-chips">{(['breakfast', 'lunch', 'dinner'] as RecipeMealType[]).map((mealType) => <button type="button" disabled={!canEdit} className={`choice-chip${(recipe.meal_types || []).includes(mealType) ? ' choice-chip--selected' : ''}`} aria-pressed={(recipe.meal_types || []).includes(mealType)} onClick={() => toggleMealType(mealType)} key={mealType}>{mealType}</button>)}</div></section>

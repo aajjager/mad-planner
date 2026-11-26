@@ -1,3 +1,5 @@
+from datetime import date
+
 import pytest
 from fastapi.testclient import TestClient
 
@@ -8,6 +10,7 @@ from sqlalchemy.pool import StaticPool
 from madplanner.db.base import Base
 from madplanner.db.session import get_session
 from madplanner.main import app
+from madplanner.models import Family, MealPlanEntry, MealType, RecipeShare
 
 
 @pytest.fixture
@@ -96,6 +99,31 @@ def test_recipe_crud(client: TestClient) -> None:
 
     assert client.delete(f"/api/v1/recipes/{recipe_id}").status_code == 204
     assert client.get(f"/api/v1/recipes/{recipe_id}").status_code == 404
+
+
+def test_recipe_types_can_be_changed_without_rewriting_the_recipe(client: TestClient) -> None:
+    created = client.post("/api/v1/recipes", json={
+        "name": "Lemon cordial", "recipe_types": ["Dinner"], "meal_types": ["lunch"],
+        "tags": ["Lemon"], "image_url": "https://example.com/photo.jpg",
+        "ingredients": [{"raw_text": "2 lemons"}], "instructions": [{"text": "Juice the lemons."}],
+    })
+    assert created.status_code == 201
+    recipe_url = f"/api/v1/recipes/{created.json()['id']}"
+    original = client.get(recipe_url).json()
+
+    changed = client.patch(f"{recipe_url}/recipe-types", json={"recipe_types": ["beverages", "Bake-off"]})
+    assert changed.status_code == 200
+    assert changed.json()["recipe_types"] == ["Bake-off", "Beverages"]
+    for field in ("ingredients", "instructions", "tags", "image_url", "meal_types"):
+        assert changed.json()[field] == original[field]
+
+    invalid = client.patch(f"{recipe_url}/recipe-types", json={"recipe_types": ["Dinner", "Unknown type"]})
+    assert invalid.status_code == 422
+    assert client.get(recipe_url).json()["recipe_types"] == ["Bake-off", "Beverages"]
+
+    cleared = client.patch(f"{recipe_url}/recipe-types", json={"recipe_types": []})
+    assert cleared.status_code == 200
+    assert client.get(recipe_url).json()["recipe_types"] == []
 
 
 def test_recipe_validation_and_not_found(client: TestClient) -> None:
@@ -194,42 +222,56 @@ def test_metadata_only_nutrition_uses_ingredient_estimate(client: TestClient) ->
     assert response.json()["nutrition"]["coveragePercent"] == 100
 
 
-def test_recipe_can_be_shared_without_copying_it(client: TestClient) -> None:
-    created = client.post("/api/v1/recipes", json={"name": "Family pasta"})
-    recipe_id = created.json()["id"]
+def test_legacy_shares_do_not_override_privacy_and_existing_meal_slots_are_retained(client: TestClient) -> None:
+    recipe = client.post("/api/v1/recipes", json={
+        "name": "Family pasta", "image_url": "https://example.com/pasta.jpg",
+        "ingredients": [{"raw_text": "2 onions"}],
+    }).json()
+    recipe_url = f"/api/v1/recipes/{recipe['id']}"
+    owner = client.get("/api/v1/auth/me").json()
+    invitation = client.post("/api/v1/auth/families/invitations", json={
+        "family_name": "Neighbour", "email": "neighbour@example.com",
+    }).json()
+    neighbour = TestClient(app)
+    accepted = neighbour.post(f"/api/v1/auth/invitations/{invitation['token']}/accept", json={
+        "display_name": "Neighbour", "password": "test-password-456",
+    }).json()
+    session_generator = app.dependency_overrides[get_session]()
+    try:
+        session = next(session_generator)
+        session.get(Family, owner["family_id"]).always_share_recipes = True
+        session.add(RecipeShare(recipe_id=recipe["id"], recipient_family_id=accepted["family_id"], created_by_user_id=owner["id"]))
+        planned = MealPlanEntry(recipe_id=recipe["id"], family_id=accepted["family_id"],
+                                meal_date=date(2026, 11, 26), meal_type=MealType.DINNER, notes="Existing notes")
+        session.add(planned)
+        session.commit()
+        entry_id = planned.id
+    finally:
+        session_generator.close()
 
-    provisioned = client.post("/api/v1/auth/families/invitations", json={"family_name": "Vibe family", "email": "vibe@example.com"})
-    assert provisioned.status_code == 201
-    recipient_client = TestClient(app)
-    accepted = recipient_client.post(f"/api/v1/auth/invitations/{provisioned.json()['token']}/accept", json={"display_name": "Vibe", "password": "test-password-456"})
-    assert accepted.status_code == 201
-    assert accepted.json()["is_system_admin"] is False
-    assert recipient_client.get("/api/v1/auth/admin/families").status_code == 403
+    assert recipe["is_public"] is True
+    assert neighbour.get("/api/v1/recipes").json() == []
+    assert neighbour.get(recipe_url).json()["owned_by_current_family"] is False
+    assert neighbour.put(recipe_url, json={"name": "Changed"}).status_code == 404
+    assert neighbour.patch(f"{recipe_url}/recipe-types", json={"recipe_types": ["Beverages"]}).status_code == 404
+    assert neighbour.put(f"{recipe_url}/visibility", json={"is_public": False}).status_code == 404
+    assert neighbour.put(f"{recipe_url}/rating", json={"rating": 4}).json()["family_rating"] == 4
+    assert client.get(recipe_url).json()["family_rating"] is None
+    assert neighbour.put("/api/v1/meal-plans/2026-11-25/dinner", json={"recipe_id": recipe["id"]}).status_code == 404
+    assert neighbour.get("/api/v1/grocery-lists/week?week_start=2026-11-23").json()["items"]
 
-    targets = client.get("/api/v1/recipes/sharing/families")
-    assert targets.status_code == 200
-    assert len(targets.json()) == 1
-    recipient_id = targets.json()[0]["id"]
-    assert targets.json()[0]["name"] == "Vibe family"
-
-    shared = client.put(f"/api/v1/recipes/{recipe_id}/shares", json={"family_ids": [recipient_id]})
-    assert shared.status_code == 200
-    assert shared.json()["shared_with_family_ids"] == [recipient_id]
-    assert shared.json()["shared_with_families"] == ["Vibe family"]
-    received = recipient_client.get(f"/api/v1/recipes/{recipe_id}")
-    assert received.status_code == 200
-    assert received.json()["owned_by_current_family"] is False
-    assert received.json()["owner_family_name"] == "Test family"
-    assert recipient_client.put(f"/api/v1/recipes/{recipe_id}", json={"name": "Changed"}).status_code == 404
-    assert recipient_client.put(f"/api/v1/recipes/{recipe_id}/rating", json={"rating": 4}).json()["family_rating"] == 4
-    assert client.get(f"/api/v1/recipes/{recipe_id}").json()["family_rating"] is None
-
-    assert recipient_client.delete(f"/api/v1/recipes/{recipe_id}/shared-access").status_code == 204
-    assert recipient_client.get(f"/api/v1/recipes/{recipe_id}").status_code == 404
-    assert client.get(f"/api/v1/recipes/{recipe_id}").status_code == 200
-
-    assert client.delete(f"/api/v1/recipes/{recipe_id}").status_code == 204
-    assert recipient_client.get(f"/api/v1/recipes/{recipe_id}").status_code == 404
+    assert client.put(f"{recipe_url}/visibility", json={"is_public": False}).status_code == 200
+    assert neighbour.get("/api/v1/recipes/public").json() == []
+    assert neighbour.get(recipe_url).status_code == 404
+    assert neighbour.post(f"/api/v1/recipes/public/{recipe['id']}/import").status_code == 404
+    assert neighbour.put(f"{recipe_url}/rating", json={"rating": 5}).status_code == 404
+    assert client.get(recipe_url).json()["name"] == "Family pasta"
+    stored = neighbour.get("/api/v1/meal-plans/week?week_start=2026-11-23").json()["entries"][0]
+    assert (stored["id"], stored["notes"]) == (entry_id, "Existing notes")
+    assert stored["recipe"] == {"id": recipe["id"], "name": "", "image_url": None, "available": False}
+    assert neighbour.get("/api/v1/grocery-lists/week?week_start=2026-11-23").json()["items"] == []
+    assert client.put(f"{recipe_url}/shares", json={"family_ids": []}).status_code == 404
+    assert neighbour.delete(f"{recipe_url}/shared-access").status_code == 404
 
 
 def test_public_recipe_can_be_browsed_and_imported_as_independent_copy(client: TestClient) -> None:
@@ -309,45 +351,49 @@ def test_scanned_recipe_with_long_ingredient_notes_saves_and_round_trips(client)
     assert client.put(f"/api/v1/recipes/{saved['id']}", json=payload).status_code == 200
 
 
-def test_always_share_and_personal_family_filter_preserve_data(client: TestClient) -> None:
-    original = client.post('/api/v1/recipes', json={'name': 'Existing private recipe'}).json()
+def test_recipes_are_public_by_default_and_personal_family_filters_are_preserved(client: TestClient) -> None:
+    original = client.post('/api/v1/recipes', json={'name': 'Original recipe'}).json()
     invitation = client.post('/api/v1/auth/families/invitations', json={'family_name': 'Neighbour', 'email': 'neighbour@example.com'}).json()
     recipient = TestClient(app)
     recipient.post(f"/api/v1/auth/invitations/{invitation['token']}/accept", json={'display_name': 'Neighbour', 'password': 'test-password-456'})
-    assert recipient.get('/api/v1/recipes/public').json() == []
-    assert client.put('/api/v1/recipes/sharing/always', json={'enabled': True}).status_code == 200
     future = client.post('/api/v1/recipes', json={'name': 'Future recipe'}).json()
-    assert len(recipient.get('/api/v1/recipes/public').json()) == 2
+    assert {r['id'] for r in recipient.get('/api/v1/recipes/public').json()} == {original['id'], future['id']}
+    assert {r['id'] for r in client.get('/api/v1/recipes/public').json()} == {original['id'], future['id']}
+
     imported = recipient.post(f"/api/v1/recipes/public/{original['id']}/import").json()
+    assert imported['is_public'] is True
+    assert recipient.post(f"/api/v1/recipes/public/{imported['id']}/import").status_code == 404
     family = recipient.get('/api/v1/recipes/sharing/preferences').json()['families'][0]
-    assert recipient.put(f"/api/v1/recipes/sharing/hidden/{family['id']}", json={'enabled': True}).status_code == 200
-    assert recipient.get('/api/v1/recipes/public').json() == []
+    hidden_url = f"/api/v1/recipes/sharing/hidden/{family['id']}"
+    assert recipient.put(hidden_url, json={'enabled': True}).status_code == 200
+    assert [r['id'] for r in recipient.get('/api/v1/recipes/public').json()] == [imported['id']]
+    assert recipient.put(hidden_url, json={'enabled': False}).status_code == 200
+
+    client.put(f"/api/v1/recipes/{original['id']}/visibility", json={'is_public': False})
+    assert {r['id'] for r in recipient.get('/api/v1/recipes/public').json()} == {future['id'], imported['id']}
     assert recipient.get(f"/api/v1/recipes/{imported['id']}").status_code == 200
     assert client.get(f"/api/v1/recipes/{original['id']}").status_code == 200
-    recipient.put(f"/api/v1/recipes/sharing/hidden/{family['id']}", json={'enabled': False})
-    assert len(recipient.get('/api/v1/recipes/public').json()) == 2
-    client.put(f"/api/v1/recipes/{future['id']}/visibility", json={'is_public': True})
-    client.put('/api/v1/recipes/sharing/always', json={'enabled': False})
-    assert [r['id'] for r in recipient.get('/api/v1/recipes/public').json()] == [future['id']]
+    assert client.put('/api/v1/recipes/sharing/always', json={'enabled': True}).status_code == 404
     assert recipient.put('/api/v1/recipes/sharing/hidden/999999', json={'enabled': True}).status_code == 422
-    anonymous = TestClient(app)
-    assert anonymous.put('/api/v1/recipes/sharing/always', json={'enabled': True}).status_code == 401
+    assert TestClient(app).get('/api/v1/recipes/public').status_code == 401
 
 
-def test_viewer_filter_is_personal_and_cannot_enable_family_sharing(client: TestClient) -> None:
+def test_viewer_filter_is_personal_and_cannot_change_recipe_privacy(client: TestClient) -> None:
     invitation = client.post('/api/v1/auth/family/invitations', json={'email': 'viewer@example.com', 'role': 'viewer'}).json()
     viewer = TestClient(app)
     assert viewer.post(f"/api/v1/auth/invitations/{invitation['token']}/accept", json={'display_name': 'Viewer', 'password': 'test-password-456'}).status_code == 201
-    assert viewer.put('/api/v1/recipes/sharing/always', json={'enabled': True}).status_code == 403
+    recipe = client.post('/api/v1/recipes', json={'name': 'Own recipe'}).json()
+    recipe_url = f"/api/v1/recipes/{recipe['id']}"
+    assert viewer.put(f"{recipe_url}/visibility", json={'is_public': False}).status_code == 403
+    assert viewer.patch(f"{recipe_url}/recipe-types", json={'recipe_types': ['Bread']}).status_code == 403
     invitation = client.post('/api/v1/auth/families/invitations', json={'family_name': 'Other', 'email': 'other@example.com'}).json()
     other = TestClient(app)
     other.post(f"/api/v1/auth/invitations/{invitation['token']}/accept", json={'display_name': 'Other', 'password': 'test-password-456'})
     other.post('/api/v1/recipes', json={'name': 'Other soup'})
-    other.put('/api/v1/recipes/sharing/always', json={'enabled': True})
     family = viewer.get('/api/v1/recipes/sharing/preferences').json()['families'][0]
     assert viewer.put(f"/api/v1/recipes/sharing/hidden/{family['id']}", json={'enabled': True}).status_code == 200
-    assert viewer.get('/api/v1/recipes/public').json() == []
-    assert len(client.get('/api/v1/recipes/public').json()) == 1
+    assert [r['id'] for r in viewer.get('/api/v1/recipes/public').json()] == [recipe['id']]
+    assert len(client.get('/api/v1/recipes/public').json()) == 2
 
 
 def test_beverage_type_can_be_selected_when_saving_an_import(client: TestClient) -> None:

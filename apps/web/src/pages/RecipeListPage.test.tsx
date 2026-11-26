@@ -1,37 +1,99 @@
-import { cleanup, fireEvent, render, screen } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen, within } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { RecipeListPage } from './RecipeListPage'
 import { guideCopy } from '../components/welcomeGuideContent'
 
 const auth = vi.hoisted(() => ({ role: 'viewer' }))
+const types = vi.hoisted(() => ({ list: vi.fn() }))
 vi.mock('../auth/AuthContext', () => ({ useAuth: () => ({ account: { role: auth.role, locale: 'en' } }) }))
+vi.mock('../api/auth', () => ({ listRecipeTypes: types.list }))
 vi.mock('../api/recipes', () => ({ listRecipes: () => Promise.resolve([
-  { id: 1, owned_by_current_family: true, family_rating: 4, name: 'Apple soup', description: 'A warm soup.', tags: [], recipe_types: [], nutrition: null, total_time_minutes: 20 },
-  { id: 2, owned_by_current_family: true, family_rating: 3, name: 'Burger', description: 'A family favourite.', tags: [], recipe_types: [], nutrition: null, total_time_minutes: 30 },
+  { id: 1, owned_by_current_family: true, family_rating: 4, name: 'Apple soup', description: 'A warm soup.', tags: [], recipe_types: ['Lunch'], nutrition: null, total_time_minutes: 20 },
+  { id: 2, owned_by_current_family: true, family_rating: 3, name: 'Burger', description: 'A family favourite.', tags: [], recipe_types: ['Dinner', 'Grill night'], nutrition: null, total_time_minutes: 30, image_url: '/media/portrait-cookbook.jpg' },
 ]) }))
 
-beforeEach(() => { localStorage.clear(); auth.role = 'viewer' })
+beforeEach(() => {
+  localStorage.clear()
+  auth.role = 'viewer'
+  types.list.mockReset().mockResolvedValue([{ id: 1, name: 'Dinner' }, { id: 2, name: 'Beverages' }])
+})
 afterEach(() => { cleanup(); vi.restoreAllMocks() })
 const show = () => render(<MemoryRouter><RecipeListPage /></MemoryRouter>)
 
+describe('recipe type shortcuts', () => {
+  it('combines configured and in-use types and applies just one type filter', async () => {
+    show()
+    const row = within(await screen.findByRole('group', { name: 'Recipe type' }))
+    expect(row.getByRole('button', { name: 'All' })).toHaveAttribute('aria-pressed', 'true')
+    expect(row.getAllByRole('button', { name: 'Dinner' })).toHaveLength(1)
+    fireEvent.click(row.getByRole('button', { name: 'Dinner' }))
+    expect(screen.getByRole('heading', { name: 'Burger' })).toBeVisible()
+    expect(screen.queryByRole('heading', { name: 'Apple soup' })).not.toBeInTheDocument()
+    expect(row.getByRole('button', { name: 'Dinner' })).toHaveAttribute('aria-pressed', 'true')
+    fireEvent.click(row.getByRole('button', { name: 'Grill night' }))
+    expect(screen.getByRole('heading', { name: 'Burger' })).toBeVisible()
+    fireEvent.click(row.getByRole('button', { name: 'Beverages' }))
+    expect(screen.getByRole('heading', { name: 'No matching recipes' })).toBeVisible()
+    fireEvent.click(row.getByRole('button', { name: 'Lunch' }))
+    expect(screen.getByRole('heading', { name: 'Apple soup' })).toBeVisible()
+    expect(screen.queryByRole('heading', { name: 'Burger' })).not.toBeInTheDocument()
+  })
+
+  it('shares state with the filter panel and keeps search when choosing All', async () => {
+    show()
+    const row = within(await screen.findByRole('group', { name: 'Recipe type' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Filters' }))
+    const dropdown = screen.getByRole('combobox', { name: 'Recipe type' })
+    fireEvent.change(dropdown, { target: { value: 'Dinner' } })
+    expect(row.getByRole('button', { name: 'Dinner' })).toHaveAttribute('aria-pressed', 'true')
+    fireEvent.change(screen.getByRole('searchbox'), { target: { value: 'Apple' } })
+    fireEvent.click(row.getByRole('button', { name: 'All' }))
+    expect(dropdown).toHaveValue('')
+    expect(screen.getByRole('searchbox')).toHaveValue('Apple')
+    expect(screen.getByRole('heading', { name: 'Apple soup' })).toBeVisible()
+    expect(screen.queryByRole('heading', { name: 'Burger' })).not.toBeInTheDocument()
+  })
+
+  it('keeps types already used by recipes available if family settings cannot load', async () => {
+    types.list.mockRejectedValue(new Error('Could not load settings'))
+    show()
+    const row = within(await screen.findByRole('group', { name: 'Recipe type' }))
+    fireEvent.click(row.getByRole('button', { name: 'Lunch' }))
+    expect(screen.getByRole('heading', { name: 'Apple soup' })).toBeVisible()
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+  })
+})
+
 describe('recipe collection sizing', () => {
-  it('keeps adding prominent and groups secondary collection actions', async () => {
+  it('renders a decorative food icon for a recipe with no photo', async () => {
+    show()
+    const card = await screen.findByRole('link', { name: /Apple soup/ })
+    expect(card.querySelector('.recipe-card__image > .app-icon')).toHaveAttribute('aria-hidden', 'true')
+  })
+
+  it('keeps the saved cookbook photo in the recipe link at every card size', async () => {
+    show()
+    const card = await screen.findByRole('link', { name: /Burger/ })
+    const photo = within(card).getByAltText('')
+    const slider = screen.getByRole('slider', { name: 'Recipe card size' })
+
+    for (const size of ['0', '1', '2']) {
+      fireEvent.change(slider, { target: { value: size } })
+      expect(photo).toBeInTheDocument()
+      expect(photo).toHaveAttribute('src', '/media/portrait-cookbook.jpg')
+    }
+  })
+
+  it('keeps public recipes available without a selection menu or an add button in the collection', async () => {
     auth.role = 'owner'
     show()
     await screen.findByText('Apple soup')
-    expect(screen.getByRole('link', { name: 'Add recipe' })).toHaveAttribute('href', '/recipes/add')
-    const more = screen.getByLabelText('More recipe actions')
-    const menu = more.closest('details')!
-    expect(menu).not.toHaveAttribute('open')
-    fireEvent.click(more)
-    expect(menu).toHaveAttribute('open')
-    expect(screen.getByRole('link', { name: 'Browse public recipes' })).toHaveAttribute('href', '/recipes/public')
-    fireEvent.click(screen.getByRole('button', { name: 'Select recipes' }))
-    expect(menu).not.toHaveAttribute('open')
-    expect(screen.getByRole('button', { name: 'Select Apple soup' })).toHaveAttribute('aria-pressed', 'false')
-    fireEvent.click(screen.getByRole('button', { name: 'Select Apple soup' }))
-    expect(screen.getByRole('button', { name: 'Select Apple soup' })).toHaveAttribute('aria-pressed', 'true')
+    expect(screen.queryByRole('link', { name: 'Add recipe' })).not.toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Public recipes' })).toHaveAttribute('href', '/recipes/public')
+    expect(screen.queryByLabelText('More recipe actions')).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Select recipes' })).not.toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /Apple soup/ })).toHaveAttribute('href', '/recipes/1')
   })
 
   it('keeps search available and preserves filters when the panel closes', async () => {
@@ -87,5 +149,6 @@ describe('recipe collection sizing', () => {
   it.each(['en', 'da', 'nl'] as const)('explains collection sizing in the %s welcome guide', (locale) => {
     const tip = guideCopy[locale].steps.find((step) => step[2] === '/recipes')!
     expect(tip[1]).toContain({ en: 'Recipe card size', da: 'Opskriftskortets størrelse', nl: 'Grootte receptkaarten' }[locale])
+    expect(tip[1]).toContain({ en: 'food icon', da: 'madikon', nl: 'voedselicoon' }[locale])
   })
 })
